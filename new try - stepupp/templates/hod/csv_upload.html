@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% block title %}Upload Academic CSV - Information Technology{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title"><i class="fa-solid fa-cloud-arrow-up me-2 text-warning"></i> Upload & Import Academic CSV</h1>
+        <div class="page-subtitle">Validate, preview, and ingest student marks & attendance data into MySQL database</div>
+    </div>
+</div>
+
+<!-- INSTRUCTIONS CARD -->
+<div class="analytics-card mb-4">
+    <h3 class="h5 fw-bold text-navy mb-2"><i class="fa-solid fa-circle-info me-2 text-warning"></i> CSV Formatting Guidelines</h3>
+    <p class="fs-7 text-muted mb-3">Ensure your CSV contains columns for <strong>register_no</strong>, <strong>student_name</strong>, <strong>subject</strong>, <strong>marks</strong>, and <strong>attendance</strong>.</p>
+    <div class="p-3 bg-light rounded border font-monospace fs-7">
+        register_no,student_name,semester,subject,marks,attendance<br>
+        911524205001,ABICHETHRA P,5,Database Management System,85,92<br>
+        911524205002,ABIRAMI K,5,Database Management System,72,81
+    </div>
+</div>
+
+<!-- UPLOAD FORM CARD -->
+<div class="analytics-card mb-4">
+    <form id="csvUploadForm" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label for="csvFileInput" class="form-label fw-bold text-navy">Select CSV File</label>
+            <input class="form-control form-control-lg" type="file" id="csvFileInput" name="file" accept=".csv" required>
+        </div>
+        <button type="submit" class="btn btn-msec py-2 px-4" id="btnPreviewCSV">
+            <i class="fa-solid fa-magnifying-glass-chart me-2"></i> Preview & Validate CSV Data
+        </button>
+    </form>
+</div>
+
+<!-- VALIDATION RESULTS & PREVIEW -->
+<div class="custom-table-card p-4 d-none" id="previewContainer">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="h5 fw-bold text-navy mb-0"><i class="fa-solid fa-list-check me-2 text-warning"></i> CSV Validation & Row Preview</h3>
+        <div class="d-flex gap-2">
+            <span class="badge bg-success py-2 px-3 fs-7" id="validBadge">0 Valid Rows</span>
+            <span class="badge bg-danger py-2 px-3 fs-7" id="invalidBadge">0 Invalid Rows</span>
+        </div>
+    </div>
+
+    <div class="alert alert-danger d-none mb-3" id="errorSummaryBox"></div>
+
+    <div class="table-responsive mb-4">
+        <table class="table table-custom align-middle">
+            <thead>
+                <tr>
+                    <th>Row #</th>
+                    <th>Register No</th>
+                    <th>Name</th>
+                    <th>Subject</th>
+                    <th>Marks</th>
+                    <th>Attendance %</th>
+                    <th>Status</th>
+                    <th>Validation Notes</th>
+                </tr>
+            </thead>
+            <tbody id="csvPreviewTableBody"></tbody>
+        </table>
+    </div>
+
+    <div class="text-end">
+        <button class="btn btn-msec-navy py-2 px-4" id="btnConfirmImport" onclick="confirmImport()">
+            <i class="fa-solid fa-database me-2"></i> Confirm & Import into MySQL Database
+        </button>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('csvUploadForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const fileInput = document.getElementById('csvFileInput');
+        if (!fileInput.files[0]) return;
+
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+
+        const btn = document.getElementById('btnPreviewCSV');
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Validating...`;
+        btn.disabled = true;
+
+        try {
+            const res = await fetch('/api/csv/preview', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+
+            btn.innerHTML = `<i class="fa-solid fa-magnifying-glass-chart me-2"></i> Preview & Validate CSV Data`;
+            btn.disabled = false;
+
+            if (!data.success) {
+                alert(data.errors.join('\n'));
+                return;
+            }
+
+            renderPreview(data);
+        } catch (err) {
+            btn.innerHTML = `<i class="fa-solid fa-magnifying-glass-chart me-2"></i> Preview & Validate CSV Data`;
+            btn.disabled = false;
+            alert('Error validating CSV file: ' + err);
+        }
+    });
+
+    function renderPreview(data) {
+        document.getElementById('previewContainer').classList.remove('d-none');
+        document.getElementById('validBadge').innerText = `${data.valid_count} Valid Rows`;
+        document.getElementById('invalidBadge').innerText = `${data.invalid_count} Invalid Rows`;
+
+        const errBox = document.getElementById('errorSummaryBox');
+        if (data.errors && data.errors.length > 0) {
+            errBox.classList.remove('d-none');
+            errBox.innerHTML = `<strong><i class="fa-solid fa-triangle-exclamation me-1"></i> Validation Warnings (${data.errors.length}):</strong><ul class="mb-0 mt-1 small">${data.errors.map(e => `<li>${e}</li>`).join('')}</ul>`;
+        } else {
+            errBox.classList.add('d-none');
+        }
+
+        const tbody = document.getElementById('csvPreviewTableBody');
+        tbody.innerHTML = data.previews.map(r => `
+            <tr class="${r.is_valid ? '' : 'table-danger'}">
+                <td>${r.row_num}</td>
+                <td class="font-monospace fw-bold">${r.regno || '-'}</td>
+                <td>${r.name || '-'}</td>
+                <td>${r.subject || '-'}</td>
+                <td class="fw-bold">${r.marks != null ? r.marks : '-'}</td>
+                <td>${r.attendance != null ? r.attendance + '%' : '-'}</td>
+                <td>
+                    ${r.is_valid 
+                        ? `<span class="badge-status badge-pass"><i class="fa-solid fa-check me-1"></i> Valid</span>` 
+                        : `<span class="badge-status badge-at-risk"><i class="fa-solid fa-xmark me-1"></i> Invalid</span>`}
+                </td>
+                <td class="small text-danger">${r.errors.join(', ')}</td>
+            </tr>
+        `).join('');
+
+        const importBtn = document.getElementById('btnConfirmImport');
+        if (data.valid_count === 0) {
+            importBtn.disabled = true;
+        } else {
+            importBtn.disabled = false;
+        }
+    }
+
+    async function confirmImport() {
+        const btn = document.getElementById('btnConfirmImport');
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Importing...`;
+        btn.disabled = true;
+
+        try {
+            const res = await fetch('/api/csv/import', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await res.json();
+
+            btn.innerHTML = `<i class="fa-solid fa-database me-2"></i> Confirm & Import into MySQL Database`;
+            btn.disabled = false;
+
+            if (data.success) {
+                alert(`🎉 ${data.message}\n\nAll analytics, charts, and student KPI cards have been automatically updated!`);
+                window.location.href = '/hod/dashboard';
+            } else {
+                alert('Import failed: ' + data.errors.join('\n'));
+            }
+        } catch (err) {
+            btn.innerHTML = `<i class="fa-solid fa-database me-2"></i> Confirm & Import into MySQL Database`;
+            btn.disabled = false;
+            alert('Error during import: ' + err);
+        }
+    }
+</script>
+{% endblock %}

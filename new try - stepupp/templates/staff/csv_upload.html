@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Upload CSV - Staff Panel{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title"><i class="fa-solid fa-cloud-arrow-up me-2 text-warning"></i> Upload Subject Marks CSV</h1>
+        <div class="page-subtitle">Batch import student internal assessment marks and update analytics automatically</div>
+    </div>
+</div>
+
+<div class="analytics-card mb-4">
+    <form id="staffCsvForm" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label class="form-label fw-bold text-navy">Select CSV File</label>
+            <input type="file" class="form-control form-control-lg" name="file" accept=".csv" required>
+        </div>
+        <button type="submit" class="btn btn-msec"><i class="fa-solid fa-file-csv me-2"></i> Preview & Ingest CSV</button>
+    </form>
+</div>
+
+<div class="custom-table-card p-4 d-none" id="staffPreviewBox">
+    <h3 class="h5 fw-bold text-navy mb-3">CSV Validation Results</h3>
+    <div id="staffPreviewResults"></div>
+    <button class="btn btn-msec-navy mt-3" onclick="confirmStaffImport()"><i class="fa-solid fa-database me-2"></i> Confirm Database Import</button>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('staffCsvForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+
+        try {
+            const res = await fetch('/api/csv/preview', { method: 'POST', body: formData });
+            const data = await res.json();
+            
+            if (!data.success) {
+                alert(data.errors.join('\n'));
+                return;
+            }
+
+            document.getElementById('staffPreviewBox').classList.remove('d-none');
+            document.getElementById('staffPreviewResults').innerHTML = `
+                <div class="alert alert-success py-2">Validated ${data.valid_count} rows successfully (${data.invalid_count} errors).</div>
+            `;
+        } catch (err) {
+            alert('Upload error: ' + err);
+        }
+    });
+
+    async function confirmStaffImport() {
+        try {
+            const res = await fetch('/api/csv/import', { method: 'POST' });
+            const data = await res.json();
+            if (data.success) {
+                alert('Marks imported successfully!');
+                window.location.href = '/staff/dashboard';
+            }
+        } catch (e) {
+            alert('Import error: ' + e);
+        }
+    }
+</script>
+{% endblock %}

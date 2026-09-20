@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Academic Analytics System{% endblock %} - Mohamed Sathak Engineering College</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Custom Style -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="msec-portal-body">
+
+    <!-- GLOBAL WAVE MENU LOADER OVERLAY (Uiverse.io by JkHuger) -->
+    <div id="globalWaveLoader" class="wave-loader-overlay active">
+        <ul class="wave-menu">
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+        </ul>
+        <div class="wave-loader-text" id="globalWaveLoaderText">Loading Academic Analytics Platform...</div>
+    </div>
+
+    <!-- 1. OFFICIAL COLLEGE BANNER AT THE TOP (NOT FIXED, SCROLLS NATURALLY) -->
+    <header class="msec-banner-header">
+        <div class="banner-inner">
+            <img src="{{ url_for('static', filename='images/msec_banner.jpg') }}" alt="Mohamed Sathak Engineering College - Autonomous Institution, Kilakarai" class="msec-banner-image">
+        </div>
+    </header>
+
+    <!-- 2. TOP HORIZONTAL UTILITY / IDENTITY STRIP -->
+    <div class="msec-top-utility-bar">
+        <div class="utility-left">
+            <button class="mobile-nav-toggle d-lg-none" id="sidebarToggle" type="button" aria-label="Toggle navigation">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <div class="dept-title-text">
+                <i class="fa-solid fa-graduation-cap text-orange me-2"></i>DEPARTMENT OF INFORMATION TECHNOLOGY
+            </div>
+        </div>
+        <div class="utility-right">
+            <div class="user-pill-badge">
+                <i class="fa-solid fa-circle-user text-orange me-1"></i>
+                <span class="user-display-name">{{ session.get('display_name', 'User') }}</span>
+                <span class="badge-role-tag">{{ session.get('role', '').upper() }}</span>
+            </div>
+            <a href="{{ url_for('auth.logout') }}" class="btn-campus-exit" title="Logout">
+                <i class="fa-solid fa-arrow-right-from-bracket me-1"></i> EXIT
+            </a>
+        </div>
+    </div>
+
+    <!-- 3. MAIN PORTAL WRAPPER (SIDEBAR ON LEFT, DASHBOARD ON RIGHT) -->
+    <div class="portal-main-container">
+        <!-- LEFT SIDEBAR -->
+        <aside class="portal-left-sidebar" id="portalSidebar">
+            <nav class="sidebar-nav">
+                <ul class="sidebar-menu-list">
+                    {% if session.get('role') == 'hod' %}
+                        <li>
+                            <a href="{{ url_for('hod.dashboard') }}" class="sidebar-link-btn {% if request.endpoint == 'hod.dashboard' %}active{% endif %}">
+                                <i class="fa-solid fa-chart-pie me-2"></i> DASHBOARD
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('hod.students_page') }}" class="sidebar-link-btn {% if request.endpoint in ['hod.students_page', 'hod.student_detail_page'] %}active{% endif %}">
+                                <i class="fa-solid fa-users me-2"></i> STUDENTS
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('hod.staff_page') }}" class="sidebar-link-btn {% if request.endpoint == 'hod.staff_page' %}active{% endif %}">
+                                <i class="fa-solid fa-chalkboard-user me-2"></i> STAFF
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('hod.attendance_analytics_page') }}" class="sidebar-link-btn {% if request.endpoint == 'hod.attendance_analytics_page' %}active{% endif %}">
+                                <i class="fa-solid fa-calendar-check me-2"></i> ATTENDANCE
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('hod.marks_analytics_page') }}" class="sidebar-link-btn {% if request.endpoint == 'hod.marks_analytics_page' %}active{% endif %}">
+                                <i class="fa-solid fa-award me-2"></i> MARKS
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('hod.analytics_page') }}" class="sidebar-link-btn {% if request.endpoint == 'hod.analytics_page' %}active{% endif %}">
+                                <i class="fa-solid fa-chart-line me-2"></i> ANALYTICS
+                            </a>
+                        </li>
+                    {% elif session.get('role') == 'staff' %}
+                        <li>
+                            <a href="{{ url_for('staff.dashboard') }}" class="sidebar-link-btn {% if request.endpoint == 'staff.dashboard' %}active{% endif %}">
+                                <i class="fa-solid fa-table-cells-large me-2"></i> DASHBOARD
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('staff.students_page') }}" class="sidebar-link-btn {% if request.endpoint in ['staff.students_page', 'staff.student_detail_page'] %}active{% endif %}">
+                                <i class="fa-solid fa-users me-2"></i> STUDENTS
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('staff.marks_page') }}" class="sidebar-link-btn {% if request.endpoint == 'staff.marks_page' %}active{% endif %}">
+                                <i class="fa-solid fa-award me-2"></i> MARKS
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('staff.subject_analytics_page') }}" class="sidebar-link-btn {% if request.endpoint == 'staff.subject_analytics_page' %}active{% endif %}">
+                                <i class="fa-solid fa-chart-line me-2"></i> ANALYTICS
+                            </a>
+                        </li>
+                    {% elif session.get('role') == 'student' %}
+                        <li>
+                            <a href="{{ url_for('student.dashboard') }}" class="sidebar-link-btn {% if request.endpoint == 'student.dashboard' %}active{% endif %}">
+                                <i class="fa-solid fa-chart-line me-2"></i> DASHBOARD
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('student.attendance_page') }}" class="sidebar-link-btn {% if request.endpoint == 'student.attendance_page' %}active{% endif %}">
+                                <i class="fa-solid fa-clipboard-user me-2"></i> MY ATTENDANCE
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('student.marks_page') }}" class="sidebar-link-btn {% if request.endpoint == 'student.marks_page' %}active{% endif %}">
+                                <i class="fa-solid fa-file-lines me-2"></i> MY MARKS
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('student.calculator_page') }}" class="sidebar-link-btn {% if request.endpoint == 'student.calculator_page' %}active{% endif %}">
+                                <i class="fa-solid fa-calculator me-2"></i> CALCULATOR
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+
+            <div class="sidebar-bottom-badge">
+                <div class="badge-accred"><i class="fa-solid fa-certificate text-orange me-1"></i> NBA & NAAC A+</div>
+                <div class="badge-code">TNEA CODE: 5907</div>
+            </div>
+        </aside>
+
+        <!-- RIGHT DASHBOARD / CONTENT -->
+        <main class="portal-right-content">
+            <div class="breadcrumb-wrapper">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb breadcrumb-custom">
+                        <li class="breadcrumb-item"><a href="/"><i class="fa-solid fa-house me-1"></i> MSEC Portal</a></li>
+                        <li class="breadcrumb-item text-capitalize">{{ session.get('role', 'User') }} Panel</li>
+                        <li class="breadcrumb-item active" aria-current="page">{% block breadcrumb %}Overview{% endblock %}</li>
+                    </ol>
+                </nav>
+            </div>
+
+            <div class="portal-inner-content">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Staff Dashboard - Subject Analytics{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title"><i class="fa-solid fa-chalkboard-user me-2 text-gold"></i> Staff Subject Analytics Dashboard</h1>
+        <div class="page-subtitle">Academic performance analytics for your assigned subjects</div>
+    </div>
+</div>
+
+<!-- STAFF KPI CARDS (KEEP ONLY ASSIGNED SUBJECTS & AVERAGE SUBJECT MARKS) -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="kpi-card p-4">
+            <div class="kpi-header">
+                <span class="kpi-title">Assigned Subjects</span>
+                <div class="kpi-icon"><i class="fa-solid fa-book-open"></i></div>
+            </div>
+            <div class="kpi-value" id="staffKpiSubjects">--</div>
+            <div class="kpi-subtext">Active Teaching Subjects</div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="kpi-card p-4">
+            <div class="kpi-header">
+                <span class="kpi-title">Average Subject Marks</span>
+                <div class="kpi-icon icon-green"><i class="fa-solid fa-award"></i></div>
+            </div>
+            <div class="kpi-value" id="staffKpiAvgMarks">--%</div>
+            <div class="kpi-subtext">Overall Score Benchmark</div>
+        </div>
+    </div>
+</div>
+
+<!-- SUBJECT ANALYTICS SELECTOR & CHARTS -->
+<div class="analytics-card mb-4">
+    <div class="card-title-bar">
+        <h3><i class="fa-solid fa-book-bookmark me-2 text-teal"></i> Subject Performance Visualizer</h3>
+        <div style="min-width: 280px;">
+            <select id="staffSubjectSelect" class="form-select fw-bold" onchange="onStaffSubjectChange()">
+                <option value="">Loading assigned subjects...</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- CHARTS GRID (ONLY MARKS BAR & MARKS DISTRIBUTION PIE) -->
+    <div class="row g-4 mt-1">
+        <div class="col-lg-12">
+            <div class="p-3 border rounded bg-light">
+                <h4 class="h6 fw-bold text-navy mb-3">Student-Wise Average Performance & Marks</h4>
+                <div style="height: 320px;">
+                    <canvas id="staffStudentMarksBar"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mt-2 justify-content-center">
+        <div class="col-lg-6">
+            <div class="p-3 border rounded bg-light text-center">
+                <h4 class="h6 fw-bold text-navy mb-3">Marks Distribution Ratio</h4>
+                <div style="height: 250px;" class="d-flex align-items-center justify-content-center">
+                    <canvas id="staffMarksPie"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/staff_charts.js') }}"></script>
+{% endblock %}

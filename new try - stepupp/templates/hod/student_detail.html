@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% block title %}Student Analytics & Academic Record - HOD Panel{% endblock %}
+{% block breadcrumb %}Student Academic Profile{% endblock %}
+
+{% block content %}
+<!-- STUDENT PROFILE HEADER -->
+<div class="profile-header-card d-flex align-items-center gap-4">
+    <div class="profile-avatar">
+        <i class="fa-solid fa-user-graduate"></i>
+    </div>
+    <div class="profile-info flex-grow-1">
+        <h2 id="hodStName">Loading Student Record...</h2>
+        <div class="d-flex flex-wrap gap-2 mt-2">
+            <span class="profile-meta-tag"><i class="fa-solid fa-id-card me-1 text-warning"></i> Reg No: <strong id="hodStRegNo">--</strong></span>
+            <span class="profile-meta-tag"><i class="fa-solid fa-building-columns me-1 text-info"></i> Department: <strong id="hodStDept">Information Technology</strong></span>
+            <span class="profile-meta-tag"><i class="fa-solid fa-calendar me-1 text-success"></i> Year: <strong id="hodStYear">--</strong></span>
+            <span class="profile-meta-tag"><i class="fa-solid fa-layer-group me-1 text-danger"></i> Semester: <strong id="hodStSem">--</strong></span>
+            <span class="profile-meta-tag"><i class="fa-solid fa-envelope me-1"></i> Email: <strong id="hodStEmail">--</strong></span>
+        </div>
+    </div>
+    <div>
+        <a href="{{ url_for('hod.students_page') }}" class="btn btn-outline-light"><i class="fa-solid fa-arrow-left me-1"></i> Back to Directory</a>
+    </div>
+</div>
+
+<!-- ACADEMIC SUMMARY CARDS -->
+<div class="row g-3 mb-4">
+    <div class="col-md-2-4 col-sm-6">
+        <div class="kpi-card text-center p-3">
+            <span class="kpi-title d-block mb-1">Overall Attendance</span>
+            <div class="kpi-value text-teal" id="hodStAtt">--%</div>
+            <div class="kpi-subtext">Presence Ratio</div>
+        </div>
+    </div>
+    <div class="col-md-2-4 col-sm-6">
+        <div class="kpi-card text-center p-3">
+            <span class="kpi-title d-block mb-1">Average Marks</span>
+            <div class="kpi-value text-navy" id="hodStAvgMarks">--%</div>
+            <div class="kpi-subtext">Internal Average</div>
+        </div>
+    </div>
+    <div class="col-md-2-4 col-sm-6">
+        <div class="kpi-card text-center p-3">
+            <span class="kpi-title d-block mb-1">Highest Mark</span>
+            <div class="kpi-value text-green" id="hodStHighMark">--%</div>
+            <div class="kpi-subtext">Top Score</div>
+        </div>
+    </div>
+    <div class="col-md-2-4 col-sm-6">
+        <div class="kpi-card text-center p-3">
+            <span class="kpi-title d-block mb-1">Passed Subjects</span>
+            <div class="kpi-value text-teal" id="hodStPassCount">--</div>
+            <div class="kpi-subtext">Cleared Courses</div>
+        </div>
+    </div>
+    <div class="col-md-2-4 col-sm-6">
+        <div class="kpi-card text-center p-3">
+            <span class="kpi-title d-block mb-1">Academic Risk Status</span>
+            <div class="kpi-value fs-6 fw-bold text-maroon text-truncate mt-1" id="hodStStanding">--</div>
+            <div class="kpi-subtext">HOD Oversight</div>
+        </div>
+    </div>
+</div>
+
+<!-- PERFORMANCE ANALYSIS CHARTS (1 CHART) -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-12">
+        <div class="analytics-card">
+            <div class="card-title-bar">
+                <h3><i class="fa-solid fa-chart-bar me-2 text-teal"></i> Subject-Wise Marks Bar Chart</h3>
+            </div>
+            <div style="height: 300px;">
+                <canvas id="hodStuMarksBarChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MARKS BREAKDOWN TABLE -->
+<div class="custom-table-card p-4 mb-4">
+    <h3 class="h5 fw-bold text-navy mb-3"><i class="fa-solid fa-file-lines me-2 text-maroon"></i> Subject Internal 1 Marks Breakdown</h3>
+    <div class="table-responsive">
+        <table class="table table-custom align-middle">
+            <thead>
+                <tr>
+                    <th>Subject Code</th>
+                    <th>Subject Name</th>
+                    <th>Semester</th>
+                    <th>Faculty</th>
+                    <th>Internal 1</th>
+                    <th>Total Score</th>
+                    <th>Grade</th>
+                </tr>
+            </thead>
+            <tbody id="hodMarksTableBody">
+                <tr><td colspan="7" class="text-center py-4 text-muted">Loading academic records...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const studentId = {{ student_id }};
+
+    async function loadHodStudentDetail() {
+        try {
+            const res = await fetch(`/hod/api/student/${studentId}`);
+            const data = await res.json();
+            const p = data.profile || {};
+            const att = data.attendance || {};
+            const subjects = data.subjects || [];
+
+            // Header Info
+            document.getElementById('hodStName').innerText = p.name || 'Student';
+            document.getElementById('hodStRegNo').innerText = p.regno || '--';
+            document.getElementById('hodStDept').innerText = p.department || 'Information Technology';
+            document.getElementById('hodStYear').innerText = `Year ${p.year || 1}`;
+            document.getElementById('hodStSem').innerText = `Semester ${subjects[0]?.semester || 4}`;
+            document.getElementById('hodStEmail').innerText = p.email || '--';
+
+            // Summary Cards
+            document.getElementById('hodStAtt').innerText = `${att.attendance_percentage || 0}%`;
+            document.getElementById('hodStAvgMarks').innerText = `${data.overall_average || 0}%`;
+            document.getElementById('hodStHighMark').innerText = `${data.highest_mark || 0}%`;
+            document.getElementById('hodStPassCount').innerText = `${data.passed_subjects || 0} / ${subjects.length}`;
+            
+            const avg = data.overall_average || 0;
+            const attPct = att.attendance_percentage || 0;
+            const status = (attPct < 75 || avg < 50) ? 'At-Risk Student' : 'Normal Standing';
+            document.getElementById('hodStStanding').innerText = status;
+
+            // Render Table (Only Internal 1)
+            const tbody = document.getElementById('hodMarksTableBody');
+            tbody.innerHTML = subjects.map(s => {
+                const pct = s.percentage;
+                const grade = pct >= 90 ? 'O' : (pct >= 80 ? 'A+' : (pct >= 70 ? 'A' : (pct >= 60 ? 'B+' : (pct >= 50 ? 'B' : 'RA'))));
+
+                return `
+                    <tr>
+                        <td class="font-monospace fw-bold">${s.subject_code}</td>
+                        <td class="fw-semibold">${s.subject_name}</td>
+                        <td>Sem ${s.semester}</td>
+                        <td>${s.staff_name || 'Faculty'}</td>
+                        <td>${s.marks_obtained || pct}/100</td>
+                        <td class="fw-bold text-navy">${pct}%</td>
+                        <td><span class="badge-status ${pct >= 50 ? 'badge-normal' : 'badge-at-risk'}">${grade}</span></td>
+                    </tr>
+                `;
+            }).join('');
+
+            // Chart 1: Subject-Wise Marks Bar Chart
+            const subNames = subjects.map(s => s.subject_name);
+            const subMarks = subjects.map(s => s.percentage);
+
+            new Chart(document.getElementById('hodStuMarksBarChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: subNames,
+                    datasets: [{
+                        label: 'Internal 1 Marks Obtained (%)',
+                        data: subMarks,
+                        backgroundColor: '#002147',
+                        borderRadius: 6,
+                        barPercentage: 0.4,
+                        categoryPercentage: 0.6
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { x: { ticks: { maxRotation: 0, minRotation: 0 } }, y: { min: 0, max: 100 } } }
+            });
+
+        } catch (e) {
+            console.error('Error loading HOD student detail:', e);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadHodStudentDetail);
+</script>
+<style>
+    .col-md-2-4 { flex: 0 0 auto; width: 20%; }
+    @media (max-width: 992px) { .col-md-2-4 { width: 50%; } }
+</style>
+{% endblock %}

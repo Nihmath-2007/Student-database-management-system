@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Academic Analytics Reports - HOD Panel{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title"><i class="fa-solid fa-file-contract me-2 text-warning"></i> Academic Analytics Reports</h1>
+        <div class="page-subtitle">Generate and export comprehensive IT Department analytics summaries</div>
+    </div>
+    <div>
+        <button class="btn btn-msec" onclick="window.print()"><i class="fa-solid fa-print me-2"></i> Print / Save PDF</button>
+    </div>
+</div>
+
+<div class="analytics-card mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h5 fw-bold text-navy mb-0">MOHAMED SATHAK ENGINEERING COLLEGE - IT DEPARTMENT REPORT</h2>
+        <span class="badge bg-navy text-white px-3 py-2">Generated: August 2026</span>
+    </div>
+    <p class="text-muted fs-7">Official Academic Performance and Department Attendance Evaluation Summary Report.</p>
+</div>
+
+<div class="row g-4 mb-4" id="reportKpis">
+    <!-- Populated via JS -->
+</div>
+
+<div class="custom-table-card p-4 mb-4">
+    <h3 class="h6 fw-bold mb-3 text-navy">Department Subject Performance Summary</h3>
+    <div class="table-responsive">
+        <table class="table table-custom align-middle">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Subject Title</th>
+                    <th>Semester</th>
+                    <th>Average Mark</th>
+                    <th>Pass Rate</th>
+                </tr>
+            </thead>
+            <tbody id="reportSubjectTable"></tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    async function loadReport() {
+        try {
+            const res = await fetch('/hod/api/analytics');
+            const data = await res.json();
+
+            const k = data.kpis;
+            document.getElementById('reportKpis').innerHTML = `
+                <div class="col-md-3"><div class="kpi-card text-center"><span class="kpi-title">Enrolled Students</span><div class="kpi-value">${k.total_students}</div></div></div>
+                <div class="col-md-3"><div class="kpi-card accent-orange text-center"><span class="kpi-title">Average Attendance</span><div class="kpi-value">${k.avg_attendance}%</div></div></div>
+                <div class="col-md-3"><div class="kpi-card accent-success text-center"><span class="kpi-title">Average Marks</span><div class="kpi-value">${k.avg_marks}%</div></div></div>
+                <div class="col-md-3"><div class="kpi-card accent-danger text-center"><span class="kpi-title">At-Risk Students</span><div class="kpi-value text-danger">${k.at_risk_students}</div></div></div>
+            `;
+
+            const tbody = document.getElementById('reportSubjectTable');
+            tbody.innerHTML = (data.subject_analytics || []).map(s => `
+                <tr>
+                    <td class="font-monospace fw-bold">${s.subject_code}</td>
+                    <td class="fw-semibold">${s.subject_name}</td>
+                    <td>Semester ${s.semester}</td>
+                    <td class="fw-bold">${s.avg_marks}%</td>
+                    <td><span class="badge-status ${s.pass_percentage >= 75 ? 'badge-pass' : 'badge-fail'}">${s.pass_percentage}%</span></td>
+                </tr>
+            `).join('');
+        } catch (e) {
+            console.error('Error loading report:', e);
+        }
+    }
+    document.addEventListener('DOMContentLoaded', loadReport);
+</script>
+{% endblock %}

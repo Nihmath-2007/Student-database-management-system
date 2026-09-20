@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}Department Analytics & Pass Statistics - HOD Panel{% endblock %}
+{% block breadcrumb %}Department Analytics{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title"><i class="fa-solid fa-chart-line me-2 text-gold"></i> Department Performance & Pass Statistics</h1>
+        <div class="page-subtitle">Comprehensive subject-wise performance and course pass percentage analysis</div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="analytics-card">
+            <div class="card-title-bar">
+                <h3><i class="fa-solid fa-chart-column me-2 text-teal"></i> Subject-Wise Average Performance</h3>
+            </div>
+            <div style="height: 320px;">
+                <canvas id="hodAnalyticsBarChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="analytics-card text-center">
+            <div class="card-title-bar">
+                <h3><i class="fa-solid fa-chart-pie me-2 text-maroon"></i> Overall Pass/Fail Statistics</h3>
+            </div>
+            <div style="height: 250px;" class="d-flex align-items-center justify-content-center">
+                <canvas id="hodPassFailPie"></canvas>
+            </div>
+            <div class="p-2 bg-light rounded fs-7 mt-2">
+                <span class="text-muted">Overall Pass Rate:</span> <strong class="text-teal" id="hodPassPctText">--%</strong>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SUBJECT PASS RATE DISTRIBUTION CHART -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-12">
+        <div class="analytics-card">
+            <div class="card-title-bar">
+                <h3><i class="fa-solid fa-square-poll-vertical me-2 text-green"></i> Subject-Wise Pass Percentage Distribution</h3>
+            </div>
+            <div style="height: 280px;">
+                <canvas id="hodSubPassBarChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function shortenSubjectName(name) {
+        if (!name) return '';
+        const map = {
+            'Cloud computing': 'Cloud Comp',
+            'Cloud Computing': 'Cloud Comp',
+            'Distributed Computing': 'Dist Comp',
+            'Embedded System and IOT': 'IoT & Embed',
+            'Embedded Systems and IoT': 'IoT & Embed',
+            'Foundations of Data Science': 'Data Sci',
+            'Full Stack Web Development': 'Full Stack',
+            'Full Stack Web Development Laboratory': 'FSWD Lab',
+            'UI&UX designing': 'UI/UX',
+            'UI&UX Designing': 'UI/UX',
+            'UI/UX': 'UI/UX'
+        };
+        if (map[name]) return map[name];
+        if (name.length > 12) {
+            return name.split(' ').map(w => w[0]).join('').toUpperCase();
+        }
+        return name;
+    }
+
+    async function loadHodDeepAnalytics() {
+        try {
+            const res = await fetch('/hod/api/analytics');
+            const data = await res.json();
+            
+            const subAnalytics = data.subject_analytics || [];
+            const shortLabels = subAnalytics.map(s => shortenSubjectName(s.subject_name));
+            const marks = subAnalytics.map(s => s.avg_marks);
+            const passRates = subAnalytics.map(s => s.pass_percentage || 85.0);
+
+            // Chart 1: Subject Avg Marks
+            new Chart(document.getElementById('hodAnalyticsBarChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: shortLabels,
+                    datasets: [{
+                        label: 'Average Marks (%)',
+                        data: marks,
+                        backgroundColor: '#002147',
+                        borderRadius: 6,
+                        barPercentage: 0.4,
+                        categoryPercentage: 0.6
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { x: { ticks: { maxRotation: 0, minRotation: 0, font: { weight: '600' } } }, y: { min: 0, max: 100 } } }
+            });
+
+            // Chart 2: Pass/Fail Pie
+            const passPct = data.kpis ? data.kpis.overall_pass_percentage : 85;
+            document.getElementById('hodPassPctText').innerText = `${passPct}%`;
+            new Chart(document.getElementById('hodPassFailPie').getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Passed Internal Threshold', 'Failed / At Risk'],
+                    datasets: [{
+                        data: [passPct, 100 - passPct],
+                        backgroundColor: ['#047857', '#e11d48'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'bottom' } } }
+            });
+
+            // Chart 3: Subject Pass Rate Distribution
+            new Chart(document.getElementById('hodSubPassBarChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: shortLabels,
+                    datasets: [{
+                        label: 'Subject Pass Rate (%)',
+                        data: passRates,
+                        backgroundColor: '#059669',
+                        borderColor: '#047857',
+                        borderWidth: 1,
+                        borderRadius: 6,
+                        barPercentage: 0.4,
+                        categoryPercentage: 0.6
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { x: { ticks: { maxRotation: 0, minRotation: 0, font: { weight: '600' } } }, y: { min: 0, max: 100 } } }
+            });
+
+        } catch (e) {
+            console.error('Error loading deep analytics:', e);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadHodDeepAnalytics);
+</script>
+{% endblock %}

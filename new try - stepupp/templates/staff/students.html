@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}Assigned Students Directory - Staff Panel{% endblock %}
+{% block breadcrumb %}Students Directory{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title"><i class="fa-solid fa-users me-2 text-gold"></i> Assigned Students Directory</h1>
+        <div class="page-subtitle">Inspect student-wise attendance, average marks, and performance status</div>
+    </div>
+</div>
+
+<!-- SEARCH & FILTERS -->
+<div class="analytics-card mb-4">
+    <div class="row g-3 align-items-center">
+        <div class="col-md-6">
+            <label class="form-label fw-bold text-navy">Search Student</label>
+            <div class="input-group">
+                <span class="input-group-text bg-white"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                <input type="text" id="staffSearchInput" class="form-control" placeholder="Search by Student Name or Register Number..." onkeyup="filterStaffStudents()">
+            </div>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label fw-bold text-navy">Filter Year</label>
+            <select id="staffYearFilter" class="form-select" onchange="filterStaffStudents()">
+                <option value="All">All Years</option>
+                <option value="1">Year 1</option>
+                <option value="2">Year 2</option>
+                <option value="3">Year 3</option>
+                <option value="4">Year 4</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label fw-bold text-navy">Filter Status</label>
+            <select id="staffStatusFilter" class="form-select" onchange="filterStaffStudents()">
+                <option value="All">All Statuses</option>
+                <option value="At Risk">At Risk Only</option>
+                <option value="Top Rank">Top Rank to Bottom Rank</option>
+                <option value="Bottom Rank">Bottom Rank to Top Rank</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- PROFESSIONAL STUDENT TABLE -->
+<div class="custom-table-card p-4">
+    <div class="table-responsive">
+        <table class="table table-custom align-middle">
+            <thead>
+                <tr>
+                    <th>Register Number</th>
+                    <th>Student Name</th>
+                    <th>Department</th>
+                    <th>Year</th>
+                    <th>Semester</th>
+                    <th>Attendance %</th>
+                    <th>Average Marks</th>
+                    <th>Performance Status</th>
+                    <th class="text-center">Action</th>
+                </tr>
+            </thead>
+            <tbody id="staffStudentsTable">
+                <tr><td colspan="9" class="text-center py-4 text-muted">Loading assigned students list...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let allStaffStudents = [];
+
+    async function loadStaffStudents() {
+        try {
+            const res = await fetch('/staff/api/students');
+            allStaffStudents = await res.json();
+            renderStaffTable(allStaffStudents);
+        } catch (e) {
+            console.error('Error loading staff students:', e);
+        }
+    }
+
+    function renderStaffTable(students) {
+        const tbody = document.getElementById('staffStudentsTable');
+        if (!students || students.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-muted">No student records found matching filter.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = students.map(s => `
+            <tr>
+                <td class="font-monospace fw-bold">${s.regno}</td>
+                <td class="fw-semibold">${s.name}</td>
+                <td><span class="badge bg-light text-dark font-monospace">${s.department || 'IT'}</span></td>
+                <td>Year ${s.year}</td>
+                <td>Sem 4</td>
+                <td class="fw-bold ${s.attendance_percentage < 75 ? 'text-coral' : 'text-teal'}">${s.attendance_percentage}%</td>
+                <td class="fw-bold text-navy">${s.avg_marks}%</td>
+                <td>
+                    ${s.at_risk 
+                        ? `<span class="badge-status badge-at-risk"><i class="fa-solid fa-triangle-exclamation me-1"></i> At Risk</span>`
+                        : `<span class="badge-status badge-normal">Satisfactory</span>`}
+                </td>
+                <td class="text-center">
+                    <a href="/staff/student/${s.studentid}" class="btn btn-sm btn-msec"><i class="fa-solid fa-eye me-1"></i> View Details</a>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function filterStaffStudents() {
+        const search = document.getElementById('staffSearchInput').value.toLowerCase();
+        const year = document.getElementById('staffYearFilter').value;
+        const status = document.getElementById('staffStatusFilter').value;
+
+        let filtered = allStaffStudents.filter(s => {
+            const matchSearch = s.name.toLowerCase().includes(search) || s.regno.toLowerCase().includes(search);
+            const matchYear = (year === 'All' || s.year.toString() === year);
+            const matchStatus = (status === 'All' || status === 'Top Rank' || status === 'Bottom Rank') ? true : (status === 'At Risk' ? s.at_risk : true);
+            return matchSearch && matchYear && matchStatus;
+        });
+
+        if (status === 'Top Rank') {
+            filtered.sort((a, b) => (parseFloat(b.avg_marks) || 0) - (parseFloat(a.avg_marks) || 0));
+        } else if (status === 'Bottom Rank') {
+            filtered.sort((a, b) => (parseFloat(a.avg_marks) || 0) - (parseFloat(b.avg_marks) || 0));
+        }
+
+        renderStaffTable(filtered);
+    }
+
+    document.addEventListener('DOMContentLoaded', loadStaffStudents);
+</script>
+{% endblock %}

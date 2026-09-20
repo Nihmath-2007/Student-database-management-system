@@ -1,0 +1,436 @@
+{% extends "base.html" %}
+{% block title %}GPA & CGPA Calculator - Student Portal{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+    <div>
+        <h1 class="page-title"><i class="fa-solid fa-calculator me-2 text-warning"></i> GPA & CGPA Calculator</h1>
+        <div class="page-subtitle">Calculate your Semester Grade Point Average (GPA) and Cumulative CGPA for Semesters 1 to 8</div>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-outline-navy fw-semibold" onclick="loadDefaultSubjects()"><i class="fa-solid fa-rotate-left me-1"></i> Reset Subjects</button>
+        <button class="btn btn-sm btn-outline-teal fw-semibold" onclick="loadStudentDbMarks()"><i class="fa-solid fa-cloud-arrow-down me-1"></i> Sync My Portal Marks</button>
+    </div>
+</div>
+
+<!-- CALCULATOR TABS -->
+<ul class="nav nav-pills mb-4 gap-2 border-bottom pb-3" id="calcTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active fw-bold px-4 py-2" id="gpa-tab" data-bs-toggle="tab" data-bs-target="#gpa-panel" type="button" role="tab"><i class="fa-solid fa-award me-2"></i> Semester GPA Calculator</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-bold px-4 py-2" id="cgpa-tab" data-bs-toggle="tab" data-bs-target="#cgpa-panel" type="button" role="tab"><i class="fa-solid fa-graduation-cap me-2"></i> Cumulative CGPA Calculator</button>
+    </li>
+</ul>
+
+<div class="tab-content" id="calcTabContent">
+    
+    <!-- TAB 1: SEMESTER GPA CALCULATOR -->
+    <div class="tab-pane fade show active" id="gpa-panel" role="tabpanel">
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <!-- SUBJECTS TABLE CARD -->
+                <div class="custom-table-card p-4 mb-4 shadow-sm border-0">
+                    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2 pb-2 border-bottom">
+                        <div>
+                            <h3 class="h5 fw-bold text-navy mb-1"><i class="fa-solid fa-book me-2 text-teal"></i> Subject Grades & Course Credits</h3>
+                            <span class="text-muted fs-7">Select the grade for each course in your semester</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <label for="gpaSemSelect" class="fw-bold text-navy mb-0 fs-7">Select Semester:</label>
+                            <select id="gpaSemSelect" class="form-select form-select-sm fw-bold border-navy text-navy" style="min-width: 140px;" onchange="onGpaSemChange()">
+                                <option value="1">Semester 1</option>
+                                <option value="2">Semester 2</option>
+                                <option value="3">Semester 3</option>
+                                <option value="4" selected>Semester 4</option>
+                                <option value="5">Semester 5</option>
+                                <option value="6">Semester 6</option>
+                                <option value="7">Semester 7</option>
+                                <option value="8">Semester 8</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive responsive-calc-table">
+                        <table class="table table-custom align-middle mb-0" id="gpaTable">
+                            <thead>
+                                <tr>
+                                    <th style="width: 42%;" class="text-start ps-3">Subject Name</th>
+                                    <th style="width: 18%;" class="text-center">Course Credits</th>
+                                    <th style="width: 40%;" class="text-center">Grade Selection</th>
+                                </tr>
+                            </thead>
+                            <tbody id="gpaBody">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUMMARY RIGHT SIDEBAR -->
+            <div class="col-lg-4">
+                <div class="analytics-card text-center p-4 sticky-top border-0 shadow-sm" style="top: 20px; z-index: 10;">
+                    <h3 class="h6 fw-bold text-muted text-uppercase mb-2">Calculated Semester GPA</h3>
+                    <div class="display-3 fw-extrabold text-navy my-2" id="gpaValue">0.00</div>
+                    <div class="mb-3" id="gpaBadge">
+                        <span class="badge-status badge-pass">Enter Grades</span>
+                    </div>
+
+                    <hr class="my-3">
+                    
+                    <div class="text-start">
+                        <h4 class="fs-7 fw-bold text-uppercase text-muted mb-2"><i class="fa-solid fa-graduation-cap me-1 text-gold"></i> Grading System Scale</h4>
+                        <ul class="list-unstyled fs-7 text-muted mb-0">
+                            <li class="d-flex justify-content-between py-1 border-bottom"><span><strong class="text-navy">O</strong> (Outstanding)</span><span class="badge bg-success">10 Points</span></li>
+                            <li class="d-flex justify-content-between py-1 border-bottom"><span><strong class="text-navy">A+</strong> (Excellent)</span><span class="badge bg-primary">9 Points</span></li>
+                            <li class="d-flex justify-content-between py-1 border-bottom"><span><strong class="text-navy">A</strong> (Very Good)</span><span class="badge bg-info">8 Points</span></li>
+                            <li class="d-flex justify-content-between py-1 border-bottom"><span><strong class="text-navy">B+</strong> (Good)</span><span class="badge bg-secondary">7 Points</span></li>
+                            <li class="d-flex justify-content-between py-1 border-bottom"><span><strong class="text-navy">B</strong> (Above Average)</span><span class="badge bg-secondary">6 Points</span></li>
+                            <li class="d-flex justify-content-between py-1"><span><strong class="text-navy">C</strong> (Satisfactory)</span><span class="badge bg-light text-dark">5 Points</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 2: CUMULATIVE CGPA CALCULATOR -->
+    <div class="tab-pane fade" id="cgpa-panel" role="tabpanel">
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="custom-table-card p-4 border-0 shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom flex-wrap gap-2">
+                        <div>
+                            <h3 class="h5 fw-bold text-navy mb-1"><i class="fa-solid fa-list-check me-2 text-teal"></i> Semester GPA Records</h3>
+                            <span class="text-muted fs-7">Select your current semester to calculate CGPA up to that semester</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <label for="currentSemSelect" class="fw-bold text-navy mb-0 fs-7">Current Semester:</label>
+                            <select id="currentSemSelect" class="form-select form-select-sm fw-bold border-navy text-navy" style="min-width: 140px;" onchange="updateCgpaSemesters()">
+                                <option value="1">Semester 1</option>
+                                <option value="2">Semester 2</option>
+                                <option value="3">Semester 3</option>
+                                <option value="4" selected>Semester 4</option>
+                                <option value="5">Semester 5</option>
+                                <option value="6">Semester 6</option>
+                                <option value="7">Semester 7</option>
+                                <option value="8">Semester 8</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-custom align-middle mb-0" id="cgpaTable">
+                            <thead>
+                                <tr>
+                                    <th style="width: 50%;" class="ps-3">Semester Name</th>
+                                    <th style="width: 50%;" class="text-center">GPA Obtained</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cgpaBody">
+                                <!-- Pre-populated Semesters based on dropdown -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="analytics-card text-center p-4 sticky-top border-0 shadow-sm" style="top: 20px;">
+                    <h3 class="h6 fw-bold text-muted text-uppercase mb-2">Overall Cumulative CGPA</h3>
+                    <div class="display-3 fw-extrabold text-navy my-2" id="cgpaValue">0.00</div>
+                    <div class="mb-3" id="cgpaBadge">
+                        <span class="badge-status badge-pass">Academic Score</span>
+                    </div>
+
+                    <div class="p-3 bg-light rounded text-start fs-7 mb-3 border">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Semesters Counted:</span>
+                            <span class="fw-bold text-navy" id="totalSemesters">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Average GPA Score:</span>
+                            <span class="fw-bold text-teal" id="avgGpaScore">0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Academic Standing:</span>
+                            <span class="fw-bold text-navy" id="cgpaClass">--</span>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info py-2 px-3 fs-7 mb-0 text-start">
+                        <i class="fa-solid fa-circle-info me-1"></i>
+                        The final CGPA is calculated automatically across all entered semesters up to your selected current semester.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Grade to Points Map (Without Arrear Reattempt)
+    const gradePointsMap = {
+        'O': 10,
+        'A+': 9,
+        'A': 8,
+        'B+': 7,
+        'B': 6,
+        'C': 5
+    };
+
+    // All 8 Semesters Default Subjects Data
+    const semesterDataMap = {
+        1: [
+            { name: 'Professional English', credits: 3, grade: 'A+' },
+            { name: 'Matrices & Calculus', credits: 4, grade: 'A' },
+            { name: 'Engineering Physics', credits: 3, grade: 'A+' },
+            { name: 'Engineering Chemistry', credits: 3, grade: 'A' },
+            { name: 'Problem Solving & Python Programming', credits: 3, grade: 'O' },
+            { name: 'Heritage of Tamils', credits: 1, grade: 'O' }
+        ],
+        2: [
+            { name: 'Technical English', credits: 3, grade: 'A+' },
+            { name: 'Statistics & Numerical Methods', credits: 4, grade: 'A' },
+            { name: 'Physics for Information Science', credits: 3, grade: 'A+' },
+            { name: 'Basic Electrical & Electronics', credits: 3, grade: 'A' },
+            { name: 'C Programming', credits: 3, grade: 'O' },
+            { name: 'Tamils and Technology', credits: 1, grade: 'O' }
+        ],
+        3: [
+            { name: 'Digital Principles & Computer Organization', credits: 4, grade: 'A' },
+            { name: 'Data Structures', credits: 3, grade: 'A+' },
+            { name: 'Object Oriented Programming', credits: 3, grade: 'A+' },
+            { name: 'Operating Systems', credits: 3, grade: 'A' },
+            { name: 'Software Engineering', credits: 3, grade: 'B+' },
+            { name: 'Discrete Mathematics', credits: 4, grade: 'A' }
+        ],
+        4: [
+            { name: 'Cloud Computing', credits: 3, grade: 'A+' },
+            { name: 'Distributed Computing', credits: 3, grade: 'A' },
+            { name: 'Embedded System and IOT', credits: 4, grade: 'A+' },
+            { name: 'Foundations of Data Science', credits: 4, grade: 'O' },
+            { name: 'Full Stack Web Development', credits: 3, grade: 'A+' },
+            { name: 'UI&UX Designing', credits: 3, grade: 'O' }
+        ],
+        5: [
+            { name: 'Computer Networks', credits: 3, grade: 'A+' },
+            { name: 'Machine Learning', credits: 4, grade: 'A+' },
+            { name: 'Web Technologies', credits: 3, grade: 'O' },
+            { name: 'Database Management Systems', credits: 3, grade: 'A' },
+            { name: 'Theory of Computation', credits: 3, grade: 'B+' },
+            { name: 'Open Elective I', credits: 3, grade: 'A+' }
+        ],
+        6: [
+            { name: 'Cryptography & Network Security', credits: 3, grade: 'A+' },
+            { name: 'Mobile Computing', credits: 3, grade: 'A' },
+            { name: 'Artificial Intelligence', credits: 3, grade: 'O' },
+            { name: 'Professional Elective I', credits: 3, grade: 'A+' },
+            { name: 'Professional Elective II', credits: 3, grade: 'A' },
+            { name: 'Open Elective II', credits: 3, grade: 'A+' }
+        ],
+        7: [
+            { name: 'Data Analytics', credits: 3, grade: 'O' },
+            { name: 'Deep Learning', credits: 3, grade: 'A+' },
+            { name: 'Professional Elective III', credits: 3, grade: 'A+' },
+            { name: 'Professional Elective IV', credits: 3, grade: 'A' },
+            { name: 'Open Elective III', credits: 3, grade: 'O' },
+            { name: 'Project Work Phase I', credits: 2, grade: 'O' }
+        ],
+        8: [
+            { name: 'Professional Elective V', credits: 3, grade: 'O' },
+            { name: 'Professional Elective VI', credits: 3, grade: 'A+' },
+            { name: 'Project Work Phase II / Internship', credits: 6, grade: 'O' }
+        ]
+    };
+
+    function markToGrade(pct) {
+        if (pct >= 90) return 'O';
+        if (pct >= 80) return 'A+';
+        if (pct >= 70) return 'A';
+        if (pct >= 60) return 'B+';
+        if (pct >= 50) return 'B';
+        return 'C';
+    }
+
+    function buildGradeRadioHTML(rowIdx, selectedGrade) {
+        const grades = [
+            { code: 'O', label: 'O', btnClass: 'btn-outline-navy' },
+            { code: 'A+', label: 'A+', btnClass: 'btn-outline-navy' },
+            { code: 'A', label: 'A', btnClass: 'btn-outline-navy' },
+            { code: 'B+', label: 'B+', btnClass: 'btn-outline-navy' },
+            { code: 'B', label: 'B', btnClass: 'btn-outline-navy' },
+            { code: 'C', label: 'C', btnClass: 'btn-outline-navy' }
+        ];
+
+        return `
+            <div class="btn-group btn-group-sm w-100 flex-wrap justify-content-center gap-1" role="group">
+                ${grades.map(g => `
+                    <input type="radio" class="btn-check grade-radio" name="grade_sub_${rowIdx}" id="g_${rowIdx}_${g.code.replace('+', 'P')}" value="${g.code}" ${selectedGrade === g.code ? 'checked' : ''} onchange="calculateGpa()">
+                    <label class="btn ${g.btnClass} btn-sm px-2 py-1 fs-7 rounded fw-bold" for="g_${rowIdx}_${g.code.replace('+', 'P')}">${g.label}</label>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    function buildGpaRowHTML(rowIdx, name, courseCredits, grade) {
+        const finalGrade = grade || 'A+';
+
+        return `
+            <tr class="gpa-subject-row" data-row-idx="${rowIdx}">
+                <td class="ps-3">
+                    <input type="text" class="form-control form-control-sm fw-bold text-navy bg-light border-0 shadow-none sub-name" value="${name}" readonly title="${name}">
+                </td>
+                <td class="text-center">
+                    <input type="text" class="form-control form-control-sm text-center fw-bold bg-light border course-credit-input" style="color: #000000 !important; max-width: 110px; margin: 0 auto;" value="${courseCredits} Credits" data-credit-val="${courseCredits}" readonly>
+                </td>
+                <td class="text-center">
+                    ${buildGradeRadioHTML(rowIdx, finalGrade)}
+                </td>
+            </tr>
+        `;
+    }
+
+    function onGpaSemChange() {
+        const sem = parseInt(document.getElementById('gpaSemSelect').value, 10) || 4;
+        const subjects = semesterDataMap[sem] || semesterDataMap[4];
+        const tbody = document.getElementById('gpaBody');
+        tbody.innerHTML = subjects.map((s, idx) => 
+            buildGpaRowHTML(idx, s.name, s.credits, s.grade)
+        ).join('');
+        calculateGpa();
+    }
+
+    function loadDefaultSubjects() {
+        onGpaSemChange();
+    }
+
+    async function loadStudentDbMarks() {
+        try {
+            const res = await fetch('/student/api/dashboard');
+            const data = await res.json();
+            const subjects = data.subjects || [];
+
+            if (subjects.length > 0) {
+                const tbody = document.getElementById('gpaBody');
+                tbody.innerHTML = subjects.map((s, idx) => {
+                    const grade = markToGrade(s.percentage);
+                    const credits = (idx % 2 === 0) ? 4 : 3;
+                    return buildGpaRowHTML(idx, s.subject_name, credits, grade);
+                }).join('');
+                calculateGpa();
+            } else {
+                alert('No database subject marks found for logged-in user. Retaining current view.');
+            }
+        } catch (e) {
+            console.error('Error fetching student dashboard marks:', e);
+        }
+    }
+
+    function updateCgpaSemesters() {
+        const currentSem = parseInt(document.getElementById('currentSemSelect').value, 10) || 4;
+        const defaultSemGpas = ['8.50', '8.25', '8.60', '8.40', '8.50', '8.70', '8.80', '8.90'];
+        const cgpaBody = document.getElementById('cgpaBody');
+        
+        let semRows = '';
+        for (let sem = 1; sem <= currentSem; sem++) {
+            semRows += `
+                <tr>
+                    <td class="ps-3"><input type="text" class="form-control form-control-sm fw-bold text-navy bg-light border-0 shadow-none sem-name" value="Semester ${sem}" readonly></td>
+                    <td class="text-center"><input type="number" step="0.01" min="0" max="10" class="form-control form-control-sm text-center fw-bold border mx-auto sem-gpa" style="max-width: 160px;" value="${defaultSemGpas[sem-1] || '8.00'}" oninput="calculateCgpa()"></td>
+                </tr>
+            `;
+        }
+        cgpaBody.innerHTML = semRows;
+        calculateCgpa();
+    }
+
+    function calculateGpa() {
+        const rows = document.querySelectorAll('#gpaBody tr');
+        let totalCredits = 0;
+        let totalPoints = 0;
+
+        rows.forEach(r => {
+            const courseCreditBadge = r.querySelector('.course-credit-input');
+            const checkedRadio = r.querySelector('.grade-radio:checked');
+
+            if (courseCreditBadge && checkedRadio) {
+                const courseCred = parseFloat(courseCreditBadge.getAttribute('data-credit-val')) || 0;
+                const grade = checkedRadio.value;
+                const gradePoint = gradePointsMap[grade] || 0;
+                const creditPoint = gradePoint * courseCred;
+
+                totalCredits += courseCred;
+                totalPoints += creditPoint;
+            }
+        });
+
+        const gpa = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : '0.00';
+
+        document.getElementById('gpaValue').innerText = gpa;
+
+        const badge = document.getElementById('gpaBadge');
+        const numGpa = parseFloat(gpa);
+        if (numGpa >= 8.5) {
+            badge.innerHTML = `<span class="badge-status badge-pass"><i class="fa-solid fa-trophy me-1"></i> First Class with Distinction</span>`;
+        } else if (numGpa >= 7.0) {
+            badge.innerHTML = `<span class="badge-status badge-normal"><i class="fa-solid fa-check me-1"></i> First Class</span>`;
+        } else if (numGpa >= 6.0) {
+            badge.innerHTML = `<span class="badge-status badge-fail"><i class="fa-solid fa-award me-1"></i> Second Class</span>`;
+        } else {
+            badge.innerHTML = `<span class="badge-status badge-at-risk"><i class="fa-solid fa-triangle-exclamation me-1"></i> Needs Improvement</span>`;
+        }
+    }
+
+    function calculateCgpa() {
+        const rows = document.querySelectorAll('#cgpaBody tr');
+        let totalGpaSum = 0;
+        let count = 0;
+
+        rows.forEach(r => {
+            const gpaInput = r.querySelector('.sem-gpa');
+            if (gpaInput) {
+                const gpa = parseFloat(gpaInput.value);
+                if (!isNaN(gpa) && gpa > 0) {
+                    totalGpaSum += gpa;
+                    count++;
+                }
+            }
+        });
+
+        const cgpa = count > 0 ? (totalGpaSum / count).toFixed(2) : '0.00';
+        
+        document.getElementById('cgpaValue').innerText = cgpa;
+        document.getElementById('totalSemesters').innerText = count;
+        document.getElementById('avgGpaScore').innerText = cgpa;
+
+        const classEl = document.getElementById('cgpaClass');
+        const badge = document.getElementById('cgpaBadge');
+
+        const numCgpa = parseFloat(cgpa);
+        if (numCgpa >= 8.5) {
+            classEl.innerText = 'First Class with Distinction';
+            badge.innerHTML = `<span class="badge-status badge-pass">Outstanding Performance</span>`;
+        } else if (numCgpa >= 7.0) {
+            classEl.innerText = 'First Class';
+            badge.innerHTML = `<span class="badge-status badge-normal">Strong Performance</span>`;
+        } else if (numCgpa >= 6.0) {
+            classEl.innerText = 'Second Class';
+            badge.innerHTML = `<span class="badge-status badge-fail">Satisfactory</span>`;
+        } else {
+            classEl.innerText = 'Pass Class / Low CGPA';
+            badge.innerHTML = `<span class="badge-status badge-at-risk">Low Cumulative Score</span>`;
+        }
+    }
+
+    async function initCalculator() {
+        onGpaSemChange();
+        updateCgpaSemesters();
+    }
+    document.addEventListener('DOMContentLoaded', initCalculator);
+</script>
+{% endblock %}
