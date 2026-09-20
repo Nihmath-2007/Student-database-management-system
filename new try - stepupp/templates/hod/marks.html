@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Department Mark Analytics{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title"><i class="fa-solid fa-award me-2 text-warning"></i> Mark & Subject Performance Analytics</h1>
+        <div class="page-subtitle">Subject averages, pass percentages, top performers, and academic metrics</div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="analytics-card">
+            <div class="card-title-bar">
+                <h3><i class="fa-solid fa-chart-column me-2 text-warning"></i> Subject Average Marks Comparison</h3>
+            </div>
+            <div style="height: 320px;">
+                <canvas id="subjectAvgBarChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="analytics-card">
+            <div class="card-title-bar">
+                <h3><i class="fa-solid fa-chart-pie me-2 text-warning"></i> Pass / Fail Ratio</h3>
+            </div>
+            <div style="height: 320px;" class="d-flex align-items-center justify-content-center">
+                <canvas id="passFailDoughnutChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="custom-table-card p-4">
+    <h3 class="h5 fw-bold mb-3 text-navy"><i class="fa-solid fa-book me-2 text-warning"></i> Subject-Wise Academic Performance Summary</h3>
+    <div class="table-responsive">
+        <table class="table table-custom align-middle">
+            <thead>
+                <tr>
+                    <th>Subject Code</th>
+                    <th>Subject Name</th>
+                    <th>Semester</th>
+                    <th>Average Mark</th>
+                    <th>Pass Rate</th>
+                </tr>
+            </thead>
+            <tbody id="subjectSummaryTable">
+                <tr><td colspan="5" class="text-center py-3 text-muted">Loading subject performance data...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    async function loadMarksAnalytics() {
+        try {
+            const res = await fetch('/hod/api/analytics');
+            const data = await res.json();
+            
+            const subAnalytics = data.subject_analytics || [];
+            const labels = subAnalytics.map(s => s.subject_name);
+            const averages = subAnalytics.map(s => s.avg_marks);
+
+            // Bar chart
+            new Chart(document.getElementById('subjectAvgBarChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Average Score (%)',
+                        data: averages,
+                        backgroundColor: 'rgba(255, 79, 1, 0.85)',
+                        borderRadius: 6
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 100 } } }
+            });
+
+            // Doughnut chart
+            const passPct = data.kpis.overall_pass_percentage;
+            new Chart(document.getElementById('passFailDoughnutChart').getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Passed', 'Failed'],
+                    datasets: [{
+                        data: [passPct, 100 - passPct],
+                        backgroundColor: ['#10b981', '#ef4444']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            // Table
+            const tbody = document.getElementById('subjectSummaryTable');
+            tbody.innerHTML = subAnalytics.map(s => `
+                <tr>
+                    <td class="font-monospace fw-bold">${s.subject_code}</td>
+                    <td class="fw-semibold">${s.subject_name}</td>
+                    <td>Semester ${s.semester}</td>
+                    <td class="fw-bold text-navy">${s.avg_marks}%</td>
+                    <td><span class="badge-status ${s.pass_percentage >= 75 ? 'badge-pass' : 'badge-fail'}">${s.pass_percentage}% Pass</span></td>
+                </tr>
+            `).join('');
+        } catch (e) {
+            console.error('Error loading marks analytics:', e);
+        }
+    }
+    document.addEventListener('DOMContentLoaded', loadMarksAnalytics);
+</script>
+{% endblock %}

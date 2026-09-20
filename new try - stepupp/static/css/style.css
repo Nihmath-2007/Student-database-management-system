@@ -1,0 +1,1016 @@
+/* 
+   MOHAMED SATHAK ENGINEERING COLLEGE (MSEC)
+   OFFICIAL STUDENT ACADEMIC ANALYTICS & MANAGEMENT PORTAL
+   Visual Identity: Deep Midnight Navy (#0B1B33), Electric Orange (#F25822), Pure White (#FFFFFF), Light Grey (#F4F6F9)
+*/
+
+:root {
+    --msec-navy: #0b1a30;
+    --msec-navy-dark: #071322;
+    --msec-navy-light: #122846;
+    --msec-orange: #f25822;
+    --msec-orange-hover: #e04713;
+    --msec-orange-light: rgba(242, 88, 34, 0.12);
+    --msec-teal: #0d9488;
+    --msec-green: #059669;
+    --msec-coral: #dc2626;
+    
+    --bg-body: #f4f6f9;
+    --card-bg: #ffffff;
+    --text-main: #22252a;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    --shadow-sm: 0 1px 3px rgba(11, 26, 48, 0.06);
+    --shadow-md: 0 4px 14px rgba(11, 26, 48, 0.08);
+    --shadow-lg: 0 10px 25px rgba(11, 26, 48, 0.12);
+}
+
+body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg-body);
+    color: var(--text-main);
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+.text-navy {
+    color: var(--msec-navy) !important;
+}
+
+.text-orange {
+    color: var(--msec-orange) !important;
+}
+
+/* --- 1. OFFICIAL COLLEGE BANNER AT THE TOP (100% FULL WIDTH NAV FIT) --- */
+.msec-banner-header {
+    width: 100%;
+    height: 125px;
+    background-color: #ffffff;
+    border: none !important;
+    box-shadow: none;
+    position: relative;
+    overflow: hidden;
+    padding: 0;
+    margin: 0;
+    display: block;
+}
+
+.banner-inner {
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    display: block;
+    overflow: hidden;
+}
+
+.msec-banner-image {
+    width: 100%;
+    height: 125px;
+    object-fit: fill;
+    display: block;
+    clip-path: inset(7px 0 7px 0);
+    transform: scaleY(1.14);
+}
+
+/* --- 2. TOP HORIZONTAL UTILITY STRIP --- */
+.msec-top-utility-bar {
+    background-color: var(--msec-navy);
+    border: none !important;
+    color: #ffffff;
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+}
+
+.utility-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.mobile-nav-toggle {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #ffffff;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.mobile-nav-toggle:hover,
+.mobile-nav-toggle:focus {
+    background-color: var(--msec-orange);
+    border-color: var(--msec-orange);
+}
+
+.dept-title-text {
+    font-size: 0.92rem;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    color: #ffffff;
+    text-transform: uppercase;
+}
+
+.utility-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.user-pill-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #ffffff;
+    font-size: 0.88rem;
+    font-weight: 600;
+}
+
+.user-display-name {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.badge-role-tag {
+    background-color: var(--msec-orange);
+    color: #ffffff;
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.btn-campus-exit {
+    background-color: var(--msec-orange);
+    color: #ffffff !important;
+    font-weight: 800;
+    font-size: 0.8rem;
+    padding: 6px 16px;
+    border-radius: 4px;
+    text-decoration: none;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(242, 88, 34, 0.35);
+}
+
+.btn-campus-exit:hover {
+    background-color: var(--msec-orange-hover);
+    color: #ffffff !important;
+    transform: translateY(-1px);
+}
+
+/* --- 3. MAIN PORTAL WRAPPER (SIDEBAR ON LEFT, DASHBOARD ON RIGHT) --- */
+.portal-main-container {
+    display: flex;
+    min-height: auto;
+    width: 100%;
+    background-color: var(--bg-body);
+    align-items: flex-start;
+}
+
+/* --- LEFT VERTICAL SIDEBAR (CLEAN, NO UNNECESSARY EXTRA WHITE SPACE) --- */
+.portal-left-sidebar {
+    width: 250px;
+    min-width: 250px;
+    flex-shrink: 0;
+    background-color: #ffffff;
+    border-right: 1px solid var(--border-color);
+    padding: 16px 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 16px;
+    align-self: stretch;
+}
+
+.sidebar-nav {
+    width: 100%;
+}
+
+.sidebar-menu-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Stacked block buttons matching official MSEC site */
+.sidebar-link-btn {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 12px 16px;
+    background-color: var(--msec-navy);
+    color: #ffffff !important;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.82rem;
+    letter-spacing: 0.5px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    text-transform: uppercase;
+}
+
+.sidebar-link-btn:hover {
+    background-color: var(--msec-orange);
+    color: #ffffff !important;
+    transform: translateX(4px);
+    box-shadow: 0 4px 8px rgba(242, 88, 34, 0.25);
+}
+
+.sidebar-link-btn.active {
+    background-color: var(--msec-orange) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 10px rgba(242, 88, 34, 0.35);
+    border-left: 4px solid #ffffff;
+}
+
+.sidebar-bottom-badge {
+    margin-top: 4px;
+    padding: 10px;
+    background-color: #f8fafc;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    text-align: center;
+}
+
+.badge-accred {
+    font-size: 0.76rem;
+    font-weight: 800;
+    color: var(--msec-navy);
+}
+
+.badge-code {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-top: 2px;
+}
+
+/* --- RIGHT MAIN CONTENT / DASHBOARD --- */
+.portal-right-content {
+    flex-grow: 1;
+    min-width: 0;
+    padding: 24px 30px 40px 30px;
+}
+
+.breadcrumb-wrapper {
+    margin-bottom: 20px;
+}
+
+.breadcrumb-container {
+    margin-bottom: 20px;
+}
+
+.breadcrumb-custom {
+    background: transparent;
+    padding: 0;
+    margin: 0 0 8px 0;
+    font-size: 0.85rem;
+}
+
+.breadcrumb-custom .breadcrumb-item + .breadcrumb-item::before {
+    content: "\f105";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    color: #94a3b8;
+    padding: 0 8px;
+}
+
+.breadcrumb-custom a {
+    color: var(--msec-navy-light);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.breadcrumb-custom .active {
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+/* --- STUDENT NAME PROMINENCE --- */
+.student-name-container {
+    margin-bottom: 6px;
+}
+
+.student-hero-name {
+    font-size: 2.1rem;
+    font-weight: 900;
+    color: var(--msec-navy);
+    line-height: 1.2;
+    margin: 4px 0 6px 0;
+    letter-spacing: -0.5px;
+    text-transform: uppercase;
+}
+
+.badge-portal-tag {
+    background-color: var(--msec-navy);
+    color: #ffffff;
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+    display: inline-block;
+}
+
+.student-regno-text {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+.page-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--msec-orange);
+    margin: 0;
+    letter-spacing: -0.3px;
+    text-transform: uppercase;
+}
+
+.page-subtitle {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-top: 4px;
+}
+
+/* --- KPI & SUMMARY CARDS --- */
+.kpi-card {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    padding: 20px 22px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    border-top: 3px solid var(--msec-navy);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-top-color: var(--msec-orange);
+}
+
+.kpi-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.kpi-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+}
+
+.kpi-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+    background-color: rgba(11, 26, 48, 0.08);
+    color: var(--msec-navy);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+}
+
+.kpi-icon.icon-gold,
+.kpi-icon.icon-orange {
+    background-color: var(--msec-orange-light);
+    color: var(--msec-orange);
+}
+
+.kpi-icon.icon-maroon {
+    background-color: rgba(11, 26, 48, 0.1);
+    color: var(--msec-navy);
+}
+
+.kpi-icon.icon-green {
+    background-color: rgba(5, 150, 105, 0.12);
+    color: var(--msec-green);
+}
+
+.kpi-icon.icon-coral {
+    background-color: rgba(220, 38, 38, 0.12);
+    color: var(--msec-coral);
+}
+
+.kpi-value {
+    font-size: 1.85rem;
+    font-weight: 800;
+    color: var(--msec-navy);
+    line-height: 1.2;
+    margin-bottom: 6px;
+    word-break: break-word;
+}
+
+.kpi-subtext {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+/* --- CHARTS CONTAINERS --- */
+.analytics-card {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.card-title-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #f1f5f9;
+}
+
+.card-title-bar h3 {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--msec-navy);
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+/* --- TABLES --- */
+.custom-table-card {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.table-responsive {
+    margin: 0;
+}
+
+.table-custom {
+    width: 100%;
+    margin-bottom: 0;
+    border-collapse: collapse;
+}
+
+.table-custom th {
+    background-color: var(--msec-navy);
+    color: #ffffff;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 14px 18px;
+    border: none;
+    letter-spacing: 0.4px;
+}
+
+.table-custom td {
+    padding: 14px 18px;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.88rem;
+    color: var(--text-main);
+}
+
+.table-custom tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+/* --- BADGES & BUTTONS --- */
+.badge-status {
+    padding: 5px 12px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.badge-normal {
+    background-color: rgba(5, 150, 105, 0.12);
+    color: var(--msec-green);
+}
+
+.badge-at-risk {
+    background-color: rgba(220, 38, 38, 0.12);
+    color: var(--msec-coral);
+}
+
+.badge-pass {
+    background-color: rgba(13, 148, 136, 0.12);
+    color: var(--msec-teal);
+}
+
+.badge-fail {
+    background-color: var(--msec-orange-light);
+    color: var(--msec-orange);
+}
+
+.btn-msec {
+    background-color: var(--msec-orange);
+    color: #ffffff;
+    font-weight: 800;
+    border-radius: 4px;
+    padding: 10px 22px;
+    border: none;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    font-size: 0.84rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(242, 88, 34, 0.3);
+}
+
+.btn-msec:hover {
+    background-color: var(--msec-orange-hover);
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(242, 88, 34, 0.4);
+}
+
+.btn-msec-navy {
+    background-color: var(--msec-navy);
+    color: #ffffff;
+    font-weight: 800;
+    border-radius: 4px;
+    padding: 10px 22px;
+    border: none;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    font-size: 0.84rem;
+    transition: all 0.2s ease;
+}
+
+.btn-msec-navy:hover {
+    background-color: var(--msec-navy-dark);
+    color: #ffffff;
+    transform: translateY(-1px);
+}
+
+/* --- STUDENT PROFILE HEADER --- */
+.profile-header-card {
+    background: linear-gradient(135deg, var(--msec-navy) 0%, var(--msec-navy-light) 100%);
+    border-radius: 8px;
+    border-left: 6px solid var(--msec-orange);
+    color: #ffffff;
+    padding: 24px 30px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-md);
+}
+
+.profile-avatar {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    border: 3px solid var(--msec-orange);
+    background-color: #ffffff;
+    color: var(--msec-navy);
+    font-size: 2.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.profile-info h2 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    margin: 0 0 4px 0;
+    color: #ffffff;
+}
+
+.profile-meta-tag {
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+/* --- LOGIN PAGE --- */
+.login-body {
+    background: linear-gradient(135deg, var(--msec-navy-dark) 0%, var(--msec-navy) 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.login-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+    width: 100%;
+    max-width: 480px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.login-banner-wrapper {
+    width: 100%;
+    background-color: #ffffff;
+    border: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.login-banner-img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: fill;
+    border: none;
+}
+
+.login-card-header {
+    background-color: var(--msec-navy);
+    border: none;
+    padding: 20px 24px;
+    text-align: center;
+    color: #ffffff;
+}
+
+.login-card-body {
+    padding: 30px;
+}
+
+/* --- RESPONSIVE MEDIA QUERIES FOR TABLETS AND MOBILES --- */
+@media (max-width: 991.98px) {
+    .portal-main-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .portal-left-sidebar {
+        width: 100%;
+        min-width: 100%;
+        border-right: none;
+        border-bottom: 2px solid var(--msec-orange);
+        display: none;
+        padding: 14px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        background-color: #ffffff;
+        z-index: 1010;
+    }
+
+    .portal-left-sidebar.show {
+        display: flex !important;
+        animation: fadeIn 0.2s ease-in-out;
+    }
+
+    .sidebar-link-btn:hover {
+        transform: translateX(2px);
+    }
+
+    .portal-right-content {
+        padding: 18px 16px 30px 16px;
+    }
+
+    .msec-top-utility-bar {
+        padding: 10px 16px;
+    }
+
+    .dept-title-text {
+        font-size: 0.82rem;
+    }
+
+    .student-hero-name {
+        font-size: 1.6rem;
+    }
+
+    .page-title {
+        font-size: 1.3rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .msec-banner-image {
+        width: 100%;
+        height: auto;
+        max-height: 80px;
+        object-fit: fill;
+    }
+
+    .msec-top-utility-bar {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .utility-left {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .utility-right {
+        width: 100%;
+        justify-content: space-between;
+        border-top: 1px solid rgba(255, 255, 255, 0.15);
+        padding-top: 8px;
+    }
+
+    .user-pill-badge {
+        font-size: 0.8rem;
+    }
+
+    .student-hero-name {
+        font-size: 1.35rem;
+    }
+
+    .page-title {
+        font-size: 1.15rem;
+    }
+
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .kpi-card {
+        padding: 14px;
+    }
+
+    .kpi-value {
+        font-size: 1.5rem;
+    }
+
+    .analytics-card {
+        padding: 16px;
+    }
+
+    .responsive-calc-table table,
+    .responsive-calc-table thead,
+    .responsive-calc-table tbody,
+    .responsive-calc-table th,
+    .responsive-calc-table td,
+    .responsive-calc-table tr {
+        display: block;
+    }
+    .responsive-calc-table thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+    .responsive-calc-table tr {
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        margin-bottom: 12px;
+        background-color: #ffffff;
+        padding: 10px;
+    }
+    .responsive-calc-table td {
+        border: none;
+        border-bottom: 1px solid #f1f5f9;
+        position: relative;
+        padding-left: 50% !important;
+        text-align: right !important;
+    }
+    .responsive-calc-table td:last-child {
+        border-bottom: 0;
+    }
+    .responsive-calc-table td:before {
+        position: absolute;
+        left: 10px;
+        width: 45%;
+        padding-right: 10px;
+        white-space: nowrap;
+        font-weight: 700;
+        color: var(--msec-navy);
+        text-align: left;
+    }
+    #gpaTable td:nth-of-type(1):before { content: "Subject"; }
+    #gpaTable td:nth-of-type(2):before { content: "Course Credits"; }
+    #gpaTable td:nth-of-type(3):before { content: "Status"; }
+    #gpaTable td:nth-of-type(4):before { content: "Grade"; }
+    #gpaTable td:nth-of-type(5):before { content: "Counted Credit"; }
+    #gpaTable td:nth-of-type(6):before { content: "Grade Point"; }
+    #gpaTable td:nth-of-type(7):before { content: "Credit Point"; }
+    #gpaTable td:nth-of-type(8):before { content: "Action"; }
+}
+
+@media (max-width: 576px) {
+    .msec-banner-image {
+        max-height: 60px;
+    }
+
+    .dept-title-text {
+        font-size: 0.74rem;
+        letter-spacing: 0.2px;
+    }
+
+    .portal-right-content {
+        padding: 14px 10px 24px 10px;
+    }
+
+    .student-hero-name {
+        font-size: 1.25rem;
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================================================
+   WAVE MENU LOADER (From Uiverse.io by JkHuger) & GLOBAL OVERLAY
+   ========================================================================== */
+.wave-loader-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(11, 26, 48, 0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  z-index: 999999;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.wave-loader-overlay.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.wave-loader-text {
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.92rem;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  background: rgba(84, 95, 229, 0.25);
+  padding: 6px 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.wave-menu {
+  border: 4px solid #545FE5;
+  border-radius: 50px;
+  width: 200px;
+  height: 45px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  transition: ease 0.2s;
+  position: relative;
+  background: #fff;
+  box-shadow: 0 8px 30px rgba(84, 95, 229, 0.4);
+}
+
+.wave-menu li {
+  list-style: none;
+  height: 30px;
+  width: 4px;
+  border-radius: 10px;
+  background: #545FE5;
+  margin: 0 6px;
+  padding: 0;
+  animation-name: wave1;
+  animation-duration: 0.3s;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  transition: ease 0.2s;
+}
+
+.wave-menu:hover > li {
+  background: #fff;
+}
+
+.wave-menu:hover {
+  background: #545FE5;
+}
+
+.wave-menu li:nth-child(2) {
+  animation-name: wave2;
+  animation-delay: 0.2s;
+}
+
+.wave-menu li:nth-child(3) {
+  animation-name: wave3;
+  animation-delay: 0.23s;
+  animation-duration: 0.4s;
+}
+
+.wave-menu li:nth-child(4) {
+  animation-name: wave4;
+  animation-delay: 0.1s;
+  animation-duration: 0.3s;
+}
+
+.wave-menu li:nth-child(5) {
+  animation-delay: 0.5s;
+}
+
+.wave-menu li:nth-child(6) {
+  animation-name: wave2;
+  animation-duration: 0.5s;
+}
+
+.wave-menu li:nth-child(8) {
+  animation-name: wave4;
+  animation-delay: 0.4s;
+  animation-duration: 0.25s;
+}
+
+.wave-menu li:nth-child(9) {
+  animation-name: wave3;
+  animation-delay: 0.15s;
+}
+
+@keyframes wave1 {
+  from {
+    transform: scaleY(1);
+  }
+
+  to {
+    transform: scaleY(0.5);
+  }
+}
+
+@keyframes wave2 {
+  from {
+    transform: scaleY(0.3);
+  }
+
+  to {
+    transform: scaleY(0.6);
+  }
+}
+
+@keyframes wave3 {
+  from {
+    transform: scaleY(0.6);
+  }
+
+  to {
+    transform: scaleY(0.8);
+  }
+}
+
+@keyframes wave4 {
+  from {
+    transform: scaleY(0.2);
+  }
+
+  to {
+    transform: scaleY(0.5);
+  }
+}
+
+
+

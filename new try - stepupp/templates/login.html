@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Student Academic Analytics Platform (IT Dept)</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Custom Style -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="login-body">
+
+    <!-- GLOBAL WAVE MENU LOADER OVERLAY (Uiverse.io by JkHuger) -->
+    <div id="globalWaveLoader" class="wave-loader-overlay">
+        <ul class="wave-menu">
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+        </ul>
+        <div class="wave-loader-text" id="globalWaveLoaderText">Signing In...</div>
+    </div>
+
+    <div class="login-card">
+        <div class="login-banner-wrapper">
+            <img src="{{ url_for('static', filename='images/msec_banner.jpg') }}" alt="Mohamed Sathak Engineering College" class="login-banner-img">
+        </div>
+        <div class="login-card-header">
+            <h2 class="h6 fw-bold text-uppercase mb-1 text-white" style="letter-spacing: 0.5px;">DEPARTMENT OF INFORMATION TECHNOLOGY</h2>
+            <div class="badge" style="background-color: var(--msec-orange); color: #fff; font-weight: 800; font-size: 0.75rem;">ACADEMIC ANALYTICS PORTAL</div>
+            <p class="small text-light opacity-75 mb-0 mt-2">Student Academic Performance & Department Management</p>
+        </div>
+
+        <div class="login-card-body">
+            {% if error %}
+                <div class="alert alert-danger py-2 fs-7 mb-3" role="alert">
+                    <i class="fa-solid fa-circle-exclamation me-1"></i> {{ error }}
+                </div>
+            {% endif %}
+
+            <form action="{{ url_for('auth.login') }}" method="POST" id="loginForm">
+                <div class="mb-3">
+                    <label for="username" class="form-label fw-semibold text-secondary fs-7">Username / Register No</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="fa-solid fa-user text-muted"></i></span>
+                        <input type="text" class="form-control" id="username" name="username" placeholder="e.g. hod, staff1, 911524205001" required>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="password" class="form-label fw-semibold text-secondary fs-7">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="fa-solid fa-lock text-muted"></i></span>
+                        <input type="password" class="form-control" id="password" name="password" placeholder="Enter account password" required>
+                        <button class="btn btn-outline-secondary bg-light border-start-0" type="button" id="togglePasswordBtn" onclick="togglePasswordVisibility()" title="Toggle Password Visibility">
+                            <i class="fa-solid fa-eye text-muted" id="togglePasswordIcon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-msec w-100 py-2 fs-6 mb-4">
+                    <i class="fa-solid fa-right-to-bracket me-2"></i> Sign In to Analytics Platform
+                </button>
+            </form>
+
+            <div class="border-top pt-3 text-center">
+                <p class="small text-muted mb-2 fw-semibold">Quick Demo Login Presets:</p>
+                <div class="d-flex justify-content-center gap-2">
+                    <button class="btn btn-sm btn-outline-dark fs-7" onclick="setDemo('hod', 'hod123')"><i class="fa-solid fa-user-shield text-orange me-1"></i> HOD</button>
+                    <button class="btn btn-sm btn-outline-dark fs-7" onclick="setDemo('staff1', 'staff123')"><i class="fa-solid fa-chalkboard-user text-orange me-1"></i> Staff</button>
+                    <button class="btn btn-sm btn-outline-dark fs-7" onclick="setDemo('911524205001', 'student123')"><i class="fa-solid fa-user-graduate text-orange me-1"></i> Student</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        function setDemo(user, pass) {
+            document.getElementById('username').value = user;
+            document.getElementById('password').value = pass;
+        }
+
+        function togglePasswordVisibility() {
+            const pwdInput = document.getElementById('password');
+            const icon = document.getElementById('togglePasswordIcon');
+            if (pwdInput.type === 'password') {
+                pwdInput.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                pwdInput.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    </script>
+</body>
+</html>

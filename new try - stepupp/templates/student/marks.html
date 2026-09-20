@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}My Subject Marks - Student Portal{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title"><i class="fa-solid fa-file-lines me-2 text-warning"></i> My Subject Marks</h1>
+        <div class="page-subtitle">Detailed assessment score breakdown across all subjects</div>
+    </div>
+</div>
+
+<div class="custom-table-card p-4">
+    <div class="table-responsive">
+        <table class="table table-custom align-middle">
+            <thead>
+                <tr>
+                    <th>Subject Code</th>
+                    <th>Subject Title</th>
+                    <th>Semester</th>
+                    <th>Faculty</th>
+                    <th>Marks Obtained</th>
+                    <th>Percentage</th>
+                    <th>Result</th>
+                </tr>
+            </thead>
+            <tbody id="myMarksTableBody">
+                <tr><td colspan="7" class="text-center py-4 text-muted">Loading marks breakdown...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    async function loadMyMarks() {
+        try {
+            const res = await fetch('/student/api/dashboard');
+            const data = await res.json();
+
+            const tbody = document.getElementById('myMarksTableBody');
+            tbody.innerHTML = (data.subjects || []).map(s => `
+                <tr>
+                    <td class="font-monospace fw-bold">${s.subject_code}</td>
+                    <td class="fw-semibold">${s.subject_name}</td>
+                    <td>Semester ${s.semester}</td>
+                    <td>${s.staff_name || 'Faculty'}</td>
+                    <td class="fw-bold">${s.marks_obtained} / ${s.max_marks}</td>
+                    <td><span class="fw-bold text-navy">${s.percentage}%</span></td>
+                    <td>
+                        ${s.status === 'Pass' 
+                            ? `<span class="badge-status badge-pass">Pass</span>` 
+                            : `<span class="badge-status badge-fail">Fail</span>`}
+                    </td>
+                </tr>
+            `).join('');
+        } catch (e) {
+            console.error('Error loading marks:', e);
+        }
+    }
+    document.addEventListener('DOMContentLoaded', loadMyMarks);
+</script>
+{% endblock %}

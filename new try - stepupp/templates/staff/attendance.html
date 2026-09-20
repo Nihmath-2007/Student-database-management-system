@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Assigned Subject Attendance - Staff Panel{% endblock %}
+{% block breadcrumb %}Subject Attendance{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title"><i class="fa-solid fa-calendar-check me-2 text-gold"></i> Assigned Subject Attendance</h1>
+        <div class="page-subtitle">Inspect student-wise attendance records for your assigned subjects</div>
+    </div>
+</div>
+
+<div class="analytics-card mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <label class="form-label fw-bold text-navy">Select Subject</label>
+            <select id="staffAttSelect" class="form-select form-select-lg" onchange="loadStaffAttDetails()">
+                <option value="">Loading assigned subjects...</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<div class="custom-table-card p-4">
+    <h3 class="h5 fw-bold text-navy mb-3"><i class="fa-solid fa-clipboard-user me-2 text-teal"></i> Student Attendance Breakdown</h3>
+    <div class="table-responsive">
+        <table class="table table-custom align-middle">
+            <thead>
+                <tr>
+                    <th>Register No</th>
+                    <th>Student Name</th>
+                    <th>Attendance %</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="staffAttTableBody">
+                <tr><td colspan="4" class="text-center py-4 text-muted">Select a subject above to view attendance records.</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    async function initStaffAtt() {
+        try {
+            const res = await fetch('/staff/api/subjects');
+            const subjects = await res.json();
+            
+            const sel = document.getElementById('staffAttSelect');
+            if (!subjects || subjects.length === 0) {
+                sel.innerHTML = `<option value="">No subjects assigned</option>`;
+                return;
+            }
+
+            sel.innerHTML = subjects.map(s => `<option value="${s.subjectid}">${s.subject_code} - ${s.subject_name}</option>`).join('');
+            loadStaffAttDetails();
+        } catch (e) {
+            console.error('Error initializing staff attendance page:', e);
+        }
+    }
+
+    async function loadStaffAttDetails() {
+        const subId = document.getElementById('staffAttSelect').value;
+        if (!subId) return;
+
+        try {
+            const res = await fetch(`/staff/api/subject/${subId}`);
+            const data = await res.json();
+
+            const tbody = document.getElementById('staffAttTableBody');
+            tbody.innerHTML = (data.student_marks || []).map(m => `
+                <tr>
+                    <td class="font-monospace fw-bold">${m.regno}</td>
+                    <td class="fw-semibold">${m.name}</td>
+                    <td class="fw-bold ${m.attendance_pct < 75 ? 'text-coral' : 'text-teal'}">${m.attendance_pct}%</td>
+                    <td>
+                        ${m.attendance_pct >= 75 
+                            ? `<span class="badge-status badge-normal"><i class="fa-solid fa-check me-1"></i> Satisfactory</span>` 
+                            : `<span class="badge-status badge-at-risk"><i class="fa-solid fa-triangle-exclamation me-1"></i> Below 75%</span>`}
+                    </td>
+                </tr>
+            `).join('');
+        } catch (e) {
+            console.error('Error loading attendance details:', e);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', initStaffAtt);
+</script>
+{% endblock %}

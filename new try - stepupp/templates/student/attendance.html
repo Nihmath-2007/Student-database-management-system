@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+{% block title %}My Attendance Overview - Student Portal{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title"><i class="fa-solid fa-clipboard-user me-2 text-gold"></i> My Attendance Overview</h1>
+        <div class="page-subtitle">Daily attendance tracking & present vs absent breakdown</div>
+    </div>
+</div>
+
+<!-- Attendance KPI Overview -->
+<div class="row g-4 mb-4" id="attKpiContainer">
+    <div class="col-md-3">
+        <div class="kpi-card accent-teal">
+            <span class="kpi-title">Overall Attendance</span>
+            <div class="kpi-value text-teal" id="attPctVal">0%</div>
+            <div class="kpi-sub">Overall cumulative percentage</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="kpi-card accent-navy">
+            <span class="kpi-title">Total Working Days</span>
+            <div class="kpi-value text-navy" id="attTotalDays">0</div>
+            <div class="kpi-sub">Total sessions conducted</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="kpi-card accent-teal">
+            <span class="kpi-title">Days Present</span>
+            <div class="kpi-value text-teal" id="attPresentDays">0</div>
+            <div class="kpi-sub">Sessions attended</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="kpi-card accent-orange">
+            <span class="kpi-title">Days Absent</span>
+            <div class="kpi-value text-coral" id="attAbsentDays">0</div>
+            <div class="kpi-sub">Sessions missed</div>
+        </div>
+    </div>
+</div>
+
+<!-- Attendance Status Card & Bar Chart Section -->
+<div class="row g-4 mb-4">
+    <!-- Status Card -->
+    <div class="col-lg-5">
+        <div class="analytics-card h-100 d-flex flex-column justify-content-between p-4">
+            <div>
+                <div class="d-flex align-items-center mb-3">
+                    <i class="fa-solid fa-shield-halved fs-2 me-3 text-teal" id="attStatusIcon"></i>
+                    <div>
+                        <h5 class="fw-bold text-navy mb-1" id="attStatusTitle">Attendance Status</h5>
+                        <span class="badge bg-success px-3 py-1 fs-6" id="attStatusBadge">Satisfactory</span>
+                    </div>
+                </div>
+                <p class="text-muted fs-6 mb-3" id="attStatusDesc">Calculating status...</p>
+            </div>
+            <div class="p-3 bg-light rounded border">
+                <div class="d-flex justify-content-between align-items-center fs-7 text-muted mb-1">
+                    <span>Target Threshold:</span>
+                    <strong class="text-navy">75% Attendance</strong>
+                </div>
+                <div class="progress" style="height: 10px;">
+                    <div class="progress-bar bg-teal" role="progressbar" id="attProgressBar" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Bar Chart Card (Present vs Absent) -->
+    <div class="col-lg-7">
+        <div class="analytics-card h-100 p-4">
+            <div class="card-title-bar d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold text-navy mb-0">
+                    <i class="fa-solid fa-chart-column me-2 text-teal"></i> Daily Attendance Breakdown (Present vs Absent)
+                </h5>
+            </div>
+            <div style="height: 230px;">
+                <canvas id="attBarChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Enrolled Subjects Table -->
+<div class="custom-table-card p-4">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h5 class="fw-bold text-navy mb-0"><i class="fa-solid fa-book-open me-2 text-teal"></i> Enrolled Subjects</h5>
+        <span class="badge bg-light text-navy fw-normal border">Current Semester</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-custom align-middle">
+            <thead>
+                <tr>
+                    <th>Subject Code</th>
+                    <th>Subject Name</th>
+                    <th>Semester</th>
+                    <th>Faculty Name</th>
+                </tr>
+            </thead>
+            <tbody id="myAttTableBody">
+                <tr><td colspan="4" class="text-center py-4 text-muted">Loading subjects...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let attChartInstance = null;
+
+    async function loadMyAttendance() {
+        try {
+            const res = await fetch('/student/api/dashboard');
+            const data = await res.json();
+            const att = data.attendance || {};
+
+            const pct = parseFloat(att.attendance_percentage || 0);
+            const total = parseInt(att.total_days || 0, 10);
+            const present = parseInt(att.present_days || 0, 10);
+            const absent = att.absent_days !== undefined ? parseInt(att.absent_days, 10) : Math.max(0, total - present);
+
+            document.getElementById('attPctVal').innerText = `${pct.toFixed(1)}%`;
+            document.getElementById('attTotalDays').innerText = total;
+            document.getElementById('attPresentDays').innerText = present;
+            document.getElementById('attAbsentDays').innerText = absent;
+
+            const statusTitle = document.getElementById('attStatusTitle');
+            const statusDesc = document.getElementById('attStatusDesc');
+            const statusBadge = document.getElementById('attStatusBadge');
+            const statusIcon = document.getElementById('attStatusIcon');
+            const progressBar = document.getElementById('attProgressBar');
+            
+            if (progressBar) {
+                progressBar.style.width = `${Math.min(100, Math.max(0, pct))}%`;
+            }
+
+            if (pct >= 75) {
+                statusTitle.innerText = "Satisfactory Attendance";
+                statusDesc.innerText = `Your overall daily attendance is ${pct.toFixed(1)}%, meeting the required 75% minimum threshold for end-semester examinations.`;
+                statusBadge.className = "badge bg-success px-3 py-2 fs-6";
+                statusBadge.innerText = "Eligible for Exams";
+                statusIcon.className = "fa-solid fa-circle-check fs-2 me-3 text-teal";
+                if (progressBar) progressBar.className = "progress-bar bg-success";
+            } else if (pct >= 65) {
+                statusTitle.innerText = "Condonation Required";
+                statusDesc.innerText = `Your overall daily attendance is ${pct.toFixed(1)}% (between 65% and 74%). Medical/condonation approval required.`;
+                statusBadge.className = "badge bg-warning text-dark px-3 py-2 fs-6";
+                statusBadge.innerText = "Condonation Needed";
+                statusIcon.className = "fa-solid fa-triangle-exclamation fs-2 me-3 text-warning";
+                if (progressBar) progressBar.className = "progress-bar bg-warning";
+            } else {
+                statusTitle.innerText = "Attendance Shortage (At Risk)";
+                statusDesc.innerText = `Your overall daily attendance is ${pct.toFixed(1)}%, which is below 65%. Please contact your HOD or Faculty advisor immediately.`;
+                statusBadge.className = "badge bg-danger px-3 py-2 fs-6";
+                statusBadge.innerText = "At Risk";
+                statusIcon.className = "fa-solid fa-circle-xmark fs-2 me-3 text-danger";
+                if (progressBar) progressBar.className = "progress-bar bg-danger";
+            }
+
+            // Render Present vs Absent Bar Chart
+            const canvas = document.getElementById('attBarChart');
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                if (attChartInstance) attChartInstance.destroy();
+                attChartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Days Present', 'Days Absent', 'Total Working Days'],
+                        datasets: [{
+                            label: 'Days',
+                            data: [present, absent, total],
+                            backgroundColor: ['#0d9488', '#f43f5e', '#002147'],
+                            borderColor: ['#0f766e', '#e11d48', '#001630'],
+                            borderWidth: 1,
+                            borderRadius: 6,
+                            barPercentage: 0.45,
+                            categoryPercentage: 0.6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const val = context.raw || 0;
+                                        if (context.dataIndex === 0) return ` Present: ${val} days (${total > 0 ? ((val/total)*100).toFixed(1) : 0}%)`;
+                                        if (context.dataIndex === 1) return ` Absent: ${val} days (${total > 0 ? ((val/total)*100).toFixed(1) : 0}%)`;
+                                        return ` Total Working Days: ${val}`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: { display: false },
+                                ticks: { font: { weight: '600', size: 12 } }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                ticks: { precision: 0 }
+                            }
+                        }
+                    }
+                });
+            }
+
+            const tbody = document.getElementById('myAttTableBody');
+            if (!data.subjects || data.subjects.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-muted">No enrolled subjects found.</td></tr>`;
+            } else {
+                tbody.innerHTML = data.subjects.map(s => `
+                    <tr>
+                        <td class="font-monospace fw-bold">${s.subject_code}</td>
+                        <td class="fw-semibold">${s.subject_name}</td>
+                        <td>Semester ${s.semester}</td>
+                        <td>${s.staff_name || 'Faculty Member'}</td>
+                    </tr>
+                `).join('');
+            }
+        } catch (e) {
+            console.error('Error loading attendance:', e);
+        }
+    }
+    document.addEventListener('DOMContentLoaded', loadMyAttendance);
+</script>
+{% endblock %}
+

@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Assigned Subject Marks - Staff Panel{% endblock %}
+{% block breadcrumb %}Subject Marks Breakdown{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title"><i class="fa-solid fa-award me-2 text-gold"></i> Assigned Subject Marks Breakdown</h1>
+        <div class="page-subtitle">Inspect assessment scores and pass/fail distribution for your assigned subjects</div>
+    </div>
+</div>
+
+<div class="analytics-card mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <label class="form-label fw-bold text-navy">Select Subject</label>
+            <select id="staffMarksSelect" class="form-select form-select-lg" onchange="loadStaffMarksDetails()">
+                <option value="">Loading assigned subjects...</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<div class="custom-table-card p-4">
+    <h3 class="h5 fw-bold text-navy mb-3"><i class="fa-solid fa-file-lines me-2 text-maroon"></i> Student Internal Marks Breakdown</h3>
+    <div class="table-responsive">
+        <table class="table table-custom align-middle">
+            <thead>
+                <tr>
+                    <th>Register No</th>
+                    <th>Student Name</th>
+                    <th>Marks Obtained</th>
+                    <th>Max Marks</th>
+                    <th>Percentage</th>
+                    <th>Grade / Status</th>
+                </tr>
+            </thead>
+            <tbody id="staffMarksTableBody">
+                <tr><td colspan="6" class="text-center py-4 text-muted">Select a subject above to view marks breakdown.</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    async function initStaffMarks() {
+        try {
+            const res = await fetch('/staff/api/subjects');
+            const subjects = await res.json();
+            
+            const sel = document.getElementById('staffMarksSelect');
+            if (!subjects || subjects.length === 0) {
+                sel.innerHTML = `<option value="">No subjects assigned</option>`;
+                return;
+            }
+
+            sel.innerHTML = subjects.map(s => `<option value="${s.subjectid}">${s.subject_code} - ${s.subject_name}</option>`).join('');
+            loadStaffMarksDetails();
+        } catch (e) {
+            console.error('Error initializing staff marks page:', e);
+        }
+    }
+
+    async function loadStaffMarksDetails() {
+        const subId = document.getElementById('staffMarksSelect').value;
+        if (!subId) return;
+
+        try {
+            const res = await fetch(`/staff/api/subject/${subId}`);
+            const data = await res.json();
+
+            const tbody = document.getElementById('staffMarksTableBody');
+            tbody.innerHTML = (data.student_marks || []).map(m => `
+                <tr>
+                    <td class="font-monospace fw-bold">${m.regno}</td>
+                    <td class="fw-semibold">${m.name}</td>
+                    <td class="fw-bold">${m.marks_obtained}</td>
+                    <td>${m.max_marks}</td>
+                    <td><span class="fw-bold text-navy">${m.percentage}%</span></td>
+                    <td>
+                        ${m.percentage >= 50 
+                            ? `<span class="badge-status badge-pass">Pass</span>` 
+                            : `<span class="badge-status badge-fail">Fail / RA</span>`}
+                    </td>
+                </tr>
+            `).join('');
+        } catch (e) {
+            console.error('Error loading marks details:', e);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', initStaffMarks);
+</script>
+{% endblock %}

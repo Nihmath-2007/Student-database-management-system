@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Faculty Members Directory - HOD Panel{% endblock %}
+{% block breadcrumb %}Staff Directory{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title"><i class="fa-solid fa-chalkboard-user me-2 text-gold"></i> Faculty Members Directory</h1>
+        <div class="page-subtitle">Department faculty list, teaching subject assignments, and student benchmarks</div>
+    </div>
+</div>
+
+<div class="custom-table-card p-4">
+    <div class="table-responsive">
+        <table class="table table-custom align-middle">
+            <thead>
+                <tr>
+                    <th>Staff ID</th>
+                    <th>Faculty Name</th>
+                    <th>Department</th>
+                    <th>Assigned Subject</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="hodStaffTableBody">
+                <tr><td colspan="5" class="text-center py-4 text-muted">Loading faculty directory...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    async function loadHodStaff() {
+        try {
+            const res = await fetch('/hod/api/subjects');
+            const subjects = await res.json();
+
+            const tbody = document.getElementById('hodStaffTableBody');
+            if (!subjects || subjects.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">No faculty members found.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = subjects.map((s, idx) => `
+                <tr>
+                    <td class="font-monospace fw-bold">STF-10${idx+1}</td>
+                    <td class="fw-semibold">${s.staff_name || 'Prof. MSEC Faculty'}</td>
+                    <td><span class="badge bg-light text-dark font-monospace">Information Technology</span></td>
+                    <td class="fw-bold text-navy">${s.subject_code} - ${s.subject_name}</td>
+                    <td><span class="badge-status badge-normal"><i class="fa-solid fa-circle-check me-1"></i> Active</span></td>
+                </tr>
+            `).join('');
+        } catch (e) {
+            console.error('Error loading staff list:', e);
+        }
+    }
+    document.addEventListener('DOMContentLoaded', loadHodStaff);
+</script>
+{% endblock %}
