@@ -16,12 +16,13 @@ SQLITE_DB_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__
 
 def get_db_connection():
     """
-    Connects to live MySQL (Railway database).
-    Falls back to local SQLite only if explicit DB_TYPE=sqlite or connection fails.
+    Connects to MySQL if DB_TYPE=mysql.
+    Automatically falls back to local SQLite (student_analytics.db) if DB_TYPE=sqlite or MySQL connection fails.
     """
-    db_type = os.getenv('DB_TYPE', 'mysql').lower()
+    db_type = os.getenv('DB_TYPE', 'sqlite').lower()
+    fallback_allowed = os.getenv('DB_FALLBACK', 'true').lower() in ('true', '1', 'yes')
     
-    if db_type != 'sqlite':
+    if db_type == 'mysql':
         try:
             import mysql.connector
             conn = mysql.connector.connect(
@@ -30,13 +31,14 @@ def get_db_connection():
                 password=DB_PASSWORD,
                 database=DB_NAME,
                 port=DB_PORT,
-                connect_timeout=10
+                connect_timeout=5
             )
             return conn, 'mysql'
         except Exception as err:
             print(f"Warning: Failed to connect to MySQL database at {DB_HOST}:{DB_PORT}: {err}")
-            if db_type == 'mysql':
+            if not fallback_allowed:
                 raise err
+            print("Notice: Automatically falling back to local SQLite database (student_analytics.db)...")
 
     # SQLite fallback / default local DB engine if explicitly requested or fallback
     conn = sqlite3.connect(SQLITE_DB_PATH, check_same_thread=False)
