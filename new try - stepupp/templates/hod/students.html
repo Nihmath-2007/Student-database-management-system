@@ -75,9 +75,22 @@
 
     async function loadStudents() {
         try {
+            const cached = sessionStorage.getItem('cached_hod_students');
+            if (cached) {
+                allStudentsData = JSON.parse(cached);
+                renderStudentsTable(allStudentsData);
+            }
+        } catch (e) {}
+
+        try {
             const res = await fetch('/hod/api/students');
-            allStudentsData = await res.json();
-            renderStudentsTable(allStudentsData);
+            if (res.ok) {
+                allStudentsData = await res.json();
+                renderStudentsTable(allStudentsData);
+                try {
+                    sessionStorage.setItem('cached_hod_students', JSON.stringify(allStudentsData));
+                } catch (e) {}
+            }
         } catch (e) {
             console.error('Error loading students:', e);
         }

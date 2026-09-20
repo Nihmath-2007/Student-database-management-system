@@ -166,9 +166,11 @@ def validate_and_parse_csv(filepath):
         'valid_data': valid_rows
     }
 
+from services.analytics import invalidate_analytics_cache
+
 def process_csv_import(valid_data):
     """
-    Inserts or updates internal_marks and attendance records directly in Railway MySQL database.
+    Inserts or updates internal_marks and attendance records safely matching the actual database schema.
     """
     inserted_marks = 0
     
@@ -200,29 +202,31 @@ def process_csv_import(valid_data):
             )
         inserted_marks += 1
 
-        # Update attendance in Railway MySQL if provided
+        # Update attendance if provided
         if att_val is not None:
-            existing_att = execute_query(
-                "SELECT id, present, absent FROM attendance WHERE student_id = %s",
-                (student_id,),
-                fetchone=True
-            )
-            total_days = (existing_att['present'] + existing_att['absent']) if (existing_att and (existing_att['present'] + existing_att['absent']) > 0) else 33
-            new_present = int(round((float(att_val) / 100.0) * total_days))
-            new_absent = max(0, total_days - new_present)
-            
-            if existing_att:
-                execute_query(
-                    "UPDATE attendance SET present = %s, absent = %s WHERE id = %s",
-                    (new_present, new_absent, existing_att['id']),
-                    commit=True
-                )
-            else:
-                execute_query(
-                    "INSERT INTO attendance (student_id, present, absent) VALUES (%s, %s, %s)",
-                    (student_id, new_present, new_absent),
-                    commit=True
-                )
+            try:
+                target_pct = float(att_val)
+                att_records = execute_query(
+                    "SELECT id FROM attendance WHERE student_id = %s ORDER BY date ASC",
+                    (student_id,),
+                    fetchall=True
+                ) or []
+                
+                if att_records:
+                    total_days = len(att_records)
+                    present_count = int(round((target_pct / 100.0) * total_days))
+                    for idx, rec in enumerate(att_records):
+                        status = 'Present' if idx < present_count else 'Absent'
+                        execute_query(
+                            "UPDATE attendance SET status = %s WHERE id = %s",
+                            (status, rec['id']),
+                            commit=True
+                        )
+            except Exception as att_err:
+                print(f"Warning: Failed to update attendance for student {student_id}: {att_err}")
+
+    # Invalidate cached analytics so changes appear immediately
+    invalidate_analytics_cache()
 
     return {
         'success': True,

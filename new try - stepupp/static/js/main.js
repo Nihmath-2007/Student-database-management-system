@@ -20,37 +20,9 @@ window.hideWaveLoader = function() {
     }
 };
 
-// Intercept all AJAX fetch requests globally to show wave loader during API activity
-(function() {
-    let activeFetchRequests = 0;
-    const originalFetch = window.fetch;
-
-    window.fetch = async function(...args) {
-        activeFetchRequests++;
-        window.showWaveLoader('Processing Request...');
-        try {
-            const response = await originalFetch.apply(this, args);
-            return response;
-        } finally {
-            activeFetchRequests--;
-            if (activeFetchRequests <= 0) {
-                activeFetchRequests = 0;
-                // Add a small delay for smooth visual feel
-                setTimeout(() => {
-                    if (activeFetchRequests === 0) {
-                        window.hideWaveLoader();
-                    }
-                }, 200);
-            }
-        }
-    };
-})();
-
 document.addEventListener('DOMContentLoaded', () => {
-    // Hide initial loader after DOM render
-    setTimeout(() => {
-        window.hideWaveLoader();
-    }, 250);
+    // Ensure loader is hidden immediately on DOM ready
+    window.hideWaveLoader();
 
     // Mobile sidebar toggle
     const toggleBtn = document.getElementById('sidebarToggle');
