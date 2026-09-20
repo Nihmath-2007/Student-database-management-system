@@ -90,17 +90,31 @@ def init_db(force=False):
     # Fallback for local SQLite engine if explicitly set
     else:
         cursor = conn.cursor()
+        try:
+            # Ensure high-performance indexes exist
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_attendance_student_status ON attendance(student_id, status)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_internal_marks_student ON internal_marks(student_id)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_internal_marks_subject ON internal_marks(subject_id)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_subjects_staff ON subjects(staff_id)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_students_year ON students(year)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)")
+            conn.commit()
+        except Exception as idx_err:
+            print(f"Notice: Index optimization skipped: {idx_err}")
+
         if not force:
             try:
                 cursor.execute("SELECT COUNT(*) FROM users")
                 cnt = cursor.fetchone()[0]
                 if cnt > 0:
-                    print(f"SQLite Database already initialized with {cnt} users. Skipping re-seed.")
+                    print(f"SQLite Database already initialized with {cnt} users. Optimized indexes active.")
+                    cursor.close()
                     conn.close()
                     return
             except Exception:
                 pass
 
+        cursor.close()
         conn.close()
 
 if __name__ == '__main__':

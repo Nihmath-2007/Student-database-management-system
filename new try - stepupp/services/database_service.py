@@ -17,13 +17,15 @@ def get_user_by_username(username):
     """
     return execute_query(query, (username,), fetchone=True)
 
-def get_all_students(year_filter=None, semester_filter=None, subject_filter=None, search=None):
+def get_all_students(year_filter=None, semester_filter=None, subject_filter=None, search=None, subject_ids=None):
     """
-    Fetches list of students with calculated attendance %, average marks %, and at-risk status from Railway MySQL.
+    Fetches list of students with calculated attendance %, average marks %, and at-risk status.
+    Uses fast SQL aggregations matching the accurate attendance and internal_marks schemas.
     """
     query = """
     SELECT 
-        s.studentid, s.regno, s.name, s.department, s.year, s.email, s.CGPA, s.gpa_sem1, s.gpa_sem2, s.gpa_sem3, s.gpa_sem4,
+        s.studentid, s.regno, s.name, s.department, s.year, s.email,
+        0.0 as CGPA,
         COALESCE(att.att_pct, 0.0) as attendance_percentage,
         COALESCE(att.total_days, 0) as total_days,
         COALESCE(att.present_days, 0) as present_days,
@@ -34,10 +36,11 @@ def get_all_students(year_filter=None, semester_filter=None, subject_filter=None
     LEFT JOIN (
         SELECT 
             student_id,
-            (present + absent) as total_days,
-            present as present_days,
-            ROUND((present / NULLIF(present + absent, 0)) * 100.0, 1) as att_pct
+            COUNT(*) as total_days,
+            SUM(CASE WHEN LOWER(status) = 'present' THEN 1 ELSE 0 END) as present_days,
+            ROUND((SUM(CASE WHEN LOWER(status) = 'present' THEN 1.0 ELSE 0.0 END) / NULLIF(COUNT(*), 0)) * 100.0, 1) as att_pct
         FROM attendance
+        GROUP BY student_id
     ) att ON s.studentid = att.student_id
     LEFT JOIN (
         SELECT 
@@ -64,6 +67,11 @@ def get_all_students(year_filter=None, semester_filter=None, subject_filter=None
     if subject_filter and subject_filter != 'All':
         query += " AND s.studentid IN (SELECT DISTINCT student_id FROM internal_marks WHERE subject_id = %s)"
         params.append(subject_filter)
+
+    if subject_ids:
+        placeholders = ','.join(['%s'] * len(subject_ids))
+        query += f" AND s.studentid IN (SELECT DISTINCT student_id FROM internal_marks WHERE subject_id IN ({placeholders}))"
+        params.extend(subject_ids)
 
     query += " ORDER BY s.regno ASC"
     
@@ -94,10 +102,10 @@ def get_student_details(student_id):
     # Attendance overall
     att_query = """
     SELECT 
-        (present + absent) as total_days,
-        present as present_days,
-        absent as absent_days,
-        ROUND((present / NULLIF(present + absent, 0)) * 100.0, 1) as attendance_percentage
+        COUNT(*) as total_days,
+        SUM(CASE WHEN LOWER(status) = 'present' THEN 1 ELSE 0 END) as present_days,
+        SUM(CASE WHEN LOWER(status) = 'absent' THEN 1 ELSE 0 END) as absent_days,
+        ROUND((SUM(CASE WHEN LOWER(status) = 'present' THEN 1.0 ELSE 0.0 END) / NULLIF(COUNT(*), 0)) * 100.0, 1) as attendance_percentage
     FROM attendance WHERE student_id = %s
     """
     att = execute_query(att_query, (student_id,), fetchone=True) or {}
@@ -211,8 +219,9 @@ def get_subject_details(subject_id):
     FROM internal_marks m
     JOIN students s ON m.student_id = s.studentid
     LEFT JOIN (
-        SELECT student_id, ROUND((present / NULLIF(present + absent, 0)) * 100.0, 1) as att_pct
+        SELECT student_id, ROUND((SUM(CASE WHEN LOWER(status) = 'present' THEN 1.0 ELSE 0.0 END) / NULLIF(COUNT(*), 0)) * 100.0, 1) as att_pct
         FROM attendance
+        GROUP BY student_id
     ) att ON s.studentid = att.student_id
     WHERE m.subject_id = %s
     ORDER BY s.regno

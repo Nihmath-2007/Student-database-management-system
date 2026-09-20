@@ -108,18 +108,8 @@ def api_staff_students():
     if not assigned_sub_ids:
         return jsonify([])
 
-    # Filter all students to those taking assigned subjects
-    all_students = get_all_students()
-    staff_students = []
-    
-    for student in all_students:
-        s_details = get_student_details(student['studentid'])
-        if s_details:
-            # Check if student takes any of staff's subjects
-            sub_ids = [s.get('subject_id') for s in s_details['subjects'] if s.get('subject_id') in assigned_sub_ids]
-            if sub_ids or len(assigned_sub_ids) > 0:
-                staff_students.append(student)
-
+    # Fast direct SQL filtering in a single query
+    staff_students = get_all_students(subject_ids=assigned_sub_ids)
     return jsonify(staff_students)
 
 @staff_bp.route('/api/student/<int:student_id>')
