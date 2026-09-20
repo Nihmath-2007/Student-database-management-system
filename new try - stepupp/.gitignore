@@ -1,5 +1,7 @@
 .env
+student_analytics.db
+uploads/*.csv
 __pycache__/
 *.pyc
-.venv/
 venv/
+.venv/
