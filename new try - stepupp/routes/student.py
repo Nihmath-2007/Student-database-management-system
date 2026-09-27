@@ -1,6 +1,7 @@
-from flask import Blueprint, render_template, jsonify, session
+from flask import Blueprint, render_template, jsonify, session, request
 from routes.auth import role_required, login_required
 from services.database_service import get_student_details
+from services.correction_service import get_student_marks_with_query_status, get_student_queries, raise_mark_correction_query
 from db import fetch_all
 
 student_bp = Blueprint('student', __name__, url_prefix='/student')
@@ -79,3 +80,70 @@ def api_student_dashboard():
     details['lowest_subject'] = lowest_subject or 'N/A'
 
     return jsonify(details)
+
+
+@student_bp.route('/queries')
+@role_required('student')
+def queries_page():
+    return render_template('student/queries.html')
+
+
+@student_bp.route('/api/marks-with-queries')
+@role_required('student')
+def api_student_marks_with_queries():
+    student_id = session.get('student_id')
+    if not student_id:
+        return jsonify({'error': 'Student session not found.'}), 400
+    marks = get_student_marks_with_query_status(student_id)
+    return jsonify({'marks': marks})
+
+
+@student_bp.route('/api/queries')
+@role_required('student')
+def api_student_queries():
+    student_id = session.get('student_id')
+    if not student_id:
+        return jsonify({'error': 'Student session not found.'}), 400
+    queries = get_student_queries(student_id)
+    return jsonify({'queries': queries})
+
+
+@student_bp.route('/api/queries/raise', methods=['POST'])
+@role_required('student')
+def api_student_raise_query():
+    student_id = session.get('student_id')
+    user_id = session.get('user_id')
+    user_name = session.get('display_name') or session.get('username')
+
+    if not student_id:
+        return jsonify({'error': 'Unauthorized. Student session not found.'}), 401
+
+    data = request.get_json() if request.is_json else request.form
+    mark_id = data.get('mark_id')
+    reason = data.get('reason')
+    student_note = data.get('student_note')
+    expected_mark = data.get('expected_mark')
+
+    if not mark_id:
+        return jsonify({'error': 'Mark ID is required.'}), 400
+
+    try:
+        from services.correction_service import raise_mark_correction_query
+        query_id = raise_mark_correction_query(
+            student_id=student_id,
+            mark_id=int(mark_id),
+            reason=reason,
+            student_note=student_note,
+            expected_mark=expected_mark,
+            user_id=user_id,
+            user_name=user_name
+        )
+        return jsonify({
+            'success': True,
+            'message': 'Mark correction query submitted successfully. Assigned faculty will review.',
+            'query_id': query_id
+        })
+    except ValueError as ve:
+        return jsonify({'error': str(ve)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Failed to submit query: {str(e)}'}), 500

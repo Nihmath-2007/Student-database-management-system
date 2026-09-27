@@ -1,0 +1,664 @@
+{% extends "base.html" %}
+{% block title %}Mark Correction Requests - Staff Panel{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+        <h1 class="page-title"><i class="fa-solid fa-clipboard-check me-2 text-warning"></i> Assigned Subject Mark Correction Requests</h1>
+        <div class="page-subtitle">Review, verify, and resolve student mark queries with automated score correction and immutable audit logging</div>
+    </div>
+    <div>
+        <a href="{{ url_for('staff.marks_page') }}" class="btn btn-outline-secondary btn-sm fw-bold">
+            <i class="fa-solid fa-award me-1"></i> View Subject Marks
+        </a>
+    </div>
+</div>
+
+<!-- KPI Summary Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-2 col-6">
+        <div class="kpi-card">
+            <div class="kpi-icon-box kpi-icon-navy">
+                <i class="fa-solid fa-inbox"></i>
+            </div>
+            <div>
+                <div class="kpi-label">Total Queries</div>
+                <div class="kpi-value" id="kpiTotal">0</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="kpi-card">
+            <div class="kpi-icon-box kpi-icon-amber">
+                <i class="fa-solid fa-bell"></i>
+            </div>
+            <div>
+                <div class="kpi-label">Action Required</div>
+                <div class="kpi-value text-warning" id="kpiPending">0</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 col-6">
+        <div class="kpi-card kpi-overdue-alert">
+            <div class="kpi-icon-box kpi-icon-red">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div>
+                <div class="kpi-label">Overdue (>48h)</div>
+                <div class="kpi-value text-danger" id="kpiOverdue">0</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 col-6">
+        <div class="kpi-card">
+            <div class="kpi-icon-box kpi-icon-green">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <div>
+                <div class="kpi-label">Approved</div>
+                <div class="kpi-value text-success" id="kpiApproved">0</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-12">
+        <div class="kpi-card">
+            <div class="kpi-icon-box kpi-icon-purple">
+                <i class="fa-solid fa-shield-check"></i>
+            </div>
+            <div>
+                <div class="kpi-label">Status Flow</div>
+                <div class="small fw-bold text-navy mt-1">Raised &rarr; Review &rarr; Resolve</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter and Search Bar -->
+<div class="custom-table-card p-3 mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="btn-group" role="group" aria-label="Status Filters">
+            <button type="button" class="btn btn-sm btn-outline-secondary active" onclick="filterStaffQueries('all', this)">All</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="filterStaffQueries('pending', this)">Pending</button>
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="filterStaffQueries('overdue', this)"><i class="fa-solid fa-fire me-1"></i> Overdue</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="filterStaffQueries('Raised', this)">Raised</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="filterStaffQueries('Under Review', this)">Under Review</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="filterStaffQueries('Approved', this)">Approved</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="filterStaffQueries('Rejected', this)">Rejected</button>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <div class="input-group input-group-sm" style="max-width: 260px;">
+                <span class="input-group-text bg-white"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                <input type="text" id="staffSearchInput" class="form-control" placeholder="Search student or subject..." onkeyup="renderStaffTable()">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Requests Table Card -->
+<div class="custom-table-card p-4">
+    <div class="table-responsive">
+        <table class="table table-custom align-middle">
+            <thead>
+                <tr>
+                    <th>Student Details</th>
+                    <th>Subject & Test</th>
+                    <th>Score Discrepancy</th>
+                    <th>Reason & Note</th>
+                    <th>Age & SLA</th>
+                    <th>Current Status</th>
+                    <th class="text-end" style="min-width: 200px;">Faculty Actions</th>
+                </tr>
+            </thead>
+            <tbody id="staffQueriesTableBody">
+                <tr><td colspan="7" class="text-center py-4 text-muted"><i class="fa-solid fa-circle-notch fa-spin me-2"></i> Loading assigned requests...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL: APPROVE CORRECTION QUERY -->
+<!-- ========================================================================= -->
+<div class="modal fade" id="approveModal" tabindex="-1" aria-labelledby="approveModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-success text-white py-3 px-4">
+                <h5 class="modal-title fw-bold fs-6" id="approveModalLabel">
+                    <i class="fa-solid fa-circle-check me-2"></i> Approve Mark Correction
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="approveForm" onsubmit="submitApproval(event)">
+                <div class="modal-body p-4">
+                    <input type="hidden" id="approveQueryId">
+
+                    <div class="bg-light p-3 rounded-3 mb-3 border">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted small">Student:</span>
+                            <span class="fw-bold text-navy" id="approveStudentName">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted small">Subject:</span>
+                            <span class="fw-semibold text-dark" id="approveSubjectName">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted small">Original Score:</span>
+                            <span class="fw-bold text-danger" id="approveCurrentScore">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted small">Student's Claimed Mark:</span>
+                            <span class="fw-bold text-primary" id="approveClaimedScore">-</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="approveNewMark" class="form-label fw-bold text-navy small">Corrected Mark to Apply <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="number" step="0.5" min="0" class="form-control form-control-lg fw-bold text-success" id="approveNewMark" required>
+                            <span class="input-group-text bg-light fw-bold" id="approveMaxMarkLabel">/ 100</span>
+                        </div>
+                        <div class="form-text text-muted small">
+                            <i class="fa-solid fa-bolt text-warning me-1"></i> Approving will <strong>automatically update</strong> the mark in the database and log the change in the audit trail.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="approveRemarks" class="form-label fw-bold text-navy small">Faculty Approval Remarks (Optional)</label>
+                        <textarea class="form-control" id="approveRemarks" rows="2" placeholder="e.g. Verified with physical answer script. Summation error in Part B corrected."></textarea>
+                    </div>
+
+                    <div id="approveAlert" class="alert alert-danger d-none py-2 px-3 small"></div>
+                </div>
+                <div class="modal-footer bg-light px-4 py-3">
+                    <button type="button" class="btn btn-secondary btn-sm fw-semibold" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success btn-sm fw-bold px-3" id="btnConfirmApprove">
+                        <i class="fa-solid fa-check me-1"></i> Confirm & Auto-Update Mark
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL: REJECT CORRECTION QUERY (REMARK MANDATORY) -->
+<!-- ========================================================================= -->
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-danger text-white py-3 px-4">
+                <h5 class="modal-title fw-bold fs-6" id="rejectModalLabel">
+                    <i class="fa-solid fa-circle-xmark me-2"></i> Reject Mark Correction Request
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="rejectForm" onsubmit="submitRejection(event)">
+                <div class="modal-body p-4">
+                    <input type="hidden" id="rejectQueryId">
+
+                    <div class="bg-light p-3 rounded-3 mb-3 border">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted small">Student:</span>
+                            <span class="fw-bold text-navy" id="rejectStudentName">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted small">Subject:</span>
+                            <span class="fw-semibold text-dark" id="rejectSubjectName">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted small">Score:</span>
+                            <span class="fw-bold text-dark" id="rejectCurrentScore">-</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="rejectRemarks" class="form-label fw-bold text-navy small">
+                            Academic Reason / Remark <span class="text-danger">* (Mandatory)</span>
+                        </label>
+                        <textarea class="form-control" id="rejectRemarks" rows="3" required placeholder="Explain why the mark query was not accepted (e.g. Answer does not meet scheme requirements, totaling verified as correct)..." minlength="5"></textarea>
+                        <div class="form-text text-danger small">
+                            A clear explanatory remark is required by departmental audit policy when rejecting student queries.
+                        </div>
+                    </div>
+
+                    <div id="rejectAlert" class="alert alert-danger d-none py-2 px-3 small"></div>
+                </div>
+                <div class="modal-footer bg-light px-4 py-3">
+                    <button type="button" class="btn btn-secondary btn-sm fw-semibold" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger btn-sm fw-bold px-3" id="btnConfirmReject">
+                        <i class="fa-solid fa-xmark me-1"></i> Confirm Rejection
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL: AUDIT TRAIL MODAL -->
+<!-- ========================================================================= -->
+<div class="modal fade" id="auditTrailModal" tabindex="-1" aria-labelledby="auditTrailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-navy text-white py-3 px-4" style="background-color: var(--msec-navy);">
+                <h5 class="modal-title fw-bold fs-6" id="auditTrailModalLabel">
+                    <i class="fa-solid fa-shield-halved text-warning me-2"></i> Query Details & Audit Trail History
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="bg-light p-3 rounded-3 mb-4 border" id="auditModalSummary">
+                    <div class="text-center py-3 text-muted"><i class="fa-solid fa-circle-notch fa-spin me-2"></i> Loading query details...</div>
+                </div>
+
+                <h6 class="fw-bold text-navy mb-2"><i class="fa-solid fa-clock-rotate-left me-2 text-primary"></i> Complete Audit Trail Log</h6>
+                <div class="small text-muted mb-3">Every status transition, score update, reviewer identity, and timestamp recorded in the immutable audit log:</div>
+
+                <div class="audit-timeline" id="auditTimelineContainer">
+                    <!-- Injected by JavaScript -->
+                </div>
+            </div>
+            <div class="modal-footer bg-light px-4 py-3">
+                <button type="button" class="btn btn-secondary btn-sm fw-semibold" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let staffQueriesList = [];
+    let currentFilter = 'all';
+
+    async function loadStaffQueries() {
+        try {
+            const res = await fetch(`/staff/api/queries?status=${currentFilter}`);
+            const data = await res.json();
+            staffQueriesList = data.queries || [];
+
+            if (data.stats) {
+                document.getElementById('kpiTotal').textContent = data.stats.total || 0;
+                document.getElementById('kpiPending').textContent = data.stats.pending || 0;
+                document.getElementById('kpiOverdue').textContent = data.stats.overdue || 0;
+                document.getElementById('kpiApproved').textContent = data.stats.approved || 0;
+            }
+
+            renderStaffTable();
+        } catch (e) {
+            console.error('Error loading staff queries:', e);
+            document.getElementById('staffQueriesTableBody').innerHTML = `<tr><td colspan="7" class="text-center py-4 text-danger">Error loading requests.</td></tr>`;
+        }
+    }
+
+    function renderStaffTable() {
+        const tbody = document.getElementById('staffQueriesTableBody');
+        const search = (document.getElementById('staffSearchInput').value || '').toLowerCase().trim();
+
+        const filtered = staffQueriesList.filter(q => {
+            if (!search) return true;
+            return (
+                q.student_name.toLowerCase().includes(search) ||
+                q.regno.toString().toLowerCase().includes(search) ||
+                q.subject_code.toLowerCase().includes(search) ||
+                q.subject_name.toLowerCase().includes(search) ||
+                q.reason.toLowerCase().includes(search)
+            );
+        });
+
+        if (filtered.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted">No correction queries found for this selection.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = filtered.map(q => {
+            let badgeClass = 'badge-raised';
+            let iconClass = 'fa-hourglass-start';
+            if (q.status === 'Under Review') { badgeClass = 'badge-under-review'; iconClass = 'fa-spinner fa-spin'; }
+            else if (q.status === 'Approved') { badgeClass = 'badge-approved'; iconClass = 'fa-circle-check'; }
+            else if (q.status === 'Rejected') { badgeClass = 'badge-rejected'; iconClass = 'fa-circle-xmark'; }
+
+            // SLA Tag
+            let slaHtml = '';
+            if (q.age_info) {
+                if (q.age_info.is_overdue) {
+                    slaHtml = `<div class="mt-1"><span class="badge-sla-breach"><i class="fa-solid fa-triangle-exclamation"></i> OVERDUE (${q.age_info.time_text})</span></div>`;
+                } else {
+                    slaHtml = `<div class="small text-muted mt-1"><i class="fa-regular fa-clock me-1"></i> ${q.age_info.time_text}</div>`;
+                }
+            }
+
+            // Action buttons
+            let actionsHtml = '';
+            if (q.status === 'Raised') {
+                actionsHtml = `
+                    <button class="btn-review-query" onclick="startReview(${q.id})" title="Move to Under Review">
+                        <i class="fa-solid fa-eye me-1"></i> Review
+                    </button>
+                    <button class="btn-approve-query ms-1" onclick="openApproveModal(${q.id})">
+                        <i class="fa-solid fa-check"></i>
+                    </button>
+                    <button class="btn-reject-query ms-1" onclick="openRejectModal(${q.id})">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                `;
+            } else if (q.status === 'Under Review') {
+                actionsHtml = `
+                    <button class="btn-approve-query" onclick="openApproveModal(${q.id})">
+                        <i class="fa-solid fa-check me-1"></i> Approve
+                    </button>
+                    <button class="btn-reject-query ms-1" onclick="openRejectModal(${q.id})">
+                        <i class="fa-solid fa-xmark me-1"></i> Reject
+                    </button>
+                `;
+            } else {
+                actionsHtml = `
+                    <span class="badge bg-light text-muted border">Resolved</span>
+                `;
+            }
+
+            actionsHtml += `
+                <button class="btn btn-view-audit ms-1" onclick="viewAuditTrail(${q.id})" title="Audit Trail">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </button>
+            `;
+
+            return `
+                <tr class="${q.is_overdue ? 'table-warning' : ''}">
+                    <td>
+                        <div class="font-monospace fw-bold text-navy">${q.regno}</div>
+                        <div class="fw-semibold text-dark">${q.student_name}</div>
+                        <div class="text-muted smaller">Year: ${q.year || 'N/A'}</div>
+                    </td>
+                    <td>
+                        <div class="fw-bold">${q.subject_code} - ${q.subject_name}</div>
+                        <div class="small text-muted">Assessment: Test ${q.test_number}</div>
+                    </td>
+                    <td>
+                        <div class="small">Original: <span class="fw-bold text-danger">${q.current_mark}</span> / ${q.max_marks}</div>
+                        <div class="small">Claimed: <span class="fw-bold text-success">${q.expected_mark != null ? q.expected_mark : 'N/A'}</span></div>
+                        ${q.approved_mark != null ? `<div class="small fw-bold text-primary">Approved: ${q.approved_mark}</div>` : ''}
+                    </td>
+                    <td>
+                        <div class="fw-bold small text-navy">${q.reason}</div>
+                        <div class="small text-muted text-truncate" style="max-width: 220px;" title="${q.student_note}">
+                            <i class="fa-solid fa-quote-left text-muted me-1"></i> ${q.student_note}
+                        </div>
+                        ${q.staff_remarks ? `<div class="small text-dark mt-1 fst-italic"><strong>Your Remarks:</strong> ${q.staff_remarks}</div>` : ''}
+                    </td>
+                    <td>
+                        ${slaHtml}
+                    </td>
+                    <td>
+                        <span class="badge-status ${badgeClass}"><i class="fa-solid ${iconClass}"></i> ${q.status}</span>
+                    </td>
+                    <td class="text-end">
+                        <div class="d-inline-flex align-items-center">
+                            ${actionsHtml}
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function filterStaffQueries(filterVal, btn) {
+        currentFilter = filterVal;
+        document.querySelectorAll('[aria-label="Status Filters"] button').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+        loadStaffQueries();
+    }
+
+    async function startReview(queryId) {
+        try {
+            const res = await fetch(`/staff/api/query/${queryId}/review`, { method: 'POST' });
+            const data = await res.json();
+            if (!res.ok || data.error) {
+                alert(data.error || 'Failed to start review.');
+                return;
+            }
+            loadStaffQueries();
+        } catch (e) {
+            alert('Error: ' + e.message);
+        }
+    }
+
+    function openApproveModal(queryId) {
+        const q = staffQueriesList.find(item => item.id === queryId);
+        if (!q) return;
+
+        document.getElementById('approveQueryId').value = q.id;
+        document.getElementById('approveStudentName').textContent = `${q.student_name} (${q.regno})`;
+        document.getElementById('approveSubjectName').textContent = `${q.subject_code} - ${q.subject_name} (Test ${q.test_number})`;
+        document.getElementById('approveCurrentScore').textContent = `${q.current_mark} / ${q.max_marks}`;
+        document.getElementById('approveClaimedScore').textContent = q.expected_mark != null ? `${q.expected_mark} / ${q.max_marks}` : 'None specified';
+        document.getElementById('approveMaxMarkLabel').textContent = `/ ${q.max_marks}`;
+
+        const newMarkInput = document.getElementById('approveNewMark');
+        newMarkInput.setAttribute('max', q.max_marks);
+        newMarkInput.value = q.expected_mark != null ? q.expected_mark : q.current_mark;
+
+        document.getElementById('approveRemarks').value = '';
+        document.getElementById('approveAlert').classList.add('d-none');
+
+        const modal = new bootstrap.Modal(document.getElementById('approveModal'));
+        modal.show();
+    }
+
+    async function submitApproval(e) {
+        e.preventDefault();
+        const queryId = document.getElementById('approveQueryId').value;
+        const newMark = document.getElementById('approveNewMark').value;
+        const remarks = document.getElementById('approveRemarks').value;
+        const alertBox = document.getElementById('approveAlert');
+        const btn = document.getElementById('btnConfirmApprove');
+        alertBox.classList.add('d-none');
+
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-1"></i> Updating mark...`;
+
+        try {
+            const res = await fetch(`/staff/api/query/${queryId}/resolve`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'approve',
+                    new_mark: newMark,
+                    remarks: remarks
+                })
+            });
+            const data = await res.json();
+
+            if (!res.ok || data.error) {
+                alertBox.textContent = data.error || 'Failed to approve.';
+                alertBox.classList.remove('d-none');
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-check me-1"></i> Confirm & Auto-Update Mark`;
+                return;
+            }
+
+            const modalEl = document.getElementById('approveModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+
+            loadStaffQueries();
+            alert(`Correction Approved! Mark automatically updated to ${newMark} in the system.`);
+        } catch (err) {
+            alertBox.textContent = 'Server error: ' + err.message;
+            alertBox.classList.remove('d-none');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fa-solid fa-check me-1"></i> Confirm & Auto-Update Mark`;
+        }
+    }
+
+    function openRejectModal(queryId) {
+        const q = staffQueriesList.find(item => item.id === queryId);
+        if (!q) return;
+
+        document.getElementById('rejectQueryId').value = q.id;
+        document.getElementById('rejectStudentName').textContent = `${q.student_name} (${q.regno})`;
+        document.getElementById('rejectSubjectName').textContent = `${q.subject_code} - ${q.subject_name}`;
+        document.getElementById('rejectCurrentScore').textContent = `${q.current_mark} / ${q.max_marks}`;
+        document.getElementById('rejectRemarks').value = '';
+        document.getElementById('rejectAlert').classList.add('d-none');
+
+        const modal = new bootstrap.Modal(document.getElementById('rejectModal'));
+        modal.show();
+    }
+
+    async function submitRejection(e) {
+        e.preventDefault();
+        const queryId = document.getElementById('rejectQueryId').value;
+        const remarks = document.getElementById('rejectRemarks').value;
+        const alertBox = document.getElementById('rejectAlert');
+        const btn = document.getElementById('btnConfirmReject');
+        alertBox.classList.add('d-none');
+
+        if (!remarks || remarks.trim().length < 5) {
+            alertBox.textContent = 'A remark explaining the rejection reason is mandatory (at least 5 characters).';
+            alertBox.classList.remove('d-none');
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-1"></i> Rejecting...`;
+
+        try {
+            const res = await fetch(`/staff/api/query/${queryId}/resolve`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'reject',
+                    remarks: remarks
+                })
+            });
+            const data = await res.json();
+
+            if (!res.ok || data.error) {
+                alertBox.textContent = data.error || 'Failed to reject query.';
+                alertBox.classList.remove('d-none');
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-xmark me-1"></i> Confirm Rejection`;
+                return;
+            }
+
+            const modalEl = document.getElementById('rejectModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+
+            loadStaffQueries();
+            alert('Correction query rejected with mandatory remark recorded in audit log.');
+        } catch (err) {
+            alertBox.textContent = 'Server error: ' + err.message;
+            alertBox.classList.remove('d-none');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fa-solid fa-xmark me-1"></i> Confirm Rejection`;
+        }
+    }
+
+    async function viewAuditTrail(queryId) {
+        const modal = new bootstrap.Modal(document.getElementById('auditTrailModal'));
+        modal.show();
+
+        const summaryBox = document.getElementById('auditModalSummary');
+        const timelineBox = document.getElementById('auditTimelineContainer');
+        summaryBox.innerHTML = `<div class="text-center py-3 text-muted"><i class="fa-solid fa-circle-notch fa-spin me-2"></i> Loading query details...</div>`;
+        timelineBox.innerHTML = '';
+
+        try {
+            const res = await fetch(`/api/query/${queryId}/audit`);
+            const data = await res.json();
+
+            if (!res.ok || data.error) {
+                summaryBox.innerHTML = `<div class="alert alert-danger py-2 mb-0">${data.error || 'Failed to load audit.'}</div>`;
+                return;
+            }
+
+            const q = data.query;
+            const trail = data.audit_trail || [];
+
+            let badgeClass = 'badge-raised';
+            if (q.status === 'Under Review') badgeClass = 'badge-under-review';
+            else if (q.status === 'Approved') badgeClass = 'badge-approved';
+            else if (q.status === 'Rejected') badgeClass = 'badge-rejected';
+
+            summaryBox.innerHTML = `
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="h6 fw-bold text-navy mb-0">Query #${q.id}</span>
+                            <span class="badge-status ${badgeClass}">${q.status}</span>
+                        </div>
+                        <div class="small text-muted mb-1"><strong>Student:</strong> ${q.student_name} (${q.regno})</div>
+                        <div class="small text-muted mb-1"><strong>Subject:</strong> ${q.subject_code} - ${q.subject_name}</div>
+                        <div class="small text-muted"><strong>Assessment:</strong> Test ${q.test_number}</div>
+                    </div>
+                    <div class="col-md-6 border-start-md">
+                        <div class="small mb-1"><strong>Original Mark:</strong> <span class="fw-bold text-danger">${q.current_mark}</span> / ${q.max_marks}</div>
+                        <div class="small mb-1"><strong>Claimed Mark:</strong> <span class="fw-bold text-success">${q.expected_mark != null ? q.expected_mark : 'N/A'}</span></div>
+                        ${q.approved_mark != null ? `<div class="small mb-1"><strong>Approved Mark:</strong> <span class="fw-bold text-success fs-6">${q.approved_mark}</span></div>` : ''}
+                        <div class="small text-muted"><strong>Submitted:</strong> ${q.age_info ? q.age_info.formatted_date : q.created_at}</div>
+                    </div>
+                    <div class="col-12 mt-2 pt-2 border-top">
+                        <div class="small fw-bold text-navy">Reason: <span class="fw-normal text-dark">${q.reason}</span></div>
+                        <div class="small text-muted mt-1"><strong>Student Note:</strong> ${q.student_note}</div>
+                        ${q.staff_remarks ? `<div class="small text-dark mt-1 bg-white p-2 rounded border"><strong>Remarks:</strong> ${q.staff_remarks}</div>` : ''}
+                    </div>
+                </div>
+            `;
+
+            if (trail.length === 0) {
+                timelineBox.innerHTML = `<div class="text-muted small py-2">No audit events recorded for this query.</div>`;
+                return;
+            }
+
+            timelineBox.innerHTML = trail.map(evt => {
+                let dotClass = 'audit-dot-raised';
+                let icon = 'fa-flag';
+                if (evt.action === 'STATUS_CHANGE') { dotClass = 'audit-dot-review'; icon = 'fa-spinner'; }
+                else if (evt.action === 'MARK_CORRECTION') { dotClass = 'audit-dot-mark'; icon = 'fa-pen-to-square'; }
+                else if (evt.action === 'QUERY_APPROVED') { dotClass = 'audit-dot-approved'; icon = 'fa-check'; }
+                else if (evt.action === 'QUERY_REJECTED') { dotClass = 'audit-dot-rejected'; icon = 'fa-xmark'; }
+
+                let diffHtml = '';
+                if (evt.old_value !== null || evt.new_value !== null) {
+                    diffHtml = `
+                        <div class="audit-diff-box">
+                            <span class="small text-muted">${evt.field_name || 'value'}:</span>
+                            <span class="audit-diff-old">${evt.old_value != null ? evt.old_value : 'None'}</span>
+                            <i class="fa-solid fa-arrow-right audit-diff-arrow"></i>
+                            <span class="audit-diff-new">${evt.new_value != null ? evt.new_value : 'None'}</span>
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div class="audit-timeline-item">
+                        <div class="audit-timeline-dot ${dotClass}">
+                            <i class="fa-solid ${icon}"></i>
+                        </div>
+                        <div class="audit-timeline-content">
+                            <div class="audit-header">
+                                <div class="audit-action-title">${evt.action.replace(/_/g, ' ')} &bull; ${evt.table_name}</div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="audit-author-tag"><i class="fa-solid fa-user me-1"></i> ${evt.changed_by_name} (${evt.changed_by_role})</span>
+                                    <span class="audit-time-text"><i class="fa-regular fa-clock me-1"></i> ${evt.age_info ? evt.age_info.formatted_date : evt.changed_at}</span>
+                                </div>
+                            </div>
+                            ${diffHtml}
+                            ${evt.notes ? `<div class="audit-note-text"><i class="fa-solid fa-quote-left text-muted me-1"></i> ${evt.notes}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        } catch (err) {
+            summaryBox.innerHTML = `<div class="alert alert-danger py-2 mb-0">Error fetching audit trail: ${err.message}</div>`;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadStaffQueries);
+</script>
+{% endblock %}

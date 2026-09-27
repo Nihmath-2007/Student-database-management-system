@@ -6,6 +6,7 @@ from routes.auth import role_required, login_required
 from db import fetch_all, fetch_one, execute
 from services.analytics import calculate_department_analytics
 from services.database_service import get_all_students, get_student_details, get_all_subjects
+from services.correction_service import get_hod_queries, get_hod_summary_stats, get_all_audit_logs, resolve_mark_correction_query, get_query_details
 
 hod_bp = Blueprint('hod', __name__, url_prefix='/hod')
 
@@ -180,3 +181,84 @@ def gallery_delete(photo_id):
         flash(f"Failed to delete photo from database: {str(e)}", "danger")
 
     return redirect(url_for('hod.dashboard'))
+
+
+# Mark Correction Request Workflow & Audit Oversight Endpoints
+@hod_bp.route('/queries')
+@role_required('hod')
+def queries_page():
+    return render_template('hod/queries.html')
+
+
+@hod_bp.route('/api/queries/summary')
+@role_required('hod')
+def api_hod_queries_summary():
+    stats = get_hod_summary_stats()
+    return jsonify(stats)
+
+
+@hod_bp.route('/api/queries')
+@role_required('hod')
+def api_hod_queries():
+    status_filter = request.args.get('status', 'all')
+    staff_id = request.args.get('staff_id', 'all')
+    subject_id = request.args.get('subject_id', 'all')
+    overdue_only = request.args.get('overdue') in ('1', 'true', 'yes')
+    search = request.args.get('search')
+
+    queries = get_hod_queries(
+        status_filter=status_filter,
+        staff_id=staff_id,
+        subject_id=subject_id,
+        overdue_only=overdue_only,
+        search=search
+    )
+    return jsonify({'queries': queries})
+
+
+@hod_bp.route('/api/audit-logs')
+@role_required('hod')
+def api_hod_audit_logs():
+    table_filter = request.args.get('table', 'all')
+    search = request.args.get('search')
+    limit = int(request.args.get('limit', 150))
+
+    logs = get_all_audit_logs(limit=limit, table_filter=table_filter, search=search)
+    return jsonify({'logs': logs})
+
+
+@hod_bp.route('/api/query/<int:query_id>/resolve', methods=['POST'])
+@role_required('hod')
+def api_hod_query_resolve(query_id):
+    """Allows HOD departmental oversight intervention if an escalation or override is warranted."""
+    user_id = session.get('user_id')
+    user_name = session.get('display_name') or 'HOD - IT Department'
+
+    data = request.get_json() if request.is_json else request.form
+    action = data.get('action')
+    remarks = data.get('remarks')
+    new_mark = data.get('new_mark')
+
+    if not action or action.lower() not in ('approve', 'reject'):
+        return jsonify({'error': "Action must be 'approve' or 'reject'."}), 400
+
+    try:
+        result = resolve_mark_correction_query(
+            request_id=query_id,
+            action_type=action,
+            user_id=user_id,
+            user_name=f"{user_name} (HOD Override)",
+            user_role='hod',
+            staff_id=None,
+            remarks=remarks,
+            new_mark=new_mark
+        )
+        return jsonify({
+            'success': True,
+            'result': result,
+            'message': result.get('message', 'Request resolved via HOD oversight.')
+        })
+    except ValueError as ve:
+        return jsonify({'error': str(ve)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Failed to resolve request: {str(e)}'}), 500

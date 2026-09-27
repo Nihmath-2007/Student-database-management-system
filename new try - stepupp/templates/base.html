@@ -195,6 +195,11 @@
                             </a>
                         </li>
                         <li>
+                            <a href="{{ url_for('hod.queries_page') }}" class="sidebar-link-btn {% if request.endpoint == 'hod.queries_page' %}active{% endif %}">
+                                <i class="fa-solid fa-clipboard-check me-2 text-warning"></i> CORRECTIONS
+                            </a>
+                        </li>
+                        <li>
                             <a href="{{ url_for('gallery') }}" class="sidebar-link-btn {% if request.endpoint == 'gallery' %}active{% endif %}">
                                 <i class="fa-solid fa-images me-2"></i> GALLERY
                             </a>
@@ -213,6 +218,11 @@
                         <li>
                             <a href="{{ url_for('staff.marks_page') }}" class="sidebar-link-btn {% if request.endpoint == 'staff.marks_page' %}active{% endif %}">
                                 <i class="fa-solid fa-award me-2"></i> MARKS
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('staff.queries_page') }}" class="sidebar-link-btn {% if request.endpoint == 'staff.queries_page' %}active{% endif %}">
+                                <i class="fa-solid fa-clipboard-check me-2 text-warning"></i> CORRECTIONS
                             </a>
                         </li>
                         <li>
@@ -239,6 +249,11 @@
                         <li>
                             <a href="{{ url_for('student.marks_page') }}" class="sidebar-link-btn {% if request.endpoint == 'student.marks_page' %}active{% endif %}">
                                 <i class="fa-solid fa-file-lines me-2"></i> MY MARKS
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('student.queries_page') }}" class="sidebar-link-btn {% if request.endpoint == 'student.queries_page' %}active{% endif %}">
+                                <i class="fa-solid fa-clipboard-check me-2 text-warning"></i> MY QUERIES
                             </a>
                         </li>
                         <li>

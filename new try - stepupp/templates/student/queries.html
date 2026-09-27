@@ -1,0 +1,349 @@
+{% extends "base.html" %}
+{% block title %}My Mark Correction Requests - Student Portal{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+        <h1 class="page-title"><i class="fa-solid fa-clipboard-check me-2 text-warning"></i> My Mark Correction Requests</h1>
+        <div class="page-subtitle">Track the status, faculty reviews, and audit logs of your submitted mark queries</div>
+    </div>
+    <div>
+        <a href="{{ url_for('student.marks_page') }}" class="btn btn-orange btn-sm fw-bold px-3" style="background-color: var(--msec-orange); color: white;">
+            <i class="fa-solid fa-plus me-1"></i> Raise Query on My Marks
+        </a>
+    </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3 col-6">
+        <div class="kpi-card">
+            <div class="kpi-icon-box kpi-icon-navy">
+                <i class="fa-solid fa-clipboard-list"></i>
+            </div>
+            <div>
+                <div class="kpi-label">Total Queries</div>
+                <div class="kpi-value" id="kpiTotal">0</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="kpi-card">
+            <div class="kpi-icon-box kpi-icon-amber">
+                <i class="fa-solid fa-hourglass-half"></i>
+            </div>
+            <div>
+                <div class="kpi-label">Pending / Review</div>
+                <div class="kpi-value" id="kpiPending">0</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="kpi-card">
+            <div class="kpi-icon-box kpi-icon-green">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <div>
+                <div class="kpi-label">Approved</div>
+                <div class="kpi-value" id="kpiApproved">0</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="kpi-card">
+            <div class="kpi-icon-box kpi-icon-red">
+                <i class="fa-solid fa-circle-xmark"></i>
+            </div>
+            <div>
+                <div class="kpi-label">Rejected</div>
+                <div class="kpi-value" id="kpiRejected">0</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters Bar -->
+<div class="custom-table-card p-3 mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="btn-group" role="group" aria-label="Status Filters">
+            <button type="button" class="btn btn-sm btn-outline-secondary active" onclick="filterQueries('all', this)">All</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="filterQueries('Raised', this)">Raised</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="filterQueries('Under Review', this)">Under Review</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="filterQueries('Approved', this)">Approved</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="filterQueries('Rejected', this)">Rejected</button>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <div class="input-group input-group-sm" style="max-width: 260px;">
+                <span class="input-group-text bg-white"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                <input type="text" id="searchInput" class="form-control" placeholder="Search subject or reason..." onkeyup="filterBySearch()">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Queries Table -->
+<div class="custom-table-card p-4">
+    <div class="table-responsive">
+        <table class="table table-custom align-middle">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Subject & Assessment</th>
+                    <th>Faculty</th>
+                    <th>Current Score</th>
+                    <th>Claimed Score</th>
+                    <th>Reason & Note</th>
+                    <th>Status</th>
+                    <th>Faculty Response</th>
+                    <th class="text-end">Audit Trail</th>
+                </tr>
+            </thead>
+            <tbody id="studentQueriesTableBody">
+                <tr><td colspan="9" class="text-center py-4 text-muted"><i class="fa-solid fa-circle-notch fa-spin me-2"></i> Loading your queries...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- AUDIT TRAIL MODAL -->
+<div class="modal fade" id="auditTrailModal" tabindex="-1" aria-labelledby="auditTrailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-navy text-white py-3 px-4" style="background-color: var(--msec-navy);">
+                <h5 class="modal-title fw-bold fs-6" id="auditTrailModalLabel">
+                    <i class="fa-solid fa-shield-halved text-warning me-2"></i> Query Details & Audit Trail History
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="bg-light p-3 rounded-3 mb-4 border" id="auditModalSummary">
+                    <div class="text-center py-3 text-muted"><i class="fa-solid fa-circle-notch fa-spin me-2"></i> Loading query details...</div>
+                </div>
+
+                <h6 class="fw-bold text-navy mb-2"><i class="fa-solid fa-clock-rotate-left me-2 text-primary"></i> Complete Audit Trail Log</h6>
+                <div class="small text-muted mb-3">Every status transition, score update, reviewer identity, and timestamp recorded in the immutable audit log:</div>
+
+                <div class="audit-timeline" id="auditTimelineContainer">
+                    <!-- Injected by JavaScript -->
+                </div>
+            </div>
+            <div class="modal-footer bg-light px-4 py-3">
+                <button type="button" class="btn btn-secondary btn-sm fw-semibold" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let allQueries = [];
+    let currentFilter = 'all';
+
+    async function loadStudentQueries() {
+        try {
+            const res = await fetch('/student/api/queries');
+            const data = await res.json();
+            allQueries = data.queries || [];
+
+            // Compute KPIs
+            const total = allQueries.length;
+            const pending = allQueries.filter(q => q.status === 'Raised' || q.status === 'Under Review').length;
+            const approved = allQueries.filter(q => q.status === 'Approved').length;
+            const rejected = allQueries.filter(q => q.status === 'Rejected').length;
+
+            document.getElementById('kpiTotal').textContent = total;
+            document.getElementById('kpiPending').textContent = pending;
+            document.getElementById('kpiApproved').textContent = approved;
+            document.getElementById('kpiRejected').textContent = rejected;
+
+            renderQueriesTable();
+        } catch (e) {
+            console.error('Error loading queries:', e);
+            document.getElementById('studentQueriesTableBody').innerHTML = `<tr><td colspan="9" class="text-center py-4 text-danger">Error loading requests.</td></tr>`;
+        }
+    }
+
+    function renderQueriesTable() {
+        const tbody = document.getElementById('studentQueriesTableBody');
+        const search = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+
+        const filtered = allQueries.filter(q => {
+            const matchStatus = (currentFilter === 'all') || (q.status === currentFilter);
+            const matchSearch = !search || 
+                q.subject_name.toLowerCase().includes(search) ||
+                q.subject_code.toLowerCase().includes(search) ||
+                q.reason.toLowerCase().includes(search) ||
+                (q.staff_name && q.staff_name.toLowerCase().includes(search));
+            return matchStatus && matchSearch;
+        });
+
+        if (filtered.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-muted">No correction queries found matching filter.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = filtered.map(q => {
+            let badgeClass = 'badge-raised';
+            let iconClass = 'fa-hourglass-start';
+            if (q.status === 'Under Review') { badgeClass = 'badge-under-review'; iconClass = 'fa-spinner fa-spin'; }
+            else if (q.status === 'Approved') { badgeClass = 'badge-approved'; iconClass = 'fa-circle-check'; }
+            else if (q.status === 'Rejected') { badgeClass = 'badge-rejected'; iconClass = 'fa-circle-xmark'; }
+
+            return `
+                <tr>
+                    <td class="font-monospace fw-bold text-navy">#${q.id}</td>
+                    <td>
+                        <div class="fw-bold">${q.subject_code} - ${q.subject_name}</div>
+                        <div class="small text-muted">Internal Test ${q.test_number} &bull; Sem ${q.semester}</div>
+                    </td>
+                    <td>
+                        <div class="small fw-semibold text-secondary"><i class="fa-solid fa-chalkboard-user me-1 text-muted"></i> ${q.staff_name}</div>
+                    </td>
+                    <td>
+                        <span class="fw-bold text-danger">${q.current_mark}</span>
+                        <span class="text-muted small">/ ${q.max_marks}</span>
+                    </td>
+                    <td>
+                        ${q.expected_mark != null 
+                            ? `<span class="fw-bold text-success fs-6">${q.expected_mark}</span>` 
+                            : `<span class="text-muted small">Not specified</span>`}
+                    </td>
+                    <td>
+                        <div class="fw-semibold small text-dark">${q.reason}</div>
+                        <div class="small text-muted text-truncate" style="max-width: 180px;" title="${q.student_note}">${q.student_note}</div>
+                    </td>
+                    <td>
+                        <span class="badge-status ${badgeClass}"><i class="fa-solid ${iconClass}"></i> ${q.status}</span>
+                        <div class="smaller text-muted mt-1"><i class="fa-regular fa-clock me-1"></i> ${q.age_info ? q.age_info.time_text : ''}</div>
+                    </td>
+                    <td>
+                        ${q.staff_remarks 
+                            ? `<div class="small text-dark fw-semibold">${q.staff_remarks}</div>` 
+                            : `<div class="small text-muted fst-italic">Pending faculty review</div>`}
+                    </td>
+                    <td class="text-end">
+                        <button class="btn btn-view-audit" onclick="viewAuditTrail(${q.id})">
+                            <i class="fa-solid fa-clock-rotate-left me-1"></i> Audit Trail
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function filterQueries(status, btn) {
+        currentFilter = status;
+        document.querySelectorAll('[aria-label="Status Filters"] button').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+        renderQueriesTable();
+    }
+
+    function filterBySearch() {
+        renderQueriesTable();
+    }
+
+    async function viewAuditTrail(queryId) {
+        const modal = new bootstrap.Modal(document.getElementById('auditTrailModal'));
+        modal.show();
+
+        const summaryBox = document.getElementById('auditModalSummary');
+        const timelineBox = document.getElementById('auditTimelineContainer');
+        summaryBox.innerHTML = `<div class="text-center py-3 text-muted"><i class="fa-solid fa-circle-notch fa-spin me-2"></i> Loading query details...</div>`;
+        timelineBox.innerHTML = '';
+
+        try {
+            const res = await fetch(`/api/query/${queryId}/audit`);
+            const data = await res.json();
+
+            if (!res.ok || data.error) {
+                summaryBox.innerHTML = `<div class="alert alert-danger py-2 mb-0">${data.error || 'Failed to load audit.'}</div>`;
+                return;
+            }
+
+            const q = data.query;
+            const trail = data.audit_trail || [];
+
+            let badgeClass = 'badge-raised';
+            if (q.status === 'Under Review') badgeClass = 'badge-under-review';
+            else if (q.status === 'Approved') badgeClass = 'badge-approved';
+            else if (q.status === 'Rejected') badgeClass = 'badge-rejected';
+
+            summaryBox.innerHTML = `
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="h6 fw-bold text-navy mb-0">Query #${q.id}</span>
+                            <span class="badge-status ${badgeClass}">${q.status}</span>
+                        </div>
+                        <div class="small text-muted mb-1"><strong>Subject:</strong> ${q.subject_code} - ${q.subject_name}</div>
+                        <div class="small text-muted mb-1"><strong>Assessment:</strong> Internal Test ${q.test_number}</div>
+                        <div class="small text-muted"><strong>Faculty:</strong> ${q.staff_name}</div>
+                    </div>
+                    <div class="col-md-6 border-start-md">
+                        <div class="small mb-1"><strong>Original Mark:</strong> <span class="fw-bold text-danger">${q.current_mark}</span> / ${q.max_marks}</div>
+                        <div class="small mb-1"><strong>Claimed Mark:</strong> <span class="fw-bold text-success">${q.expected_mark != null ? q.expected_mark : 'N/A'}</span></div>
+                        ${q.approved_mark != null ? `<div class="small mb-1"><strong>Approved Mark:</strong> <span class="fw-bold text-success fs-6">${q.approved_mark}</span></div>` : ''}
+                        <div class="small text-muted"><strong>Submitted:</strong> ${q.age_info ? q.age_info.formatted_date : q.created_at}</div>
+                    </div>
+                    <div class="col-12 mt-2 pt-2 border-top">
+                        <div class="small fw-bold text-navy">Reason: <span class="fw-normal text-dark">${q.reason}</span></div>
+                        <div class="small text-muted mt-1"><strong>Student Note:</strong> ${q.student_note}</div>
+                        ${q.staff_remarks ? `<div class="small text-dark mt-1 bg-white p-2 rounded border"><strong>Faculty Remarks:</strong> ${q.staff_remarks}</div>` : ''}
+                    </div>
+                </div>
+            `;
+
+            if (trail.length === 0) {
+                timelineBox.innerHTML = `<div class="text-muted small py-2">No audit events recorded for this query.</div>`;
+                return;
+            }
+
+            timelineBox.innerHTML = trail.map(evt => {
+                let dotClass = 'audit-dot-raised';
+                let icon = 'fa-flag';
+                if (evt.action === 'STATUS_CHANGE') { dotClass = 'audit-dot-review'; icon = 'fa-spinner'; }
+                else if (evt.action === 'MARK_CORRECTION') { dotClass = 'audit-dot-mark'; icon = 'fa-pen-to-square'; }
+                else if (evt.action === 'QUERY_APPROVED') { dotClass = 'audit-dot-approved'; icon = 'fa-check'; }
+                else if (evt.action === 'QUERY_REJECTED') { dotClass = 'audit-dot-rejected'; icon = 'fa-xmark'; }
+
+                let diffHtml = '';
+                if (evt.old_value !== null || evt.new_value !== null) {
+                    diffHtml = `
+                        <div class="audit-diff-box">
+                            <span class="small text-muted">${evt.field_name || 'value'}:</span>
+                            <span class="audit-diff-old">${evt.old_value != null ? evt.old_value : 'None'}</span>
+                            <i class="fa-solid fa-arrow-right audit-diff-arrow"></i>
+                            <span class="audit-diff-new">${evt.new_value != null ? evt.new_value : 'None'}</span>
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div class="audit-timeline-item">
+                        <div class="audit-timeline-dot ${dotClass}">
+                            <i class="fa-solid ${icon}"></i>
+                        </div>
+                        <div class="audit-timeline-content">
+                            <div class="audit-header">
+                                <div class="audit-action-title">${evt.action.replace(/_/g, ' ')} &bull; ${evt.table_name}</div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="audit-author-tag"><i class="fa-solid fa-user me-1"></i> ${evt.changed_by_name} (${evt.changed_by_role})</span>
+                                    <span class="audit-time-text"><i class="fa-regular fa-clock me-1"></i> ${evt.age_info ? evt.age_info.formatted_date : evt.changed_at}</span>
+                                </div>
+                            </div>
+                            ${diffHtml}
+                            ${evt.notes ? `<div class="audit-note-text"><i class="fa-solid fa-quote-left text-muted me-1"></i> ${evt.notes}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        } catch (err) {
+            summaryBox.innerHTML = `<div class="alert alert-danger py-2 mb-0">Error fetching audit trail: ${err.message}</div>`;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadStudentQueries);
+</script>
+{% endblock %}
