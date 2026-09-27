@@ -19,6 +19,12 @@ def init_db(force=False):
     conn, engine = get_db_connection()
     print(f"Connected to live database engine: {engine}")
 
+    try:
+        from services.correction_service import init_correction_tables
+        init_correction_tables()
+    except Exception as corr_err:
+        print(f"Notice: init_correction_tables in init_db: {corr_err}")
+
     if engine == 'mysql':
         try:
             cursor = conn.cursor(dictionary=True)

@@ -4,6 +4,7 @@ from werkzeug.utils import secure_filename
 from flask import Blueprint, render_template, jsonify, request, session, redirect, url_for, flash, current_app
 from routes.auth import role_required, login_required
 from services.database_service import get_staff_subjects, get_subject_details, get_student_details, get_all_students
+from services.correction_service import get_staff_queries, update_query_status_to_review, resolve_mark_correction_query, get_query_details
 from db import fetch_all, fetch_one, execute
 
 staff_bp = Blueprint('staff', __name__, url_prefix='/staff')
@@ -237,4 +238,102 @@ def api_staff_student_detail(student_id):
     if not data:
         return jsonify({'error': 'Student not found.'}), 404
     return jsonify(data)
+
+
+# Mark Correction Request Workflow Endpoints
+@staff_bp.route('/queries')
+@role_required('staff')
+def queries_page():
+    return render_template('staff/queries.html')
+
+
+@staff_bp.route('/api/queries')
+@role_required('staff')
+def api_staff_queries():
+    staff_id = session.get('staff_id')
+    if not staff_id:
+        return jsonify({'error': 'Staff session not found.'}), 400
+
+    status_filter = request.args.get('status', 'all')
+    queries = get_staff_queries(staff_id, status_filter=status_filter)
+
+    # Compute quick stats for staff
+    all_queries = get_staff_queries(staff_id, status_filter='all')
+    pending_count = sum(1 for q in all_queries if q['status'] in ('Raised', 'Under Review'))
+    overdue_count = sum(1 for q in all_queries if q.get('is_overdue'))
+    approved_count = sum(1 for q in all_queries if q['status'] == 'Approved')
+    rejected_count = sum(1 for q in all_queries if q['status'] == 'Rejected')
+
+    return jsonify({
+        'queries': queries,
+        'stats': {
+            'total': len(all_queries),
+            'pending': pending_count,
+            'overdue': overdue_count,
+            'approved': approved_count,
+            'rejected': rejected_count
+        }
+    })
+
+
+@staff_bp.route('/api/query/<int:query_id>/review', methods=['POST'])
+@role_required('staff')
+def api_staff_query_review(query_id):
+    staff_id = session.get('staff_id')
+    user_id = session.get('user_id')
+    user_name = session.get('display_name') or session.get('username')
+
+    try:
+        update_query_status_to_review(
+            request_id=query_id,
+            user_id=user_id,
+            user_name=user_name,
+            user_role='staff',
+            staff_id=staff_id
+        )
+        return jsonify({
+            'success': True,
+            'message': f'Request #{query_id} is now Under Review. Answer script verification initiated.'
+        })
+    except (ValueError, PermissionError) as ve:
+        return jsonify({'error': str(ve)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Failed to update review status: {str(e)}'}), 500
+
+
+@staff_bp.route('/api/query/<int:query_id>/resolve', methods=['POST'])
+@role_required('staff')
+def api_staff_query_resolve(query_id):
+    staff_id = session.get('staff_id')
+    user_id = session.get('user_id')
+    user_name = session.get('display_name') or session.get('username')
+
+    data = request.get_json() if request.is_json else request.form
+    action = data.get('action')  # 'approve' or 'reject'
+    remarks = data.get('remarks')
+    new_mark = data.get('new_mark')
+
+    if not action or action.lower() not in ('approve', 'reject'):
+        return jsonify({'error': "Action must be 'approve' or 'reject'."}), 400
+
+    try:
+        result = resolve_mark_correction_query(
+            request_id=query_id,
+            action_type=action,
+            user_id=user_id,
+            user_name=user_name,
+            user_role='staff',
+            staff_id=staff_id,
+            remarks=remarks,
+            new_mark=new_mark
+        )
+        return jsonify({
+            'success': True,
+            'result': result,
+            'message': result.get('message', 'Request resolved successfully.')
+        })
+    except (ValueError, PermissionError) as ve:
+        return jsonify({'error': str(ve)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Failed to resolve request: {str(e)}'}), 500
 

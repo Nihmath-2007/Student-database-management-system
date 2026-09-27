@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, redirect, url_for, session
+from flask import Flask, render_template, redirect, url_for, session, jsonify
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -105,6 +105,36 @@ def gallery():
     """
     photos = fetch_all("SELECT * FROM gallery ORDER BY uploaded_at DESC")
     return render_template('gallery.html', photos=photos)
+
+@app.route('/api/query/<int:query_id>/audit')
+@login_required('student', 'staff', 'hod')
+def get_query_audit_trail(query_id):
+    """
+    Returns query details and complete immutable audit trail for a specific mark correction request.
+    Verifies role-based access permissions:
+    - Students can only view their own queries.
+    - Staff can only view queries for their assigned subjects.
+    - HOD has full departmental oversight.
+    """
+    from services.correction_service import get_query_details, get_audit_trail_for_request
+    role = session.get('role')
+    user_student_id = session.get('student_id')
+    user_staff_id = session.get('staff_id')
+
+    query_details = get_query_details(query_id)
+    if not query_details:
+        return jsonify({'error': 'Mark correction query not found.'}), 404
+
+    if role == 'student' and query_details['student_id'] != user_student_id:
+        return jsonify({'error': 'Unauthorized to view this query.'}), 403
+    if role == 'staff' and query_details['staff_id'] != user_staff_id:
+        return jsonify({'error': 'Unauthorized to view queries outside your subjects.'}), 403
+
+    audit_trail = get_audit_trail_for_request(query_id)
+    return jsonify({
+        'query': query_details,
+        'audit_trail': audit_trail
+    })
 
 @app.errorhandler(413)
 def request_entity_too_large(e):
