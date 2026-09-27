@@ -1,14 +1,21 @@
-from flask import Blueprint, render_template, jsonify, request, session
-from routes.auth import role_required
+import os
+from uuid import uuid4
+from werkzeug.utils import secure_filename
+from flask import Blueprint, render_template, jsonify, request, session, redirect, url_for, flash, current_app
+from routes.auth import role_required, login_required
+from db import fetch_all, fetch_one, execute
 from services.analytics import calculate_department_analytics
 from services.database_service import get_all_students, get_student_details, get_all_subjects
 
 hod_bp = Blueprint('hod', __name__, url_prefix='/hod')
 
+ALLOWED_GALLERY_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.webp'}
+
 @hod_bp.route('/dashboard')
 @role_required('hod')
 def dashboard():
-    return render_template('hod/dashboard.html')
+    gallery_items = fetch_all("SELECT * FROM gallery ORDER BY uploaded_at DESC")
+    return render_template('hod/dashboard.html', gallery_items=gallery_items)
 
 @hod_bp.route('/students')
 @role_required('hod')
@@ -80,3 +87,96 @@ def api_hod_student_detail(student_id):
 def api_hod_subjects():
     subjects = get_all_subjects()
     return jsonify(subjects)
+
+# Gallery Management Endpoints
+@hod_bp.route('/gallery/upload', methods=['POST'])
+@login_required('hod')
+def gallery_upload():
+    title = request.form.get('title', '').strip()
+    description = request.form.get('description', '').strip() or None
+    event_date = request.form.get('event_date', '').strip() or None
+
+    if not title:
+        flash("Photo title is required.", "warning")
+        return redirect(url_for('hod.dashboard'))
+
+    if 'file' not in request.files:
+        flash("No file was selected for upload.", "warning")
+        return redirect(url_for('hod.dashboard'))
+
+    file = request.files['file']
+    if not file or not file.filename or file.filename.strip() == '':
+        flash("Please choose an image file to upload.", "warning")
+        return redirect(url_for('hod.dashboard'))
+
+    original_name = file.filename
+    _, ext = os.path.splitext(original_name)
+    ext = ext.lower()
+    if ext not in ALLOWED_GALLERY_EXTENSIONS:
+        flash(f"Invalid file extension '{ext}'. Only .jpg, .jpeg, .png, and .webp images are allowed.", "danger")
+        return redirect(url_for('hod.dashboard'))
+
+    # Cap upload size at 8MB
+    file.seek(0, os.SEEK_END)
+    file_size = file.tell()
+    file.seek(0)
+    if file_size > 8 * 1024 * 1024:
+        flash("Upload failed: File size exceeds the 8MB limit. Please upload a smaller image.", "danger")
+        return redirect(url_for('hod.dashboard'))
+
+    safe_name = secure_filename(original_name) or f"photo{ext}"
+    stored_filename = f"{uuid4().hex}_{safe_name}"
+
+    upload_dir = current_app.config.get('GALLERY_UPLOAD_DIR') or os.path.join(current_app.root_path, 'static', 'uploads', 'gallery')
+    os.makedirs(upload_dir, exist_ok=True)
+    stored_path = os.path.join(upload_dir, stored_filename)
+
+    try:
+        file.save(stored_path)
+    except Exception as e:
+        flash(f"Failed to save image to server storage: {str(e)}", "danger")
+        return redirect(url_for('hod.dashboard'))
+
+    image_path = f"uploads/gallery/{stored_filename}"
+    uploaded_by = session.get('display_name') or 'HOD'
+
+    try:
+        execute("""
+            INSERT INTO gallery (title, description, event_date, image_path, uploaded_by)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (title, description, event_date, image_path, uploaded_by))
+        flash("Event photo uploaded successfully to gallery!", "success")
+    except Exception as e:
+        if os.path.exists(stored_path):
+            try:
+                os.remove(stored_path)
+            except Exception:
+                pass
+        flash(f"Database error while saving photo: {str(e)}", "danger")
+
+    return redirect(url_for('hod.dashboard'))
+
+
+@hod_bp.route('/gallery/delete/<int:photo_id>', methods=['POST'])
+@login_required('hod')
+def gallery_delete(photo_id):
+    photo = fetch_one("SELECT * FROM gallery WHERE id = %s", (photo_id,))
+    if not photo:
+        flash("Photo record not found or already deleted.", "warning")
+        return redirect(url_for('hod.dashboard'))
+
+    upload_dir = current_app.config.get('GALLERY_UPLOAD_DIR') or os.path.join(current_app.root_path, 'static', 'uploads', 'gallery')
+    file_path = os.path.join(upload_dir, os.path.basename(photo['image_path']))
+    if os.path.exists(file_path):
+        try:
+            os.remove(file_path)
+        except Exception as e:
+            print(f"Warning: could not delete gallery image from disk {file_path}: {e}")
+
+    try:
+        execute("DELETE FROM gallery WHERE id = %s", (photo_id,))
+        flash("Photo removed successfully from gallery.", "success")
+    except Exception as e:
+        flash(f"Failed to delete photo from database: {str(e)}", "danger")
+
+    return redirect(url_for('hod.dashboard'))

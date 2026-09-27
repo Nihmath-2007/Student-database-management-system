@@ -34,10 +34,104 @@
         <div class="wave-loader-text" id="globalWaveLoaderText">Loading Academic Analytics Platform...</div>
     </div>
 
-    <!-- 1. OFFICIAL COLLEGE BANNER AT THE TOP (NOT FIXED, SCROLLS NATURALLY) -->
-    <header class="msec-banner-header">
-        <div class="banner-inner">
-            <img src="{{ url_for('static', filename='images/msec_banner.jpg') }}" alt="Mohamed Sathak Engineering College - Autonomous Institution, Kilakarai" class="msec-banner-image">
+    <!-- 1. OFFICIAL COLLEGE HEADER (PROFESSIONAL RESPONSIVE COMPONENT MATCHING REFERENCE) -->
+    <header class="msec-college-header" role="banner">
+        <!-- Top Orange Accreditations & Info Strip -->
+        <div class="msec-header-top-strip">
+            <div class="msec-header-top-strip-inner">
+                <div class="msec-top-links">
+                    <span>NAAC</span>
+                    <span class="sep">|</span>
+                    <span>NBA</span>
+                    <span class="sep">|</span>
+                    <span>IQAC</span>
+                    <span class="sep">|</span>
+                    <span>NIRF</span>
+                    <span class="sep">|</span>
+                    <span>ARIIA</span>
+                    <span class="sep">|</span>
+                    <span>IIC</span>
+                    <span class="sep">|</span>
+                    <span>NISP</span>
+                    <span class="sep">|</span>
+                    <span>AUDIT STATEMENTS</span>
+                    <span class="sep">|</span>
+                    <span>ONLINE APPLICATION FORM</span>
+                </div>
+                <div class="msec-top-contact">
+                    <span>CONTACT</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main College Identity & Accreditation Header (Flexbox Layout) -->
+        <div class="msec-header-main">
+            <div class="msec-header-main-inner">
+                <!-- College Logo (120x120 px) -->
+                <div class="msec-header-logo-container">
+                    <img src="{{ url_for('static', filename='images/college_logo.png') }}" 
+                         alt="Mohamed Sathak Engineering College Logo" 
+                         class="msec-header-logo" 
+                         width="120" 
+                         height="120">
+                </div>
+
+                <!-- College Details (Large Navy Title, Orange Subtitle, Address & Affiliation) -->
+                <div class="msec-header-details">
+                    <h1 class="msec-header-college-name">
+                        MOHAMED SATHAK <span class="msec-name-break">ENGINEERING COLLEGE</span>
+                    </h1>
+                    <div class="msec-subtitle-container">
+                        <span class="msec-subtitle-badge">AN AUTONOMOUS INSTITUTION</span>
+                    </div>
+                    <div class="msec-header-address">
+                        <span class="address-main">KILAKARAI-623 806, RAMANATHAPURAM DIST.</span>
+                        <span class="address-ugc">( Recognized under section 2(f) &amp; 12B of UGC, NewDelhi )</span>
+                    </div>
+                    <div class="msec-header-affiliation">
+                        Approved by AICTE, COA, New Delhi, DGS Mumbai, Affiliated to Anna University, An ISO 9001:2015 Institution, Sponsored by Mohamed Sathak Trust, Chennai - 06.
+                    </div>
+                </div>
+
+                <!-- Accreditation Logos in One Horizontal Row (90x90 px each) -->
+                <div class="msec-header-accreditations" aria-label="Accreditation and Recognition Logos">
+                    <div class="msec-accred-box" title="NAAC A+ Accredited">
+                        <img src="{{ url_for('static', filename='images/logo_naac.png') }}" 
+                             alt="NAAC A+ Accredited" 
+                             class="msec-accred-logo" 
+                             width="90" 
+                             height="90">
+                    </div>
+                    <div class="msec-accred-box" title="NBA Accredited CSE | IT">
+                        <img src="{{ url_for('static', filename='images/logo_nba.png') }}" 
+                             alt="NBA Accredited CSE | IT" 
+                             class="msec-accred-logo" 
+                             width="90" 
+                             height="90">
+                    </div>
+                    <div class="msec-accred-box" title="Institution's Innovation Council (Ministry of HRD)">
+                        <img src="{{ url_for('static', filename='images/logo_iic.png') }}" 
+                             alt="Institution's Innovation Council" 
+                             class="msec-accred-logo" 
+                             width="90" 
+                             height="90">
+                    </div>
+                    <div class="msec-accred-box" title="TNEA Counselling Code 5907">
+                        <img src="{{ url_for('static', filename='images/logo_tnea.png') }}" 
+                             alt="TNEA Counselling Code 5907" 
+                             class="msec-accred-logo" 
+                             width="90" 
+                             height="90">
+                    </div>
+                    <div class="msec-accred-box" title="50 Years Mohamed Sathak Trust">
+                        <img src="{{ url_for('static', filename='images/logo_trust50.png') }}" 
+                             alt="50 Years Mohamed Sathak Trust" 
+                             class="msec-accred-logo" 
+                             width="90" 
+                             height="90">
+                    </div>
+                </div>
+            </div>
         </div>
     </header>
 
@@ -100,6 +194,11 @@
                                 <i class="fa-solid fa-chart-line me-2"></i> ANALYTICS
                             </a>
                         </li>
+                        <li>
+                            <a href="{{ url_for('gallery') }}" class="sidebar-link-btn {% if request.endpoint == 'gallery' %}active{% endif %}">
+                                <i class="fa-solid fa-images me-2"></i> GALLERY
+                            </a>
+                        </li>
                     {% elif session.get('role') == 'staff' %}
                         <li>
                             <a href="{{ url_for('staff.dashboard') }}" class="sidebar-link-btn {% if request.endpoint == 'staff.dashboard' %}active{% endif %}">
@@ -119,6 +218,11 @@
                         <li>
                             <a href="{{ url_for('staff.subject_analytics_page') }}" class="sidebar-link-btn {% if request.endpoint == 'staff.subject_analytics_page' %}active{% endif %}">
                                 <i class="fa-solid fa-chart-line me-2"></i> ANALYTICS
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('gallery') }}" class="sidebar-link-btn {% if request.endpoint == 'gallery' %}active{% endif %}">
+                                <i class="fa-solid fa-images me-2"></i> GALLERY
                             </a>
                         </li>
                     {% elif session.get('role') == 'student' %}
@@ -142,6 +246,11 @@
                                 <i class="fa-solid fa-calculator me-2"></i> CALCULATOR
                             </a>
                         </li>
+                        <li>
+                            <a href="{{ url_for('gallery') }}" class="sidebar-link-btn {% if request.endpoint == 'gallery' %}active{% endif %}">
+                                <i class="fa-solid fa-images me-2"></i> GALLERY
+                            </a>
+                        </li>
                     {% endif %}
                 </ul>
             </nav>
@@ -154,6 +263,75 @@
 
         <!-- RIGHT DASHBOARD / CONTENT -->
         <main class="portal-right-content">
+            <!-- HOD NOTIFICATION BANNER STRIP (INJECTED GLOBALLY INTO BASE TEMPLATE) -->
+            {% if active_notifications and active_notifications|length > 0 %}
+            <section class="hod-notification-bar" id="hodNotificationBar" aria-label="Department Announcements">
+                <div class="notification-bar-header">
+                    <div class="notif-header-title">
+                        <span class="notif-pulse-beacon"></span>
+                        <i class="fa-solid fa-bullhorn text-orange"></i>
+                        <span>HOD Official Announcements</span>
+                        <span class="notif-count-badge" id="notifCountBadge">{{ active_notifications|length }} Active</span>
+                    </div>
+                    {% if session.get('role') == 'hod' %}
+                    <div class="notif-header-actions">
+                        <button type="button" class="btn-create-announcement" data-bs-toggle="modal" data-bs-target="#postAnnouncementModal">
+                            <i class="fa-solid fa-plus me-1"></i> Post Announcement
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="notification-items-wrapper" id="notifItemsList">
+                    {% for notice in active_notifications %}
+                    <div class="notification-alert-card {{ notice.priority_class }}" id="noticeCard-{{ notice.id }}" data-notice-id="{{ notice.id }}">
+                        <div class="notif-card-icon">
+                            <i class="{{ notice.priority_icon }}"></i>
+                        </div>
+                        <div class="notif-card-content">
+                            <div class="notif-meta-row">
+                                <span class="badge-priority {{ notice.priority_class }}">
+                                    {{ notice.priority_label }}
+                                </span>
+                                <span class="badge-audience" title="Target Audience">
+                                    <i class="fa-solid fa-users me-1 text-muted"></i>{{ notice.audience_label }}
+                                </span>
+                                <span class="badge-expiry" title="Notice Expiry Date">
+                                    <i class="fa-regular fa-clock me-1 text-muted"></i>Valid until {{ notice.formatted_expires }}
+                                </span>
+                            </div>
+                            <h4 class="notif-title">{{ notice.title }}</h4>
+                            <p class="notif-message-body">{{ notice.message }}</p>
+                        </div>
+                        <div class="notif-card-actions">
+                            {% if session.get('role') == 'hod' %}
+                            <button type="button" class="btn-notif-action btn-notif-delete" onclick="deleteNotificationPrompt({{ notice.id }}, this)" title="Delete announcement for everyone">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                            {% endif %}
+                            <button type="button" class="btn-notif-action btn-notif-dismiss" onclick="dismissNotification({{ notice.id }}, this)" title="Dismiss notice for you">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            {% elif session.get('role') == 'hod' %}
+            <!-- Compact Quick Post Bar for HOD when no active notices -->
+            <div class="hod-empty-notif-strip" id="hodEmptyNotifStrip">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-bullhorn text-orange fs-5"></i>
+                        <span class="fs-7 text-secondary">No active department announcements. Broadcast exam schedules, deadlines, or circulars to staff and students anytime.</span>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-campus-orange" data-bs-toggle="modal" data-bs-target="#postAnnouncementModal">
+                        <i class="fa-solid fa-plus me-1"></i> Post Announcement
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+
             <div class="breadcrumb-wrapper">
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb breadcrumb-custom">
@@ -165,14 +343,261 @@
             </div>
 
             <div class="portal-inner-content">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="flash-messages-container mb-4">
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ 'danger' if category in ['error', 'danger'] else (category if category in ['warning', 'info', 'success'] else 'info') }} alert-dismissible fade show shadow-sm d-flex align-items-center" role="alert">
+                                    <i class="fa-solid {{ 'fa-circle-exclamation' if category in ['error', 'danger'] else ('fa-circle-check' if category == 'success' else ('fa-triangle-exclamation' if category == 'warning' else 'fa-circle-info')) }} me-2 fs-5"></i>
+                                    <div class="flex-grow-1 fw-semibold fs-7">{{ message }}</div>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
                 {% block content %}{% endblock %}
             </div>
         </main>
     </div>
 
+    {% if session.get('role') == 'hod' %}
+    <!-- HOD POST ANNOUNCEMENT MODAL -->
+    <div class="modal fade" id="postAnnouncementModal" tabindex="-1" aria-labelledby="postAnnouncementModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow-lg border-0 rounded-4 overflow-hidden">
+                <div class="modal-header modal-announcement-header px-4 py-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-bullhorn text-orange fs-5"></i>
+                        <h5 class="modal-title fw-bold text-white fs-6 mb-0" id="postAnnouncementModalLabel">Post Department Announcement</h5>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="formPostAnnouncement" onsubmit="handleAnnouncementSubmit(event)">
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label for="notifInputTitle" class="form-label fw-semibold text-navy fs-7">Announcement Headline / Title <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="notifInputTitle" name="title" placeholder="e.g. Internal Assessment-II Exam Dates" required maxlength="150">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="notifInputMessage" class="form-label fw-semibold text-navy fs-7">Announcement Message Details <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="notifInputMessage" name="message" rows="3" placeholder="Enter key details, deadlines, seating instructions, or reminders..." required></textarea>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label for="notifInputAudience" class="form-label fw-semibold text-navy fs-7">Target Audience <span class="text-danger">*</span></label>
+                                <select class="form-select fs-7" id="notifInputAudience" name="audience" required>
+                                    <option value="everyone" selected>Everyone (Staff & Students)</option>
+                                    <option value="staff">Staff Faculty Only</option>
+                                    <option value="student">All Students Only</option>
+                                    <optgroup label="Specific Academic Year">
+                                        <option value="Third year">3rd Year Students (IT)</option>
+                                        <option value="Second year">2nd Year Students (IT)</option>
+                                        <option value="First year">1st Year Students (IT)</option>
+                                        <option value="Final year">Final Year Students (IT)</option>
+                                    </optgroup>
+                                    <optgroup label="Specific Section">
+                                        <option value="Section A">Section A Students</option>
+                                        <option value="Section B">Section B Students</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="notifInputPriority" class="form-label fw-semibold text-navy fs-7">Notice Priority <span class="text-danger">*</span></label>
+                                <select class="form-select fs-7" id="notifInputPriority" name="priority" required>
+                                    <option value="urgent">🔴 Urgent / Critical</option>
+                                    <option value="high">🟠 High Priority</option>
+                                    <option value="medium" selected>🔵 Medium / Notice</option>
+                                    <option value="low">🟢 Low / Reminder</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-2">
+                            <label for="notifInputExpiry" class="form-label fw-semibold text-navy fs-7">Expiry Date <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control fs-7" id="notifInputExpiry" name="expires_at" required>
+                            <div class="form-text text-muted fs-8"><i class="fa-solid fa-circle-info me-1"></i>Notice will automatically disappear for all users after this date.</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light px-4 py-3 border-top d-flex justify-content-between">
+                        <button type="button" class="btn btn-outline-secondary fs-7 px-3" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-campus-orange fs-7 px-4 fw-semibold" id="btnSubmitAnnouncement">
+                            <i class="fa-solid fa-paper-plane me-1"></i> Broadcast Announcement
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+    <!-- Global Notification Management Scripts -->
+    <script>
+    // Set default expiry date in modal to 7 days ahead
+    document.addEventListener('DOMContentLoaded', () => {
+        const expiryInput = document.getElementById('notifInputExpiry');
+        if (expiryInput) {
+            const now = new Date();
+            const todayStr = now.toISOString().split('T')[0];
+            expiryInput.min = todayStr;
+            const nextWeek = new Date();
+            nextWeek.setDate(now.getDate() + 7);
+            expiryInput.value = nextWeek.toISOString().split('T')[0];
+        }
+    });
+
+    // Dismiss notice for current user
+    function dismissNotification(noticeId, btn) {
+        const card = document.getElementById(`noticeCard-${noticeId}`);
+        if (!card) return;
+
+        // Visual animation
+        card.classList.add('dismissing');
+
+        fetch(`/api/notifications/dismiss/${noticeId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(res => res.json())
+        .then(data => {
+            setTimeout(() => {
+                if (card && card.parentNode) {
+                    card.remove();
+                }
+                updateNotificationBadgeCount();
+            }, 350);
+            showNotifToast('Notice dismissed.', 'fa-solid fa-check');
+        })
+        .catch(err => {
+            console.error('Error dismissing notice:', err);
+            card.classList.remove('dismissing');
+        });
+    }
+
+    // Delete notice for everyone (HOD only)
+    function deleteNotificationPrompt(noticeId, btn) {
+        if (!confirm('Are you sure you want to permanently delete this announcement for everyone?')) {
+            return;
+        }
+
+        const card = document.getElementById(`noticeCard-${noticeId}`);
+        if (card) card.classList.add('dismissing');
+
+        fetch(`/api/notifications/${noticeId}`, {
+            method: 'DELETE'
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                setTimeout(() => {
+                    if (card && card.parentNode) {
+                        card.remove();
+                    }
+                    updateNotificationBadgeCount();
+                }, 350);
+                showNotifToast('Announcement deleted successfully.', 'fa-solid fa-trash-can');
+                // If on HOD dashboard, refresh the management table if present
+                if (typeof loadAdminAnnouncements === 'function') {
+                    loadAdminAnnouncements();
+                }
+            } else {
+                alert(data.error || 'Failed to delete announcement');
+                if (card) card.classList.remove('dismissing');
+            }
+        })
+        .catch(err => {
+            console.error('Error deleting notice:', err);
+            if (card) card.classList.remove('dismissing');
+        });
+    }
+
+    // Handle posting a new announcement (HOD)
+    function handleAnnouncementSubmit(e) {
+        e.preventDefault();
+        const submitBtn = document.getElementById('btnSubmitAnnouncement');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Publishing...';
+
+        const title = document.getElementById('notifInputTitle').value.trim();
+        const message = document.getElementById('notifInputMessage').value.trim();
+        const audience = document.getElementById('notifInputAudience').value;
+        const priority = document.getElementById('notifInputPriority').value;
+        const expires_at = document.getElementById('notifInputExpiry').value;
+
+        fetch('/api/notifications/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                title: title,
+                message: message,
+                audience: audience,
+                priority: priority,
+                expires_at: expires_at
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+            if (data.success) {
+                const modalEl = document.getElementById('postAnnouncementModal');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+                document.getElementById('formPostAnnouncement').reset();
+                showNotifToast('Announcement published successfully! Reloading...', 'fa-solid fa-bullhorn');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 800);
+            } else {
+                alert(data.error || 'Failed to post announcement.');
+            }
+        })
+        .catch(err => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+            alert('Error publishing announcement. Please check network connection.');
+        });
+    }
+
+    function updateNotificationBadgeCount() {
+        const remainingCards = document.querySelectorAll('.notification-alert-card:not(.dismissing)');
+        const badge = document.getElementById('notifCountBadge');
+        const bar = document.getElementById('hodNotificationBar');
+        if (remainingCards.length === 0) {
+            if (bar) {
+                bar.style.transition = 'all 0.3s ease';
+                bar.style.opacity = '0';
+                setTimeout(() => bar.remove(), 300);
+            }
+        } else if (badge) {
+            badge.textContent = `${remainingCards.length} Active`;
+        }
+    }
+
+    function showNotifToast(msg, icon = 'fa-solid fa-circle-info') {
+        const existing = document.querySelector('.notif-toast');
+        if (existing) existing.remove();
+
+        const toast = document.createElement('div');
+        toast.className = 'notif-toast';
+        toast.innerHTML = `<i class="${icon} text-orange"></i> <span>${msg}</span>`;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.style.transition = 'opacity 0.3s ease';
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+    </script>
+
     {% block scripts %}{% endblock %}
 </body>
 </html>

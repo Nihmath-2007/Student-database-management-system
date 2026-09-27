@@ -68,6 +68,129 @@
     </div>
 </div>
 
+<!-- SUBJECT NOTES MANAGEMENT (UPLOAD & DELETE) -->
+<div class="analytics-card mb-4" id="staffSubjectNotesSection">
+    <div class="card-title-bar">
+        <h3><i class="fa-solid fa-file-circle-plus me-2 text-orange"></i> Upload Subject Notes & Course Materials</h3>
+        <span class="badge-role-tag">STAFF RESOURCE UPLOAD</span>
+    </div>
+
+    <!-- UPLOAD FORM -->
+    <form action="{{ url_for('staff.upload_note') }}" method="POST" enctype="multipart/form-data" class="p-3 border rounded bg-light mb-4">
+        <div class="row g-3 align-items-end">
+            <div class="col-lg-4 col-md-6">
+                <label for="uploadSubjectSelect" class="form-label fw-bold text-navy fs-7">
+                    <i class="fa-solid fa-book me-1 text-orange"></i> Select Assigned Subject <span class="text-danger">*</span>
+                </label>
+                <select name="subject_id" id="uploadSubjectSelect" class="form-select fw-semibold" required>
+                    {% if subjects and subjects|length > 0 %}
+                        <option value="" disabled selected>-- Choose your assigned subject --</option>
+                        {% for sub in subjects %}
+                            <option value="{{ sub.subjectid }}">{{ sub.subject_code }} - {{ sub.subject_name }} (Semester {{ sub.semester }})</option>
+                        {% endfor %}
+                    {% else %}
+                        <option value="" disabled selected>No subjects assigned to you</option>
+                    {% endif %}
+                </select>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <label for="uploadNoteTitle" class="form-label fw-bold text-navy fs-7">
+                    <i class="fa-solid fa-heading me-1 text-orange"></i> Note Title / Topic <span class="text-danger">*</span>
+                </label>
+                <input type="text" name="title" id="uploadNoteTitle" class="form-control" placeholder="e.g. Unit 1: Introduction to Cloud Architecture" required maxlength="150">
+            </div>
+
+            <div class="col-lg-4 col-md-12">
+                <label for="uploadNoteFile" class="form-label fw-bold text-navy fs-7">
+                    <i class="fa-solid fa-paperclip me-1 text-orange"></i> Document File <span class="text-danger">*</span>
+                </label>
+                <input type="file" name="file" id="uploadNoteFile" class="form-control" accept=".pdf,.doc,.docx,.ppt,.pptx" required>
+            </div>
+        </div>
+
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-3 pt-2 border-top">
+            <div class="text-muted fs-8">
+                <i class="fa-solid fa-circle-info me-1 text-teal"></i>
+                Allowed extensions: <strong>.pdf, .doc, .docx, .ppt, .pptx</strong> &bull; Maximum upload size: <strong>15 MB</strong>
+            </div>
+            <button type="submit" class="btn btn-msec" {% if not subjects or subjects|length == 0 %}disabled{% endif %}>
+                <i class="fa-solid fa-cloud-arrow-up me-2"></i> Upload Subject Note
+            </button>
+        </div>
+    </form>
+
+    <!-- UPLOADED NOTES TABLE -->
+    <div class="card-title-bar mt-2 mb-3">
+        <h3><i class="fa-solid fa-folder-open me-2 text-teal"></i> My Uploaded Subject Notes</h3>
+        <span class="badge bg-secondary text-white fw-bold px-3 py-1 rounded-pill fs-8">{{ notes|length if notes else 0 }} Files Uploaded</span>
+    </div>
+
+    <div class="custom-table-card">
+        <div class="table-responsive">
+            <table class="table-custom">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">#</th>
+                        <th>Subject</th>
+                        <th>Note Title</th>
+                        <th>Original Filename</th>
+                        <th>Uploaded Date</th>
+                        <th class="text-end" style="width: 200px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if notes and notes|length > 0 %}
+                        {% for note in notes %}
+                        <tr>
+                            <td class="fw-bold text-muted">{{ loop.index }}</td>
+                            <td>
+                                <span class="badge-status badge-pass fw-bold me-1">{{ note.subject_code }}</span>
+                                <span class="fw-semibold text-navy">{{ note.subject_name }}</span>
+                            </td>
+                            <td class="fw-bold text-navy">{{ note.title }}</td>
+                            <td>
+                                {% if note.filename.endswith('.pdf') %}
+                                    <i class="fa-solid fa-file-pdf text-danger me-1"></i>
+                                {% elif note.filename.endswith('.doc') or note.filename.endswith('.docx') %}
+                                    <i class="fa-solid fa-file-word text-primary me-1"></i>
+                                {% elif note.filename.endswith('.ppt') or note.filename.endswith('.pptx') %}
+                                    <i class="fa-solid fa-file-powerpoint text-warning me-1"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-file-lines text-muted me-1"></i>
+                                {% endif %}
+                                <span class="text-secondary small">{{ note.filename }}</span>
+                            </td>
+                            <td>
+                                <i class="fa-regular fa-calendar-days text-muted me-1"></i>
+                                <span class="small">{{ note.uploaded_at }}</span>
+                            </td>
+                            <td class="text-end">
+                                <a href="{{ url_for('download_note', note_id=note.id) }}" class="btn btn-sm btn-outline-primary py-1 px-2 me-1" title="Download note file">
+                                    <i class="fa-solid fa-download me-1"></i> Download
+                                </a>
+                                <form method="POST" action="{{ url_for('staff.delete_note', note_id=note.id) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to permanently delete this note?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger py-1 px-2" title="Delete note file">
+                                        <i class="fa-solid fa-trash-can me-1"></i> Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">
+                                <i class="fa-solid fa-folder-open fs-2 text-muted mb-2 d-block"></i>
+                                No subject notes uploaded yet. Use the upload form above to add lecture slides and study materials.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}

@@ -137,3 +137,18 @@ def execute_query(query, params=(), fetchall=True, fetchone=False, commit=False)
             pass
         raise e
 
+
+def fetch_all(query, params=()):
+    """Executes a query and returns all matching records as a list of dictionaries."""
+    return execute_query(query, params, fetchall=True)
+
+
+def fetch_one(query, params=()):
+    """Executes a query and returns a single matching record as a dictionary or None."""
+    return execute_query(query, params, fetchone=True)
+
+
+def execute(query, params=()):
+    """Executes an INSERT/UPDATE/DELETE query with commit and returns lastrowid."""
+    return execute_query(query, params, commit=True)
+

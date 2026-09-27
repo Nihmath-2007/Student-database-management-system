@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Department Event Gallery{% endblock %}
+{% block breadcrumb %}Gallery{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+    <div>
+        <h1 class="page-title"><i class="fa-solid fa-images me-2 text-orange"></i> IT Department Event Gallery</h1>
+        <div class="page-subtitle">Moments, symposiums, academic milestones, and celebrations across our department</div>
+    </div>
+    {% if session.get('role') == 'hod' %}
+    <div>
+        <a href="{{ url_for('hod.dashboard') }}" class="btn btn-sm btn-campus-orange fs-7 px-3">
+            <i class="fa-solid fa-cloud-arrow-up me-1"></i> Upload Photos (HOD)
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+{% if photos and photos|length > 0 %}
+<div class="gallery-photo-grid">
+    {% for photo in photos %}
+    <div class="gallery-photo-card">
+        <a href="#lightbox-{{ photo.id }}" class="gallery-card-img-link" title="Click to view full photo">
+            <img src="{{ url_for('static', filename=photo.image_path if 'uploads/' in photo.image_path else 'uploads/gallery/' + photo.image_path) }}" alt="{{ photo.title }}" class="gallery-card-img" loading="lazy">
+            <div class="gallery-card-zoom-badge">
+                <i class="fa-solid fa-magnifying-glass-plus"></i>
+            </div>
+        </a>
+        <div class="gallery-card-content">
+            <h3 class="gallery-card-title" title="{{ photo.title }}">{{ photo.title }}</h3>
+            {% if photo.event_date %}
+            <div class="gallery-card-date">
+                <i class="fa-regular fa-calendar-days text-orange me-1"></i> {{ photo.event_date }}
+            </div>
+            {% endif %}
+            {% if photo.description %}
+            <p class="gallery-card-desc">{{ photo.description }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- CSS-ONLY LIGHTBOX MODAL (Activated via :target selector) -->
+    <div id="lightbox-{{ photo.id }}" class="gallery-lightbox-overlay" role="dialog" aria-modal="true" aria-label="{{ photo.title }}">
+        <a href="#close" class="gallery-lightbox-backdrop" aria-label="Close Lightbox"></a>
+        <div class="gallery-lightbox-modal">
+            <a href="#close" class="gallery-lightbox-close-btn" aria-label="Close">&times;</a>
+            <div class="gallery-lightbox-media">
+                <img src="{{ url_for('static', filename=photo.image_path if 'uploads/' in photo.image_path else 'uploads/gallery/' + photo.image_path) }}" alt="{{ photo.title }}" class="gallery-lightbox-image">
+            </div>
+            <div class="gallery-lightbox-caption">
+                <h2 class="gallery-lightbox-title">{{ photo.title }}</h2>
+                {% if photo.event_date %}
+                <div class="gallery-lightbox-date">
+                    <i class="fa-regular fa-calendar-days text-orange me-1"></i> {{ photo.event_date }}
+                </div>
+                {% endif %}
+                {% if photo.description %}
+                <p class="gallery-lightbox-desc">{{ photo.description }}</p>
+                {% endif %}
+                <div class="gallery-lightbox-meta">
+                    <span><i class="fa-solid fa-circle-check text-success me-1"></i> Verified Department Event</span>
+                    <span>&bull;</span>
+                    <span><i class="fa-solid fa-user-shield me-1"></i> Posted by {{ photo.uploaded_by or 'HOD' }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="custom-table-card p-5 text-center">
+    <div class="py-4">
+        <div class="mb-3 text-secondary">
+            <i class="fa-solid fa-images fa-3x text-orange" style="opacity: 0.85;"></i>
+        </div>
+        <h3 class="fs-5 fw-bold text-navy mb-2">No Event Photos Available Yet</h3>
+        <p class="text-muted fs-7 mb-4" style="max-width: 500px; margin: 0 auto;">
+            The IT Department gallery will showcase departmental symposiums, guest lectures, student awards, sports events, and academic celebrations.
+        </p>
+        {% if session.get('role') == 'hod' %}
+        <a href="{{ url_for('hod.dashboard') }}" class="btn btn-campus-orange px-4 fs-7">
+            <i class="fa-solid fa-cloud-arrow-up me-2"></i> Upload First Photo
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}
