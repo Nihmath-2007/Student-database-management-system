@@ -42,37 +42,312 @@ body {
     color: var(--msec-orange) !important;
 }
 
-/* --- 1. OFFICIAL COLLEGE BANNER AT THE TOP (100% FULL WIDTH NAV FIT) --- */
+/* ==========================================================================
+   1. OFFICIAL COLLEGE HEADER (PROFESSIONAL REFERENCE REPLICA)
+   ========================================================================== */
+
+.msec-college-header {
+    width: 100%;
+    background-color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    position: relative;
+    z-index: 1015;
+    margin: 0;
+    padding: 0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+/* Backward compatibility for previous banner selector if needed */
 .msec-banner-header {
     width: 100%;
-    height: 125px;
     background-color: #ffffff;
-    border: none !important;
-    box-shadow: none;
-    position: relative;
-    overflow: hidden;
-    padding: 0;
-    margin: 0;
+}
+
+/* --- Top Orange Accreditations & Info Strip --- */
+.msec-header-top-strip {
+    background-color: #ee5116;
+    color: #ffffff;
+    padding: 3.5px 24px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    line-height: 1.4;
+    width: 100%;
+    user-select: none;
+}
+
+.msec-header-top-strip-inner {
+    max-width: 1650px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.msec-top-links {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    font-size: 10.5px;
+    text-transform: uppercase;
+}
+
+.msec-top-links span {
+    white-space: nowrap;
+}
+
+.msec-top-links .sep {
+    color: rgba(255, 255, 255, 0.65);
+    font-weight: 300;
+    padding: 0 1px;
+}
+
+.msec-top-contact {
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+/* --- Main College Identity & Accreditation Header (Flexbox Layout) --- */
+.msec-header-main {
+    background-color: #ffffff;
+    padding: 10px 24px;
+    width: 100%;
+}
+
+.msec-header-main-inner {
+    max-width: 1650px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+/* College Logo - Exactly 120x120 px */
+.msec-header-logo-container {
+    flex: 0 0 120px;
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.msec-header-logo {
+    width: 120px;
+    height: 120px;
+    object-fit: contain;
     display: block;
 }
 
-.banner-inner {
-    width: 100%;
+/* College Details Section */
+.msec-header-details {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+}
+
+/* College Name: Large Bold Navy-Blue Text */
+.msec-header-college-name {
+    color: #0b2246;
+    font-size: clamp(1.28rem, 1.85vw, 1.85rem);
+    font-weight: 900;
+    letter-spacing: 0.6px;
+    line-height: 1.15;
+    margin: 0 0 4px 0;
+    text-transform: uppercase;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.msec-name-break {
+    display: inline-block;
+}
+
+/* Subtitle Below Name With Orange Background */
+.msec-subtitle-container {
+    margin-bottom: 5px;
+}
+
+.msec-subtitle-badge {
+    display: inline-block;
+    background-color: #ee5116;
+    color: #ffffff;
+    font-size: clamp(0.72rem, 0.85vw, 0.86rem);
+    font-weight: 800;
+    letter-spacing: 1.8px;
+    padding: 2.5px 14px;
+    border-radius: 2px;
+    text-transform: uppercase;
+    line-height: 1.4;
+}
+
+/* Address and Affiliation Below */
+.msec-header-address {
+    font-size: clamp(0.72rem, 0.82vw, 0.84rem);
+    margin-bottom: 3px;
+    line-height: 1.35;
+}
+
+.msec-header-address .address-main {
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.msec-header-address .address-ugc {
+    font-weight: 800;
+    color: #b91c1c; /* Crimson / Red text matching official UGC badge */
+    margin-left: 4px;
+}
+
+.msec-header-affiliation {
+    font-size: clamp(0.66rem, 0.74vw, 0.75rem);
+    font-style: italic;
+    font-weight: 600;
+    color: #334155;
+    line-height: 1.35;
+}
+
+/* Accreditation Logos on the Right in One Horizontal Row (90x90 px each) */
+.msec-header-accreditations {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+}
+
+.msec-accred-box {
+    width: 90px;
+    height: 90px;
+    flex: 0 0 90px;
+    background-color: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    padding: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.msec-accred-box:hover {
+    transform: translateY(-2px);
+    border-color: #94a3b8;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.msec-accred-logo {
+    width: 90px;
+    height: 90px;
     max-width: 100%;
-    height: 100%;
-    margin: 0;
-    padding: 0;
+    max-height: 100%;
+    object-fit: contain;
     display: block;
-    overflow: hidden;
 }
 
-.msec-banner-image {
-    width: 100%;
-    height: 125px;
-    object-fit: fill;
-    display: block;
-    clip-path: inset(7px 0 7px 0);
-    transform: scaleY(1.14);
+/* Responsive Layout using Flexbox */
+@media (max-width: 1200px) {
+    .msec-header-main {
+        padding: 8px 16px;
+    }
+    .msec-header-main-inner {
+        gap: 14px;
+    }
+    .msec-header-accreditations {
+        gap: 4px;
+    }
+    .msec-accred-box {
+        width: 80px;
+        height: 80px;
+        flex: 0 0 80px;
+    }
+    .msec-accred-logo {
+        width: 80px;
+        height: 80px;
+    }
+}
+
+@media (max-width: 991px) {
+    .msec-header-main-inner {
+        flex-wrap: wrap;
+        justify-content: center;
+        text-align: center;
+    }
+    .msec-header-details {
+        text-align: center;
+        align-items: center;
+    }
+    .msec-header-accreditations {
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 8px;
+    }
+}
+
+@media (max-width: 767px) {
+    .msec-header-top-strip-inner {
+        justify-content: center;
+        text-align: center;
+    }
+    .msec-top-links {
+        justify-content: center;
+        font-size: 9.5px;
+    }
+    .msec-top-contact {
+        display: none;
+    }
+    .msec-header-main {
+        padding: 10px 12px;
+    }
+    .msec-header-main-inner {
+        flex-direction: column;
+        gap: 10px;
+    }
+    .msec-header-logo-container {
+        width: 100px;
+        height: 100px;
+        flex: 0 0 100px;
+    }
+    .msec-header-logo {
+        width: 100px;
+        height: 100px;
+    }
+    .msec-header-college-name {
+        font-size: 1.15rem;
+    }
+    .msec-subtitle-badge {
+        font-size: 0.68rem;
+        letter-spacing: 1px;
+    }
+    .msec-header-address,
+    .msec-header-affiliation {
+        font-size: 0.68rem;
+    }
+    .msec-header-accreditations {
+        gap: 4px;
+        overflow-x: auto;
+        max-width: 100%;
+        padding-bottom: 4px;
+        justify-content: flex-start;
+    }
+    .msec-accred-box {
+        width: 72px;
+        height: 72px;
+        flex: 0 0 72px;
+    }
+    .msec-accred-logo {
+        width: 72px;
+        height: 72px;
+    }
 }
 
 /* --- 2. TOP HORIZONTAL UTILITY STRIP --- */
@@ -1012,5 +1287,685 @@ body {
   }
 }
 
+/* ==========================================================================
+   HOD NOTIFICATION BAR & ANNOUNCEMENT SYSTEM
+   ========================================================================== */
 
+.hod-notification-bar {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 16px rgba(11, 26, 48, 0.06);
+    margin-bottom: 22px;
+    overflow: hidden;
+    animation: fadeInDown 0.35s ease-out;
+}
 
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.notification-bar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #0b1a30 0%, #152e50 100%);
+    color: #ffffff;
+    font-size: 0.84rem;
+}
+
+.notif-header-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+}
+
+.notif-pulse-beacon {
+    width: 8px;
+    height: 8px;
+    background-color: #f25822;
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 0 0 rgba(242, 88, 34, 0.4);
+    animation: beaconPulse 1.8s infinite;
+}
+
+@keyframes beaconPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(242, 88, 34, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 8px rgba(242, 88, 34, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(242, 88, 34, 0);
+    }
+}
+
+.notif-count-badge {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 12px;
+    letter-spacing: 0.3px;
+}
+
+.btn-create-announcement {
+    background: #f25822;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.btn-create-announcement:hover {
+    background: #e04713;
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(242, 88, 34, 0.4);
+}
+
+.notification-items-wrapper {
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background-color: #f8fafc;
+}
+
+.notification-alert-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-left: 5px solid #64748b;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    max-height: 250px;
+}
+
+.notification-alert-card.dismissing {
+    opacity: 0 !important;
+    transform: translateX(30px) scale(0.95);
+    max-height: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+    border-width: 0 !important;
+    pointer-events: none;
+}
+
+/* Priority Card Color Schemes */
+.notification-alert-card.priority-urgent {
+    border-left-color: #dc2626 !important;
+    background: linear-gradient(90deg, rgba(220, 38, 38, 0.04) 0%, #ffffff 18%);
+    border-color: #fee2e2 #e2e8f0 #e2e8f0 #dc2626;
+}
+
+.notification-alert-card.priority-high {
+    border-left-color: #f25822 !important;
+    background: linear-gradient(90deg, rgba(242, 88, 34, 0.04) 0%, #ffffff 18%);
+    border-color: #ffedd5 #e2e8f0 #e2e8f0 #f25822;
+}
+
+.notification-alert-card.priority-medium {
+    border-left-color: #2563eb !important;
+    background: linear-gradient(90deg, rgba(37, 99, 235, 0.04) 0%, #ffffff 18%);
+    border-color: #dbeafe #e2e8f0 #e2e8f0 #2563eb;
+}
+
+.notification-alert-card.priority-low {
+    border-left-color: #0d9488 !important;
+    background: linear-gradient(90deg, rgba(13, 148, 136, 0.04) 0%, #ffffff 18%);
+    border-color: #ccfbf1 #e2e8f0 #e2e8f0 #0d9488;
+}
+
+.notif-card-icon {
+    font-size: 1.25rem;
+    padding-top: 2px;
+    flex-shrink: 0;
+}
+
+.notification-alert-card.priority-urgent .notif-card-icon { color: #dc2626; }
+.notification-alert-card.priority-high .notif-card-icon { color: #f25822; }
+.notification-alert-card.priority-medium .notif-card-icon { color: #2563eb; }
+.notification-alert-card.priority-low .notif-card-icon { color: #0d9488; }
+
+.notif-card-content {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.notif-meta-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.badge-priority {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+
+.badge-priority.priority-urgent {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fca5a5;
+}
+
+.badge-priority.priority-high {
+    background-color: #ffedd5;
+    color: #9a3412;
+    border: 1px solid #fdba74;
+}
+
+.badge-priority.priority-medium {
+    background-color: #dbeafe;
+    color: #1e40af;
+    border: 1px solid #93c5fd;
+}
+
+.badge-priority.priority-low {
+    background-color: #ccfbf1;
+    color: #115e59;
+    border: 1px solid #5eead4;
+}
+
+.badge-audience {
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: #475569;
+    background: #f1f5f9;
+    padding: 2px 8px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+}
+
+.badge-expiry {
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: #64748b;
+    margin-left: auto;
+}
+
+.notif-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 3px 0;
+    line-height: 1.35;
+}
+
+.notif-message-body {
+    font-size: 0.85rem;
+    color: #334155;
+    margin: 0;
+    line-height: 1.45;
+}
+
+.notif-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    margin-left: 8px;
+}
+
+.btn-notif-action {
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.82rem;
+    color: #94a3b8;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.btn-notif-action:hover {
+    background: #f1f5f9;
+    color: #1e293b;
+    border-color: #cbd5e1;
+}
+
+.btn-notif-delete:hover {
+    background: #fee2e2;
+    color: #dc2626;
+    border-color: #fca5a5;
+}
+
+.btn-notif-dismiss:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+/* Empty State / Standby strip for HOD */
+.hod-empty-notif-strip {
+    background: #ffffff;
+    border: 1px dashed #cbd5e1;
+    border-radius: 10px;
+    padding: 10px 18px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.btn-campus-orange {
+    background-color: var(--msec-orange);
+    color: #ffffff;
+    font-weight: 600;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.btn-campus-orange:hover {
+    background-color: var(--msec-orange-hover);
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(242, 88, 34, 0.25);
+}
+
+/* Modal Form Styles */
+.modal-announcement-header {
+    background: linear-gradient(135deg, var(--msec-navy) 0%, #152e50 100%);
+    color: #ffffff;
+    border-bottom: 2px solid var(--msec-orange);
+}
+
+.modal-announcement-header .btn-close {
+    filter: invert(1);
+}
+
+/* Toast alert inside portal */
+.notif-toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 1060;
+    background: #0b1a30;
+    color: #ffffff;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    animation: fadeInToast 0.3s ease-out;
+}
+
+@keyframes fadeInToast {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================================================
+   GALLERY MODULE & RESPONSIVE PHOTO GRID WITH CSS LIGHTBOX
+   ========================================================================== */
+
+/* Public Gallery Responsive Grid */
+.gallery-photo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 22px;
+    margin-bottom: 2.5rem;
+}
+
+.gallery-photo-card {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.gallery-photo-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(242, 88, 34, 0.4);
+}
+
+.gallery-card-img-link {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 190px;
+    overflow: hidden;
+    background: #0b1a30;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.gallery-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.35s ease, opacity 0.35s ease;
+}
+
+.gallery-photo-card:hover .gallery-card-img {
+    transform: scale(1.06);
+    opacity: 0.92;
+}
+
+.gallery-card-zoom-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(11, 26, 48, 0.75);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.25s ease;
+    backdrop-filter: blur(4px);
+}
+
+.gallery-photo-card:hover .gallery-card-zoom-badge {
+    opacity: 1;
+    transform: scale(1);
+    background: var(--msec-orange);
+}
+
+.gallery-card-content {
+    padding: 14px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.gallery-card-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--msec-navy);
+    margin: 0 0 6px;
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.gallery-card-date {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--msec-orange);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+}
+
+.gallery-card-desc {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    line-height: 1.45;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Pure CSS Lightbox Overlay (:target-driven) */
+.gallery-lightbox-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(7, 19, 34, 0.88);
+    backdrop-filter: blur(8px);
+    z-index: 99999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    box-sizing: border-box;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.gallery-lightbox-overlay:target {
+    display: flex;
+    opacity: 1;
+}
+
+.gallery-lightbox-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    cursor: default;
+    text-decoration: none;
+}
+
+.gallery-lightbox-modal {
+    position: relative;
+    z-index: 2;
+    max-width: 860px;
+    width: 100%;
+    max-height: 90vh;
+    background: #ffffff;
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    animation: lightboxZoomIn 0.25s ease-out;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+@keyframes lightboxZoomIn {
+    from {
+        opacity: 0;
+        transform: scale(0.94);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.gallery-lightbox-close-btn {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    font-size: 26px;
+    line-height: 1;
+    color: #ffffff;
+    text-decoration: none;
+    z-index: 10;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(11, 26, 48, 0.7);
+    backdrop-filter: blur(4px);
+    transition: all 0.2s ease;
+}
+
+.gallery-lightbox-close-btn:hover {
+    background: var(--msec-orange);
+    color: #ffffff;
+    transform: scale(1.1);
+}
+
+.gallery-lightbox-media {
+    background: #071322;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-height: 60vh;
+    overflow: hidden;
+    width: 100%;
+}
+
+.gallery-lightbox-image {
+    max-width: 100%;
+    max-height: 60vh;
+    object-fit: contain;
+    width: auto;
+    height: auto;
+    display: block;
+}
+
+.gallery-lightbox-caption {
+    padding: 18px 24px 20px;
+    background: #ffffff;
+    border-top: 1px solid var(--border-color);
+    overflow-y: auto;
+    max-height: 28vh;
+}
+
+.gallery-lightbox-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--msec-navy);
+    margin: 0 0 6px;
+}
+
+.gallery-lightbox-date {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--msec-orange);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+}
+
+.gallery-lightbox-desc {
+    font-size: 0.88rem;
+    color: #475569;
+    line-height: 1.5;
+    margin: 0 0 12px;
+}
+
+.gallery-lightbox-meta {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-top: 1px dashed var(--border-color);
+    padding-top: 10px;
+}
+
+/* HOD Dashboard Gallery Management Styles */
+.hod-gallery-upload-form {
+    background: #f8fafc;
+    border: 1px solid var(--border-color);
+}
+
+.hod-gallery-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.hod-gallery-thumb-card {
+    width: 150px;
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.hod-gallery-thumb-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(242, 88, 34, 0.4);
+}
+
+.hod-thumb-img-wrapper {
+    width: 150px;
+    height: 150px;
+    position: relative;
+    overflow: hidden;
+    background: #e2e8f0;
+}
+
+.hod-gallery-thumb {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.25s ease;
+}
+
+.hod-gallery-thumb-card:hover .hod-gallery-thumb {
+    transform: scale(1.04);
+}
+
+.hod-thumb-meta {
+    padding: 8px 10px 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex-grow: 1;
+}
+
+.hod-thumb-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--msec-navy);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+}
+
+.hod-thumb-date {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}

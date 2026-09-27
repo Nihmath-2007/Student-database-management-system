@@ -1,13 +1,32 @@
 from flask import Blueprint, render_template, jsonify, session
-from routes.auth import role_required
+from routes.auth import role_required, login_required
 from services.database_service import get_student_details
+from db import fetch_all
 
 student_bp = Blueprint('student', __name__, url_prefix='/student')
 
 @student_bp.route('/dashboard')
 @role_required('student')
 def dashboard():
-    return render_template('student/dashboard.html')
+    # Fetch all notes grouped by subject
+    notes = fetch_all("""
+        SELECT n.id, n.subject_id, n.title, n.filename, n.uploaded_at,
+               sub.subject_name, sub.subject_code,
+               COALESCE(st.name, 'Faculty') as staff_name
+        FROM notes n
+        JOIN subjects sub ON n.subject_id = sub.subjectid
+        LEFT JOIN staff st ON n.staff_id = st.staffid
+        ORDER BY sub.subject_name ASC, n.uploaded_at DESC
+    """)
+    grouped_notes = {}
+    for note in (notes or []):
+        s_name = note['subject_name']
+        if s_name not in grouped_notes:
+            grouped_notes[s_name] = []
+        grouped_notes[s_name].append(note)
+
+    return render_template('student/dashboard.html', notes=notes, grouped_notes=grouped_notes)
+
 
 @student_bp.route('/marks')
 @role_required('student')

@@ -131,6 +131,90 @@
     </div>
 </div>
 
+
+<!-- SUBJECT NOTES & STUDY MATERIALS SECTION -->
+<div class="analytics-card mb-4" id="studentSubjectNotesSection">
+    <div class="card-title-bar">
+        <h3><i class="fa-solid fa-book-bookmark me-2 text-teal"></i> Subject Notes & Study Materials</h3>
+        <span class="badge bg-secondary text-white fw-bold px-3 py-1 rounded-pill fs-8">{{ notes|length if notes else 0 }} Total Files</span>
+    </div>
+
+    {% if grouped_notes and grouped_notes|length > 0 %}
+        {% for subject_name, subject_notes in grouped_notes.items() %}
+        <div class="subject-notes-group mb-4 p-3 border rounded bg-white shadow-sm">
+            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge-status badge-pass fw-bold">{{ subject_notes[0].subject_code if subject_notes else '' }}</span>
+                    <h4 class="h6 fw-bold text-navy mb-0">{{ subject_name }}</h4>
+                </div>
+                <span class="text-muted fs-8 fw-semibold">
+                    <i class="fa-solid fa-file-lines me-1 text-teal"></i> {{ subject_notes|length }} {% if subject_notes|length == 1 %}Note{% else %}Notes{% endif %} Available
+                </span>
+            </div>
+
+            <div class="custom-table-card">
+                <div class="table-responsive">
+                    <table class="table-custom">
+                        <thead>
+                            <tr>
+                                <th style="width: 25%;">Subject</th>
+                                <th style="width: 30%;">Note Title</th>
+                                <th style="width: 20%;">Uploaded By</th>
+                                <th style="width: 15%;">Upload Date</th>
+                                <th class="text-end" style="width: 10%;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for note in subject_notes %}
+                            <tr>
+                                <td>
+                                    <span class="fw-semibold text-navy">{{ note.subject_name }}</span>
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-navy">{{ note.title }}</div>
+                                    <div class="text-muted small">
+                                        {% if note.filename.endswith('.pdf') %}
+                                            <i class="fa-solid fa-file-pdf text-danger me-1"></i>
+                                        {% elif note.filename.endswith('.doc') or note.filename.endswith('.docx') %}
+                                            <i class="fa-solid fa-file-word text-primary me-1"></i>
+                                        {% elif note.filename.endswith('.ppt') or note.filename.endswith('.pptx') %}
+                                            <i class="fa-solid fa-file-powerpoint text-warning me-1"></i>
+                                        {% else %}
+                                            <i class="fa-solid fa-file-lines text-muted me-1"></i>
+                                        {% endif %}
+                                        {{ note.filename }}
+                                    </div>
+                                </td>
+                                <td>
+                                    <i class="fa-solid fa-chalkboard-user text-orange me-1"></i>
+                                    <span class="fw-semibold text-secondary">{{ note.staff_name }}</span>
+                                </td>
+                                <td>
+                                    <i class="fa-regular fa-calendar-days text-muted me-1"></i>
+                                    <span class="small">{{ note.uploaded_at }}</span>
+                                </td>
+                                <td class="text-end">
+                                    <a href="{{ url_for('download_note', note_id=note.id) }}" class="btn btn-sm btn-msec py-1 px-3" title="Download note file">
+                                        <i class="fa-solid fa-download me-1"></i> Download
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="custom-table-card p-4 text-center text-muted">
+            <i class="fa-solid fa-folder-open fs-1 text-muted mb-2 d-block"></i>
+            <h5 class="fw-bold text-navy">No Subject Notes Available Yet</h5>
+            <p class="fs-7 text-secondary mb-0">Course notes and study materials uploaded by your department faculty will appear here grouped by subject.</p>
+        </div>
+    {% endif %}
+</div>
+
 {% endblock %}
 
 {% block scripts %}

@@ -167,8 +167,253 @@
     </div>
 </div>
 
+<!-- HOD ANNOUNCEMENT MANAGEMENT HUB -->
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="custom-table-card p-4">
+            <div class="card-title-bar d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                <div>
+                    <h3 class="mb-0"><i class="fa-solid fa-bullhorn me-2 text-orange"></i> HOD Department Announcement Hub</h3>
+                    <div class="text-muted fs-8">Broadcast circulars, exam dates, deadlines, and reminders to staff & students</div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary fs-7" onclick="loadAdminAnnouncements()" title="Refresh announcements">
+                        <i class="fa-solid fa-rotate me-1"></i> Refresh
+                    </button>
+                    <button type="button" class="btn btn-sm btn-campus-orange fs-7" data-bs-toggle="modal" data-bs-target="#postAnnouncementModal">
+                        <i class="fa-solid fa-plus me-1"></i> New Announcement
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-custom align-middle">
+                    <thead>
+                        <tr>
+                            <th style="width: 120px;">Priority</th>
+                            <th>Headline & Details</th>
+                            <th style="width: 180px;">Target Audience</th>
+                            <th style="width: 140px;">Expiry Date</th>
+                            <th style="width: 100px;">Status</th>
+                            <th style="width: 110px;">Dismissals</th>
+                            <th style="width: 120px;" class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminAnnouncementsTable">
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">
+                                <i class="fa-solid fa-spinner fa-spin me-2 text-orange"></i> Loading department announcements...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- HOD GALLERY MANAGEMENT HUB -->
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="custom-table-card p-4">
+            <div class="card-title-bar d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                <div>
+                    <h3 class="mb-0"><i class="fa-solid fa-camera-retro me-2 text-orange"></i> Department Event Photo Gallery</h3>
+                    <div class="text-muted fs-8">Upload event photos and manage the department gallery visible to students, staff, and faculty</div>
+                </div>
+                <a href="{{ url_for('gallery') }}" class="btn btn-sm btn-outline-secondary fs-7">
+                    <i class="fa-solid fa-images me-1 text-orange"></i> View Department Gallery
+                </a>
+            </div>
+
+            <!-- Upload Event Photo Form -->
+            <form action="{{ url_for('hod.gallery_upload') }}" method="POST" enctype="multipart/form-data" class="hod-gallery-upload-form p-3 mb-4 rounded-3">
+                <div class="row g-3 align-items-end">
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label fw-semibold fs-8 text-navy mb-1" for="galleryPhotoTitle">Photo Title <span class="text-danger">*</span></label>
+                        <input type="text" id="galleryPhotoTitle" name="title" class="form-control form-control-sm" placeholder="e.g., Annual Tech Symposium 2026" required maxlength="150">
+                    </div>
+                    <div class="col-lg-2 col-md-6">
+                        <label class="form-label fw-semibold fs-8 text-navy mb-1" for="galleryEventDate">Event Date <span class="text-muted fs-9">(Optional)</span></label>
+                        <input type="date" id="galleryEventDate" name="event_date" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label fw-semibold fs-8 text-navy mb-1" for="galleryDescription">Description <span class="text-muted fs-9">(Optional)</span></label>
+                        <input type="text" id="galleryDescription" name="description" class="form-control form-control-sm" placeholder="Brief event description or milestone" maxlength="500">
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label fw-semibold fs-8 text-navy mb-1" for="galleryFileInput">Select Photo <span class="text-danger">*</span> <span class="text-muted fs-9">(JPG, PNG, WEBP &le; 8MB)</span></label>
+                        <input type="file" id="galleryFileInput" name="file" accept=".jpg,.jpeg,.png,.webp" class="form-control form-control-sm" required>
+                    </div>
+                    <div class="col-12 text-end pt-1">
+                        <button type="submit" class="btn btn-sm btn-campus-orange px-4">
+                            <i class="fa-solid fa-cloud-arrow-up me-1"></i> Upload Event Photo
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Already-Uploaded Photos Grid -->
+            <div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="fs-7 fw-bold text-navy mb-0">
+                        <i class="fa-solid fa-photo-film me-2 text-orange"></i> Already Uploaded Photos ({{ gallery_items|length if gallery_items else 0 }})
+                    </h4>
+                </div>
+                {% if gallery_items and gallery_items|length > 0 %}
+                    <div class="hod-gallery-grid">
+                        {% for photo in gallery_items %}
+                        <div class="hod-gallery-thumb-card">
+                            <div class="hod-thumb-img-wrapper">
+                                <img src="{{ url_for('static', filename=photo.image_path if 'uploads/' in photo.image_path else 'uploads/gallery/' + photo.image_path) }}" alt="{{ photo.title }}" class="hod-gallery-thumb">
+                            </div>
+                            <div class="hod-thumb-meta">
+                                <div class="hod-thumb-title" title="{{ photo.title }}">{{ photo.title }}</div>
+                                {% if photo.event_date %}
+                                <div class="hod-thumb-date"><i class="fa-regular fa-calendar me-1"></i> {{ photo.event_date }}</div>
+                                {% endif %}
+                                <form action="{{ url_for('hod.gallery_delete', photo_id=photo.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to permanently delete this photo?');" class="mt-2">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger w-100 fs-8 py-1">
+                                        <i class="fa-solid fa-trash-can me-1"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4 text-muted bg-light rounded-3 border">
+                        <i class="fa-solid fa-images fa-2x mb-2 text-secondary"></i>
+                        <p class="mb-0 fs-7">No event photos uploaded yet. Use the form above to add photos to the campus gallery.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/hod_charts.js') }}"></script>
+<script>
+function loadAdminAnnouncements() {
+    const tbody = document.getElementById('adminAnnouncementsTable');
+    if (!tbody) return;
+
+    fetch('/api/notifications/admin-list')
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success || !data.notifications || data.notifications.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center py-4 text-muted">
+                            <i class="fa-solid fa-bullhorn text-secondary me-2"></i> No announcements posted yet. Click "+ New Announcement" to broadcast to the department.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            let html = '';
+            data.notifications.forEach(n => {
+                const isInactive = n.is_active === 0;
+                
+                let toggleBtnTitle = isInactive ? 'Activate Announcement' : 'Deactivate Announcement';
+                let toggleIcon = isInactive ? 'fa-play text-success' : 'fa-pause text-warning';
+
+                html += `
+                    <tr id="adminRow-${n.id}">
+                        <td>
+                            <span class="badge-priority ${n.priority_class}">
+                                <i class="${n.priority_icon} me-1"></i>${n.priority_label}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="fw-bold text-navy fs-7">${escapeHtml(n.title)}</div>
+                            <div class="text-muted fs-8 text-truncate" style="max-width: 400px;">${escapeHtml(n.message)}</div>
+                        </td>
+                        <td>
+                            <span class="badge-audience">
+                                <i class="fa-solid fa-users me-1 text-muted"></i>${escapeHtml(n.audience_label)}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="fs-8 fw-semibold text-secondary">
+                                <i class="fa-regular fa-clock me-1"></i>${n.formatted_expires}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge ${n.status_class} fs-8 px-2 py-1">${n.status_badge}</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border fs-8">
+                                <i class="fa-solid fa-user-check me-1 text-muted"></i>${n.dismiss_count || 0}
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm">
+                                <button type="button" class="btn btn-outline-secondary" onclick="toggleAdminNotification(${n.id})" title="${toggleBtnTitle}">
+                                    <i class="fa-solid ${toggleIcon}"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-danger" onclick="deleteAdminNotification(${n.id})" title="Delete notice">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        })
+        .catch(err => {
+            console.error('Error loading admin announcements:', err);
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-3">Failed to load announcements.</td></tr>`;
+        });
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.innerText = text;
+    return div.innerHTML;
+}
+
+function toggleAdminNotification(id) {
+    fetch(`/api/notifications/${id}/toggle`, { method: 'PATCH' })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showNotifToast(data.message, 'fa-solid fa-toggle-on');
+                loadAdminAnnouncements();
+            } else {
+                alert(data.error || 'Failed to toggle status');
+            }
+        });
+}
+
+function deleteAdminNotification(id) {
+    if (!confirm('Are you sure you want to permanently delete this announcement?')) return;
+    fetch(`/api/notifications/${id}`, { method: 'DELETE' })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showNotifToast('Announcement deleted.', 'fa-solid fa-trash-can');
+                loadAdminAnnouncements();
+                const card = document.getElementById(`noticeCard-${id}`);
+                if (card) {
+                    card.classList.add('dismissing');
+                    setTimeout(() => { card.remove(); updateNotificationBadgeCount(); }, 350);
+                }
+            } else {
+                alert(data.error || 'Failed to delete announcement');
+            }
+        });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadAdminAnnouncements();
+});
+</script>
 {% endblock %}
+

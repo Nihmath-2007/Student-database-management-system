@@ -5,32 +5,45 @@ from services.database_service import get_user_by_username
 
 auth_bp = Blueprint('auth', __name__)
 
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
-            if request.path.startswith('/api/'):
-                return jsonify({'error': 'Unauthorized. Please login.'}), 401
-            return redirect(url_for('auth.login'))
-        return f(*args, **kwargs)
-    return decorated_function
-
-def role_required(*roles):
-    def decorator(f):
+def login_required(*args):
+    """
+    Flexible Authentication & Role Authorization Decorator.
+    Supports usage as:
+      @login_required                -> requires any authenticated user
+      @login_required("staff")       -> requires authenticated staff member
+      @login_required("student", "staff") -> requires student or staff role
+    """
+    if len(args) == 1 and callable(args[0]):
+        f = args[0]
         @wraps(f)
-        def decorated_function(*args, **kwargs):
+        def decorated_function(*f_args, **f_kwargs):
             if 'user_id' not in session:
                 if request.path.startswith('/api/'):
                     return jsonify({'error': 'Unauthorized. Please login.'}), 401
                 return redirect(url_for('auth.login'))
-            user_role = session.get('role')
-            if user_role not in roles:
-                if request.path.startswith('/api/'):
-                    return jsonify({'error': 'Forbidden. Access restricted.'}), 403
-                return render_template('unauthorized.html', role=user_role), 403
-            return f(*args, **kwargs)
+            return f(*f_args, **f_kwargs)
         return decorated_function
-    return decorator
+    else:
+        roles = args
+        def decorator(f):
+            @wraps(f)
+            def decorated_function(*f_args, **f_kwargs):
+                if 'user_id' not in session:
+                    if request.path.startswith('/api/'):
+                        return jsonify({'error': 'Unauthorized. Please login.'}), 401
+                    return redirect(url_for('auth.login'))
+                user_role = session.get('role')
+                if roles and user_role not in roles:
+                    if request.path.startswith('/api/'):
+                        return jsonify({'error': 'Forbidden. Access restricted.'}), 403
+                    return render_template('unauthorized.html', role=user_role), 403
+                return f(*f_args, **f_kwargs)
+            return decorated_function
+        return decorator
+
+def role_required(*roles):
+    return login_required(*roles)
+
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():

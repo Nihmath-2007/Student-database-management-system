@@ -1,13 +1,131 @@
-from flask import Blueprint, render_template, jsonify, request, session
-from routes.auth import role_required
+import os
+from uuid import uuid4
+from werkzeug.utils import secure_filename
+from flask import Blueprint, render_template, jsonify, request, session, redirect, url_for, flash, current_app
+from routes.auth import role_required, login_required
 from services.database_service import get_staff_subjects, get_subject_details, get_student_details, get_all_students
+from db import fetch_all, fetch_one, execute
 
 staff_bp = Blueprint('staff', __name__, url_prefix='/staff')
 
+ALLOWED_EXTENSIONS = {'.pdf', '.doc', '.docx', '.ppt', '.pptx'}
+
 @staff_bp.route('/dashboard')
-@role_required('staff')
+@login_required('staff')
 def dashboard():
-    return render_template('staff/dashboard.html')
+    staff_id = session.get('staff_id')
+    # Fetch assigned subjects for the upload dropdown
+    subjects = fetch_all("SELECT * FROM subjects WHERE staff_id = %s ORDER BY subject_name ASC", (staff_id,))
+    # Fetch notes previously uploaded by this staff member
+    notes = fetch_all("""
+        SELECT n.id, n.subject_id, n.staff_id, n.title, n.filename, n.stored_path, n.uploaded_at,
+               sub.subject_name, sub.subject_code
+        FROM notes n
+        JOIN subjects sub ON n.subject_id = sub.subjectid
+        WHERE n.staff_id = %s
+        ORDER BY n.uploaded_at DESC
+    """, (staff_id,))
+    return render_template('staff/dashboard.html', subjects=subjects, notes=notes)
+
+@staff_bp.route('/notes/upload', methods=['POST'])
+@login_required('staff')
+def upload_note():
+    staff_id = session.get('staff_id')
+    if not staff_id:
+        flash("Unauthorized: Staff session not found.", "danger")
+        return redirect(url_for('staff.dashboard'))
+
+    subject_id = request.form.get('subject_id')
+    title = request.form.get('title', '').strip()
+
+    if not subject_id or not title:
+        flash("Please provide a note title and select an assigned subject.", "warning")
+        return redirect(url_for('staff.dashboard'))
+
+    # Verify subject belongs to this staff member
+    subject = fetch_one("SELECT * FROM subjects WHERE subjectid = %s AND staff_id = %s", (subject_id, staff_id))
+    if not subject:
+        flash("Unauthorized subject selection: This subject is not assigned to you.", "danger")
+        return redirect(url_for('staff.dashboard'))
+
+    if 'file' not in request.files:
+        flash("No file was selected for upload.", "warning")
+        return redirect(url_for('staff.dashboard'))
+
+    file = request.files['file']
+    if not file or not file.filename or file.filename.strip() == '':
+        flash("Please choose a file to upload.", "warning")
+        return redirect(url_for('staff.dashboard'))
+
+    original_name = file.filename
+    _, ext = os.path.splitext(original_name)
+    ext = ext.lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        flash(f"Invalid file extension '{ext}'. Only .pdf, .doc, .docx, .ppt, and .pptx are allowed.", "danger")
+        return redirect(url_for('staff.dashboard'))
+
+    # Store with uuid and secure_filename to avoid collision and traversal
+    safe_name = secure_filename(original_name) or f"note{ext}"
+    stored_filename = f"{uuid4().hex}_{safe_name}"
+
+    upload_dir = current_app.config.get('NOTES_UPLOAD_DIR') or os.path.join(current_app.root_path, 'uploads', 'notes')
+    os.makedirs(upload_dir, exist_ok=True)
+    stored_path = os.path.join(upload_dir, stored_filename)
+
+    try:
+        file.save(stored_path)
+    except Exception as e:
+        flash(f"Failed to save file to server: {str(e)}", "danger")
+        return redirect(url_for('staff.dashboard'))
+
+    try:
+        execute("""
+            INSERT INTO notes (subject_id, staff_id, title, filename, stored_path)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (subject_id, staff_id, title, original_name, stored_filename))
+        flash("Subject note uploaded successfully!", "success")
+    except Exception as e:
+        if os.path.exists(stored_path):
+            try:
+                os.remove(stored_path)
+            except Exception:
+                pass
+        flash(f"Database error while saving note: {str(e)}", "danger")
+
+    return redirect(url_for('staff.dashboard'))
+
+@staff_bp.route('/notes/delete/<int:note_id>', methods=['POST'])
+@login_required('staff')
+def delete_note(note_id):
+    staff_id = session.get('staff_id')
+    if not staff_id:
+        flash("Unauthorized: Staff session not found.", "danger")
+        return redirect(url_for('staff.dashboard'))
+
+    # Ensure only rows where staff_id matches the logged-in staff can be deleted
+    note = fetch_one("SELECT * FROM notes WHERE id = %s AND staff_id = %s", (note_id, staff_id))
+    if not note:
+        flash("Subject note not found or you do not have permission to delete it.", "danger")
+        return redirect(url_for('staff.dashboard'))
+
+    # Remove the file from disk
+    upload_dir = current_app.config.get('NOTES_UPLOAD_DIR') or os.path.join(current_app.root_path, 'uploads', 'notes')
+    file_path = os.path.join(upload_dir, os.path.basename(note['stored_path']))
+    if os.path.exists(file_path):
+        try:
+            os.remove(file_path)
+        except Exception as e:
+            print(f"Warning: could not delete file from disk {file_path}: {e}")
+
+    # Remove record from database
+    try:
+        execute("DELETE FROM notes WHERE id = %s AND staff_id = %s", (note_id, staff_id))
+        flash("Subject note deleted successfully.", "success")
+    except Exception as e:
+        flash(f"Database error while deleting note: {str(e)}", "danger")
+
+    return redirect(url_for('staff.dashboard'))
+
 
 @staff_bp.route('/subject-analytics')
 @role_required('staff')
