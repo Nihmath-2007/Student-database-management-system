@@ -2,7 +2,7 @@ import os
 from flask import Flask, render_template, redirect, url_for, session, jsonify
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=True)
 
 from config.database import SECRET_KEY
 from database.seed_data import init_db
@@ -141,6 +141,7 @@ def request_entity_too_large(e):
     flash("Upload failed: File size exceeds the maximum limit. Please upload a smaller file.", "danger")
     role = session.get('role')
     if role == 'staff':
+        
         return redirect(url_for('staff.dashboard'))
     elif role == 'hod':
         return redirect(url_for('hod.dashboard'))
