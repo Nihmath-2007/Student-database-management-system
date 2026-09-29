@@ -119,14 +119,15 @@ def init_correction_tables():
             conn.commit()
 
         cursor.close()
-        conn.close()
-        # Seed realistic demonstration queries if table is currently empty
-        seed_sample_correction_data()
-    except Exception as e:
-        try:
+        if engine == 'sqlite':
             conn.close()
-        except Exception:
-            pass
+        # Live database initialized without dummy demonstration data
+    except Exception as e:
+        if engine == 'sqlite':
+            try:
+                conn.close()
+            except Exception:
+                pass
         print(f"Notice: init_correction_tables: {e}")
 
 

@@ -106,32 +106,6 @@ def init_db(force=False):
             except Exception as sec_err:
                 print(f"Notice: students.section column check in MySQL: {sec_err}")
 
-            # Seed sample notification in MySQL if empty
-            try:
-                cursor.execute("SELECT COUNT(*) as cnt FROM notifications")
-                notif_cnt = cursor.fetchone()['cnt']
-                if notif_cnt == 0:
-                    cursor.execute("""
-                    INSERT INTO notifications (title, message, audience, priority, expires_at, is_active)
-                    VALUES 
-                    (%s, %s, %s, %s, %s, 1),
-                    (%s, %s, %s, %s, %s, 1)
-                    """, (
-                        'Internal Assessment-II Exam Schedule Announced',
-                        'IA-2 Examinations for all IT Department students will commence next week. Verify timetable and seating allocations.',
-                        'everyone',
-                        'urgent',
-                        '2027-12-31',
-                        'Academic Project Phase-1 Documentation Reminder',
-                        'All 3rd Year and Final Year IT students must submit their project abstracts and guide approvals by 5:00 PM.',
-                        'Third year',
-                        'high',
-                        '2027-12-31'
-                    ))
-                    conn.commit()
-            except Exception as notif_err:
-                print(f"Notice: notifications seed in MySQL: {notif_err}")
-
             # Check if users exist
             cursor.execute("SELECT COUNT(*) as cnt FROM users")
             row = cursor.fetchone()
@@ -171,14 +145,9 @@ def init_db(force=False):
                 print(f"Railway MySQL connected with {user_count} active user accounts.")
 
             cursor.close()
-            conn.close()
             return
         except Exception as e:
             print(f"Error initializing Railway MySQL database: {e}")
-            try:
-                conn.close()
-            except Exception:
-                pass
             raise e
 
     # Fallback for local SQLite engine if explicitly set
