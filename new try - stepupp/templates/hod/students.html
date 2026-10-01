@@ -1,34 +1,56 @@
 {% extends "base.html" %}
-{% block title %}Students Directory - Information Technology{% endblock %}
+{% block title %}Student Management - ERP Portal{% endblock %}
 
 {% block content %}
-<div class="page-header">
+<div class="page-header d-flex flex-wrap align-items-center justify-content-between gap-3">
     <div>
-        <h1 class="page-title"><i class="fa-solid fa-users me-2 text-warning"></i> IT Department Students Directory</h1>
-        <div class="page-subtitle">Search, filter, and inspect detailed student analytics</div>
+        <h1 class="page-title"><i class="fa-solid fa-users me-2 text-warning"></i> Student Management Module</h1>
+        <div class="page-subtitle">Full ERP student directory: add, edit, search, filter, and inspect detailed profiles</div>
+    </div>
+    <div>
+        <button class="btn btn-msec" onclick="openAddStudentModal()">
+            <i class="fa-solid fa-user-plus me-2"></i> Add New Student
+        </button>
     </div>
 </div>
+
+<!-- ALERT BANNER -->
+<div id="alertContainer"></div>
 
 <!-- FILTERS CARD -->
 <div class="analytics-card mb-4">
     <div class="row g-3 align-items-center">
-        <div class="col-md-4">
+        <div class="col-md-3">
             <label class="form-label fw-semibold fs-7 text-secondary">Search Student</label>
             <div class="input-group">
                 <span class="input-group-text bg-light"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                <input type="text" id="searchInput" class="form-control" placeholder="Search by Reg No or Name..." onkeyup="filterStudents()">
+                <input type="text" id="searchInput" class="form-control" placeholder="Search by Reg No, Name, Email..." onkeyup="onFilterChange()">
             </div>
         </div>
-        <div class="col-md-3">
-            <label class="form-label fw-semibold fs-7 text-secondary">Filter by Academic Year</label>
-            <select id="yearFilter" class="form-select" onchange="filterStudents()">
+        <div class="col-md-2">
+            <label class="form-label fw-semibold fs-7 text-secondary">Department</label>
+            <select id="deptFilter" class="form-select" onchange="onFilterChange()">
+                <option value="All">All Departments</option>
+                <option value="IT">Information Technology</option>
+                <option value="CSE">Computer Science</option>
+                <option value="AIDS">AI & Data Science</option>
+                <option value="ECE">ECE</option>
+                <option value="MECH">Mechanical</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label fw-semibold fs-7 text-secondary">Academic Year</label>
+            <select id="yearFilter" class="form-select" onchange="onFilterChange()">
                 <option value="All">All Academic Years</option>
+                <option value="First year">First Year</option>
+                <option value="Second year">Second Year</option>
                 <option value="Third year">Third Year</option>
+                <option value="Final year">Final Year</option>
             </select>
         </div>
         <div class="col-md-3">
-            <label class="form-label fw-semibold fs-7 text-secondary">Filter by Performance Status</label>
-            <select id="statusFilter" class="form-select" onchange="filterStudents()">
+            <label class="form-label fw-semibold fs-7 text-secondary">Performance Status</label>
+            <select id="statusFilter" class="form-select" onchange="onFilterChange()">
                 <option value="All">All Statuses</option>
                 <option value="At Risk">At Risk Only</option>
                 <option value="Top Rank">Top Rank to Bottom Rank</option>
@@ -36,7 +58,9 @@
             </select>
         </div>
         <div class="col-md-2 text-end">
-            <button class="btn btn-outline-secondary w-100 mt-4 fs-7" onclick="resetFilters()"><i class="fa-solid fa-rotate-left me-1"></i> Reset</button>
+            <button class="btn btn-outline-secondary w-100 mt-4 fs-7" onclick="resetFilters()">
+                <i class="fa-solid fa-rotate-left me-1"></i> Reset Filters
+            </button>
         </div>
     </div>
 </div>
@@ -44,26 +68,199 @@
 <!-- STUDENTS DIRECTORY TABLE -->
 <div class="custom-table-card">
     <div class="table-responsive">
-        <table class="table table-custom align-middle">
+        <table class="table table-custom align-middle mb-0">
             <thead>
                 <tr>
                     <th>Register No</th>
                     <th>Student Name</th>
-                    <th>Year</th>
+                    <th>Dept &amp; Year</th>
+                    <th>Sec</th>
+                    <th>Email &amp; Phone</th>
                     <th>Attendance %</th>
-                    <th>Average Mark</th>
+                    <th>Avg Mark</th>
                     <th>Status</th>
-                    <th class="text-center">Action</th>
+                    <th class="text-center" style="width: 220px;">Actions</th>
                 </tr>
             </thead>
             <tbody id="studentsTableBody">
-                <tr><td colspan="7" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading student directory...</td></tr>
+                <tr><td colspan="9" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading student directory...</td></tr>
             </tbody>
         </table>
     </div>
-    <div class="p-3 d-flex justify-content-between align-items-center bg-light border-top">
+    <div class="p-3 d-flex flex-wrap justify-content-between align-items-center bg-light border-top gap-2">
         <span class="fs-7 text-muted" id="studentsCountText">Showing students</span>
-        <div id="paginationControls"></div>
+        <div class="d-flex align-items-center gap-2" id="paginationControls"></div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- 1. ADD STUDENT MODAL -->
+<!-- ========================================== -->
+<div class="modal fade" id="addStudentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-msec-navy text-white">
+                <h5 class="modal-title"><i class="fa-solid fa-user-plus me-2 text-warning"></i> Add New Student</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="addStudentForm" onsubmit="handleCreateStudent(event)">
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold fs-7">Register Number <span class="text-danger">*</span></label>
+                            <input type="text" name="regno" class="form-control font-monospace" placeholder="e.g. 911524205053" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold fs-7">Student Full Name <span class="text-danger">*</span></label>
+                            <input type="text" name="name" class="form-control text-uppercase" placeholder="e.g. MOHAMED ALI S" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold fs-7">Department <span class="text-danger">*</span></label>
+                            <select name="department" class="form-select" required>
+                                <option value="IT" selected>IT - Information Technology</option>
+                                <option value="CSE">CSE - Computer Science</option>
+                                <option value="AIDS">AIDS - AI &amp; Data Science</option>
+                                <option value="ECE">ECE - Electronics &amp; Comm</option>
+                                <option value="MECH">MECH - Mechanical</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold fs-7">Academic Year <span class="text-danger">*</span></label>
+                            <select name="year" class="form-select" required>
+                                <option value="Third year" selected>Third Year</option>
+                                <option value="Second year">Second Year</option>
+                                <option value="First year">First Year</option>
+                                <option value="Final year">Final Year</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold fs-7">Section</label>
+                            <select name="section" class="form-select">
+                                <option value="A" selected>Section A</option>
+                                <option value="B">Section B</option>
+                                <option value="C">Section C</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold fs-7">Email Address</label>
+                            <input type="email" name="email" class="form-control" placeholder="student@msec.edu.in">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold fs-7">Contact Phone</label>
+                            <input type="tel" name="phone" class="form-control" placeholder="e.g. +91 9876543210">
+                        </div>
+                    </div>
+                    <div class="alert alert-info py-2 px-3 mt-3 mb-0 fs-8">
+                        <i class="fa-solid fa-circle-info me-1"></i> A student portal login will be automatically generated with username equal to the Register Number and default password <code>student123</code>.
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary fs-7" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-msec fs-7" id="addStudentSubmitBtn">
+                        <i class="fa-solid fa-check me-1"></i> Save to Database
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- 2. EDIT STUDENT MODAL -->
+<!-- ========================================== -->
+<div class="modal fade" id="editStudentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-msec-navy text-white">
+                <h5 class="modal-title"><i class="fa-solid fa-user-pen me-2 text-warning"></i> Edit Student Record</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editStudentForm" onsubmit="handleUpdateStudent(event)">
+                <input type="hidden" name="studentid" id="editStudentId">
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold fs-7">Register Number <span class="text-danger">*</span></label>
+                            <input type="text" name="regno" id="editStudentRegNo" class="form-control font-monospace" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold fs-7">Student Full Name <span class="text-danger">*</span></label>
+                            <input type="text" name="name" id="editStudentName" class="form-control text-uppercase" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold fs-7">Department <span class="text-danger">*</span></label>
+                            <select name="department" id="editStudentDept" class="form-select" required>
+                                <option value="IT">IT - Information Technology</option>
+                                <option value="CSE">CSE - Computer Science</option>
+                                <option value="AIDS">AIDS - AI &amp; Data Science</option>
+                                <option value="ECE">ECE - Electronics &amp; Comm</option>
+                                <option value="MECH">MECH - Mechanical</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold fs-7">Academic Year <span class="text-danger">*</span></label>
+                            <select name="year" id="editStudentYear" class="form-select" required>
+                                <option value="First year">First Year</option>
+                                <option value="Second year">Second Year</option>
+                                <option value="Third year">Third Year</option>
+                                <option value="Final year">Final Year</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold fs-7">Section</label>
+                            <select name="section" id="editStudentSection" class="form-select">
+                                <option value="A">Section A</option>
+                                <option value="B">Section B</option>
+                                <option value="C">Section C</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold fs-7">Email Address</label>
+                            <input type="email" name="email" id="editStudentEmail" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold fs-7">Contact Phone</label>
+                            <input type="tel" name="phone" id="editStudentPhone" class="form-control">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary fs-7" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-msec fs-7" id="editStudentSubmitBtn">
+                        <i class="fa-solid fa-save me-1"></i> Update Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- 3. DELETE CONFIRMATION MODAL -->
+<!-- ========================================== -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fa-solid fa-triangle-exclamation me-2"></i> Confirm Student Deletion</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="mb-2">Are you sure you want to permanently delete this student record from the live database?</p>
+                <div class="p-3 bg-light rounded border mb-3">
+                    <div class="fw-bold" id="deleteStudentNameText">--</div>
+                    <div class="text-muted font-monospace fs-7" id="deleteStudentRegNoText">--</div>
+                </div>
+                <p class="text-danger small mb-0"><i class="fa-solid fa-circle-exclamation me-1"></i> This will delete the student's profile, attendance records, internal marks, and portal user credentials.</p>
+            </div>
+            <div class="modal-footer bg-light">
+                <input type="hidden" id="deleteStudentTargetId">
+                <button type="button" class="btn btn-secondary fs-7" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger fs-7" id="confirmDeleteBtn" onclick="executeDeleteStudent()">
+                    <i class="fa-solid fa-trash-can me-1"></i> Yes, Delete Permanently
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -71,98 +268,299 @@
 
 {% block scripts %}
 <script>
-    let allStudentsData = [];
+    let currentPage = 1;
+    const pageSize = 15;
+    let addModalInstance = null;
+    let editModalInstance = null;
+    let deleteModalInstance = null;
 
-    async function loadStudents() {
-        try {
-            const cached = sessionStorage.getItem('cached_hod_students');
-            if (cached) {
-                allStudentsData = JSON.parse(cached);
-                renderStudentsTable(allStudentsData);
-            }
-        } catch (e) {}
+    function showAlert(message, type = 'success') {
+        const container = document.getElementById('alertContainer');
+        container.innerHTML = `
+            <div class="alert alert-${type} alert-dismissible fade show shadow-sm" role="alert">
+                <i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-triangle-exclamation'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+        setTimeout(() => {
+            const el = container.querySelector('.alert');
+            if (el) bootstrap.Alert.getOrCreateInstance(el).close();
+        }, 5000);
+    }
+
+    async function loadStudents(page = 1) {
+        currentPage = page;
+        const search = document.getElementById('searchInput').value.trim();
+        const dept = document.getElementById('deptFilter').value;
+        const year = document.getElementById('yearFilter').value;
+        const status = document.getElementById('statusFilter').value;
+
+        const tbody = document.getElementById('studentsTableBody');
+        tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading live data...</td></tr>`;
 
         try {
-            const res = await fetch('/hod/api/students');
-            if (res.ok) {
-                allStudentsData = await res.json();
-                renderStudentsTable(allStudentsData);
-                try {
-                    sessionStorage.setItem('cached_hod_students', JSON.stringify(allStudentsData));
-                } catch (e) {}
+            const url = new URL('/hod/api/students', window.location.origin);
+            url.searchParams.set('page', page);
+            url.searchParams.set('limit', pageSize);
+            if (search) url.searchParams.set('search', search);
+            if (dept !== 'All') url.searchParams.set('department', dept);
+            if (year !== 'All') url.searchParams.set('year', year);
+
+            const res = await fetch(url);
+            const data = await res.json();
+
+            let students = data.students || (Array.isArray(data) ? data : []);
+            const total = data.total !== undefined ? data.total : students.length;
+            const totalPages = data.total_pages || Math.ceil(total / pageSize) || 1;
+
+            if (status === 'Top Rank') {
+                students.sort((a, b) => (parseFloat(b.avg_marks) || 0) - (parseFloat(a.avg_marks) || 0));
+            } else if (status === 'Bottom Rank') {
+                students.sort((a, b) => (parseFloat(a.avg_marks) || 0) - (parseFloat(b.avg_marks) || 0));
+            } else if (status === 'At Risk') {
+                students = students.filter(s => s.is_at_risk || s.attendance_percentage < 75 || s.avg_marks < 50);
             }
+
+            renderStudentsTable(students, total, page, totalPages);
         } catch (e) {
-            console.error('Error loading students:', e);
+            tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-danger"><i class="fa-solid fa-circle-exclamation me-1"></i> Failed to connect to live database.</td></tr>`;
+            console.error('Error fetching students:', e);
         }
     }
 
-    function renderStudentsTable(students) {
+    function renderStudentsTable(students, total, page, totalPages) {
         const tbody = document.getElementById('studentsTableBody');
-        document.getElementById('studentsCountText').innerText = `Showing ${students.length} students`;
+        document.getElementById('studentsCountText').innerText = `Showing ${students.length} of ${total} students (Page ${page} of ${totalPages})`;
 
         if (!students || students.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted">No students matching criteria found.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-muted">No students matching the criteria were found.</td></tr>`;
+            renderPagination(0, 1);
             return;
         }
 
         let html = '';
         students.forEach(s => {
-            const statusBadge = s.at_risk 
+            const isAtRisk = s.is_at_risk || (parseFloat(s.attendance_percentage) < 75 || parseFloat(s.avg_marks) < 50);
+            const statusBadge = isAtRisk
                 ? `<span class="badge-status badge-at-risk"><i class="fa-solid fa-triangle-exclamation me-1"></i> At Risk</span>`
-                : `<span class="badge-status badge-normal">Satisfactory</span>`;
+                : `<span class="badge-status badge-normal"><i class="fa-solid fa-circle-check me-1"></i> Good</span>`;
+
+            const studentJson = JSON.stringify(s).replace(/"/g, '&quot;');
 
             html += `
-                <tr style="cursor: pointer;" onclick="window.location.href='/hod/student/${s.studentid}'">
-                    <td class="font-monospace fw-bold">${s.regno}</td>
+                <tr>
+                    <td class="font-monospace fw-bold text-navy">${s.regno}</td>
                     <td class="fw-semibold">${s.name}</td>
-                    <td>${s.year}</td>
+                    <td><span class="badge bg-light text-dark font-monospace">${s.department || 'IT'}</span> <span class="fs-8 text-muted d-block">${s.year || 'Third year'}</span></td>
+                    <td class="font-monospace fw-bold text-center">${s.section || 'A'}</td>
                     <td>
-                        <div class="d-flex align-items-center gap-2">
+                        <div class="fs-8 text-secondary">${s.email || '<span class="text-muted fst-italic">No Email</span>'}</div>
+                        <div class="fs-8 font-monospace text-muted">${s.phone || '-'}</div>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2" style="min-width: 110px;">
                             <div class="progress flex-grow-1" style="height: 6px;">
                                 <div class="progress-bar ${s.attendance_percentage < 75 ? 'bg-danger' : 'bg-success'}" style="width: ${s.attendance_percentage}%"></div>
                             </div>
-                            <span class="fw-bold fs-7">${s.attendance_percentage}%</span>
+                            <span class="fw-bold fs-8">${s.attendance_percentage}%</span>
                         </div>
                     </td>
-                    <td class="fw-bold">${s.avg_marks}%</td>
+                    <td class="fw-bold fs-7">${s.avg_marks}%</td>
                     <td>${statusBadge}</td>
                     <td class="text-center">
-                        <a href="/hod/student/${s.studentid}" class="btn btn-sm btn-msec-navy fs-7"><i class="fa-solid fa-chart-line me-1"></i> View Analytics</a>
+                        <div class="btn-group btn-group-sm">
+                            <a href="/hod/student/${s.studentid}" class="btn btn-outline-primary" title="View Student Analytics">
+                                <i class="fa-solid fa-chart-line"></i>
+                            </a>
+                            <button type="button" class="btn btn-outline-secondary" title="Edit Student" onclick="openEditStudentModal(${studentJson})">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-danger" title="Delete Student" onclick="openDeleteStudentModal(${s.studentid}, '${s.name}', '${s.regno}')">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
                     </td>
                 </tr>
             `;
         });
         tbody.innerHTML = html;
+        renderPagination(total, totalPages);
     }
 
-    function filterStudents() {
-        const search = document.getElementById('searchInput').value.toLowerCase();
-        const year = document.getElementById('yearFilter').value;
-        const status = document.getElementById('statusFilter').value;
-
-        let filtered = allStudentsData.filter(s => {
-            const matchesSearch = s.name.toLowerCase().includes(search) || s.regno.toLowerCase().includes(search);
-            const matchesYear = year === 'All' || s.year === year;
-            const matchesStatus = (status === 'All' || status === 'Top Rank' || status === 'Bottom Rank') ? true : (status === 'At Risk' ? s.at_risk : true);
-            return matchesSearch && matchesYear && matchesStatus;
-        });
-
-        if (status === 'Top Rank') {
-            filtered.sort((a, b) => (parseFloat(b.avg_marks) || 0) - (parseFloat(a.avg_marks) || 0));
-        } else if (status === 'Bottom Rank') {
-            filtered.sort((a, b) => (parseFloat(a.avg_marks) || 0) - (parseFloat(b.avg_marks) || 0));
+    function renderPagination(total, totalPages) {
+        const controls = document.getElementById('paginationControls');
+        if (totalPages <= 1) {
+            controls.innerHTML = '';
+            return;
         }
 
-        renderStudentsTable(filtered);
+        let html = `
+            <button class="btn btn-sm btn-outline-secondary" ${currentPage <= 1 ? 'disabled' : ''} onclick="loadStudents(${currentPage - 1})">
+                <i class="fa-solid fa-chevron-left"></i> Prev
+            </button>
+        `;
+
+        for (let p = Math.max(1, currentPage - 2); p <= Math.min(totalPages, currentPage + 2); p++) {
+            html += `
+                <button class="btn btn-sm ${p === currentPage ? 'btn-msec' : 'btn-outline-secondary'}" onclick="loadStudents(${p})">
+                    ${p}
+                </button>
+            `;
+        }
+
+        html += `
+            <button class="btn btn-sm btn-outline-secondary" ${currentPage >= totalPages ? 'disabled' : ''} onclick="loadStudents(${currentPage + 1})">
+                Next <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        `;
+        controls.innerHTML = html;
+    }
+
+    let filterTimeout;
+    function onFilterChange() {
+        clearTimeout(filterTimeout);
+        filterTimeout = setTimeout(() => {
+            loadStudents(1);
+        }, 250);
     }
 
     function resetFilters() {
         document.getElementById('searchInput').value = '';
+        document.getElementById('deptFilter').value = 'All';
         document.getElementById('yearFilter').value = 'All';
         document.getElementById('statusFilter').value = 'All';
-        renderStudentsTable(allStudentsData);
+        loadStudents(1);
     }
 
-    document.addEventListener('DOMContentLoaded', loadStudents);
+    // Modal Triggers
+    function openAddStudentModal() {
+        document.getElementById('addStudentForm').reset();
+        if (!addModalInstance) {
+            addModalInstance = new bootstrap.Modal(document.getElementById('addStudentModal'));
+        }
+        addModalInstance.show();
+    }
+
+    function openEditStudentModal(student) {
+        document.getElementById('editStudentId').value = student.studentid;
+        document.getElementById('editStudentRegNo').value = student.regno;
+        document.getElementById('editStudentName').value = student.name;
+        document.getElementById('editStudentDept').value = student.department || 'IT';
+        document.getElementById('editStudentYear').value = student.year || 'Third year';
+        document.getElementById('editStudentSection').value = student.section || 'A';
+        document.getElementById('editStudentEmail').value = student.email || '';
+        document.getElementById('editStudentPhone').value = student.phone || '';
+
+        if (!editModalInstance) {
+            editModalInstance = new bootstrap.Modal(document.getElementById('editStudentModal'));
+        }
+        editModalInstance.show();
+    }
+
+    function openDeleteStudentModal(studentId, name, regno) {
+        document.getElementById('deleteStudentTargetId').value = studentId;
+        document.getElementById('deleteStudentNameText').innerText = name;
+        document.getElementById('deleteStudentRegNoText').innerText = `Reg No: ${regno}`;
+
+        if (!deleteModalInstance) {
+            deleteModalInstance = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+        }
+        deleteModalInstance.show();
+    }
+
+    // CRUD API Handlers
+    async function handleCreateStudent(e) {
+        e.preventDefault();
+        const form = e.target;
+        const btn = document.getElementById('addStudentSubmitBtn');
+        const formData = new FormData(form);
+        const payload = Object.fromEntries(formData.entries());
+
+        btn.disabled = true;
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Saving...`;
+
+        try {
+            const res = await fetch('/hod/api/students', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                addModalInstance.hide();
+                showAlert(`Student ${payload.name} added successfully!`, 'success');
+                loadStudents(currentPage);
+            } else {
+                showAlert(data.error || 'Failed to add student.', 'danger');
+            }
+        } catch (err) {
+            showAlert('Server error while creating student.', 'danger');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fa-solid fa-check me-1"></i> Save to Database`;
+        }
+    }
+
+    async function handleUpdateStudent(e) {
+        e.preventDefault();
+        const form = e.target;
+        const studentId = document.getElementById('editStudentId').value;
+        const btn = document.getElementById('editStudentSubmitBtn');
+        const formData = new FormData(form);
+        const payload = Object.fromEntries(formData.entries());
+
+        btn.disabled = true;
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Updating...`;
+
+        try {
+            const res = await fetch(`/hod/api/students/${studentId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                editModalInstance.hide();
+                showAlert(`Student ${payload.name} updated successfully!`, 'success');
+                loadStudents(currentPage);
+            } else {
+                showAlert(data.error || 'Failed to update student.', 'danger');
+            }
+        } catch (err) {
+            showAlert('Server error while updating student.', 'danger');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fa-solid fa-save me-1"></i> Update Changes`;
+        }
+    }
+
+    async function executeDeleteStudent() {
+        const studentId = document.getElementById('deleteStudentTargetId').value;
+        const btn = document.getElementById('confirmDeleteBtn');
+        btn.disabled = true;
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Deleting...`;
+
+        try {
+            const res = await fetch(`/hod/api/students/${studentId}`, {
+                method: 'DELETE'
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                deleteModalInstance.hide();
+                showAlert('Student record deleted permanently from database.', 'success');
+                loadStudents(currentPage);
+            } else {
+                showAlert(data.error || 'Failed to delete student.', 'danger');
+            }
+        } catch (err) {
+            showAlert('Server error while deleting student.', 'danger');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fa-solid fa-trash-can me-1"></i> Yes, Delete Permanently`;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => loadStudents(1));
 </script>
 {% endblock %}
