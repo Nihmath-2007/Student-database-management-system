@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-<<<<<<< HEAD
 {% block title %}Attendance Management &amp; Analytics - ERP Panel{% endblock %}
 {% block breadcrumb %}Attendance Management{% endblock %}
 
@@ -18,22 +17,6 @@
         </button>
         <button class="btn btn-outline-secondary fs-7" onclick="refreshAllAttendance()">
             <i class="fa-solid fa-rotate me-1"></i> Refresh
-=======
-{% block title %}Attendance Management - ERP Portal{% endblock %}
-
-{% block content %}
-<div class="page-header d-flex flex-wrap align-items-center justify-content-between gap-3">
-    <div>
-        <h1 class="page-title"><i class="fa-solid fa-calendar-check me-2 text-gold"></i> Attendance Management Module</h1>
-        <div class="page-subtitle">Track, mark, edit, filter, and export live departmental student attendance records</div>
-    </div>
-    <div class="d-flex gap-2">
-        <button class="btn btn-outline-secondary" onclick="exportAttendanceCSV()">
-            <i class="fa-solid fa-file-arrow-down me-1"></i> Export CSV
-        </button>
-        <button class="btn btn-msec" onclick="openMarkAttendanceModal()">
-            <i class="fa-solid fa-user-check me-1"></i> Mark Attendance
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
         </button>
     </div>
 </div>
@@ -41,11 +24,7 @@
 <!-- ALERT BANNER -->
 <div id="alertContainer"></div>
 
-<<<<<<< HEAD
 <!-- ANALYTICS CARDS (PRESERVED) -->
-=======
-<!-- ATTENDANCE DISTRIBUTION CHART -->
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
 <div class="row g-4 mb-4">
     <div class="col-lg-7">
         <div class="analytics-card h-100">
@@ -79,7 +58,6 @@
     </div>
 </div>
 
-<<<<<<< HEAD
 <!-- ATTENDANCE LOGS MANAGEMENT SECTION -->
 <div class="custom-table-card p-4 shadow-sm mb-4">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
@@ -108,31 +86,11 @@
         <div class="col-md-2">
             <label class="form-label fw-semibold fs-8 text-secondary">Status</label>
             <select id="attStatusFilter" class="form-select form-select-sm" onchange="loadAttendanceRecords(1)">
-=======
-<!-- FILTERS CARD -->
-<div class="analytics-card mb-4">
-    <div class="row g-3 align-items-center">
-        <div class="col-md-3">
-            <label class="form-label fw-semibold fs-7 text-secondary">Search Student</label>
-            <div class="input-group">
-                <span class="input-group-text bg-light"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                <input type="text" id="attSearchInput" class="form-control" placeholder="Search Reg No or Name..." onkeyup="onAttFilterChange()">
-            </div>
-        </div>
-        <div class="col-md-3">
-            <label class="form-label fw-semibold fs-7 text-secondary">Filter by Date</label>
-            <input type="date" id="attDateFilter" class="form-control" onchange="onAttFilterChange()">
-        </div>
-        <div class="col-md-2">
-            <label class="form-label fw-semibold fs-7 text-secondary">Status</label>
-            <select id="attStatusFilter" class="form-select" onchange="onAttFilterChange()">
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
                 <option value="All">All Statuses</option>
                 <option value="Present">Present Only</option>
                 <option value="Absent">Absent Only</option>
             </select>
         </div>
-<<<<<<< HEAD
         <div class="col-md-1 text-end">
             <button class="btn btn-sm btn-outline-secondary w-100 mt-4" onclick="resetAttFilters()" title="Reset Filters">
                 <i class="fa-solid fa-rotate-left"></i>
@@ -141,33 +99,10 @@
     </div>
 
     <!-- TABLE -->
-=======
-        <div class="col-md-2">
-            <label class="form-label fw-semibold fs-7 text-secondary">Subject</label>
-            <select id="attSubjectFilter" class="form-select" onchange="onAttFilterChange()">
-                <option value="">All Subjects</option>
-            </select>
-        </div>
-        <div class="col-md-2 text-end">
-            <button class="btn btn-outline-secondary w-100 mt-4 fs-7" onclick="resetAttFilters()">
-                <i class="fa-solid fa-rotate-left me-1"></i> Reset
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- ATTENDANCE RECORDS TABLE -->
-<div class="custom-table-card mb-4">
-    <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
-        <h4 class="h6 fw-bold mb-0 text-navy"><i class="fa-solid fa-clipboard-user me-2 text-warning"></i> Daily Attendance Log Records</h4>
-        <span class="fs-8 text-muted" id="attRecordsCount">Loading records...</span>
-    </div>
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
     <div class="table-responsive">
         <table class="table table-custom align-middle mb-0">
             <thead>
                 <tr>
-<<<<<<< HEAD
                     <th>Log ID</th>
                     <th>Date</th>
                     <th>Register No</th>
@@ -234,78 +169,6 @@
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" id="saveAttBtn" class="btn btn-warning text-dark fw-bold px-4">
                         <i class="fa-solid fa-check me-1"></i> Save Attendance
-=======
-                    <th>Date</th>
-                    <th>Register No</th>
-                    <th>Student Name</th>
-                    <th>Department</th>
-                    <th>Subject Mapping</th>
-                    <th>Status</th>
-                    <th class="text-center" style="width: 140px;">Actions</th>
-                </tr>
-            </thead>
-            <tbody id="attRecordsTableBody">
-                <tr><td colspan="7" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading live attendance...</td></tr>
-            </tbody>
-        </table>
-    </div>
-    <div class="p-3 d-flex justify-content-between align-items-center bg-light border-top">
-        <span class="fs-7 text-muted" id="attPaginationText">Showing records</span>
-        <div class="d-flex align-items-center gap-2" id="attPaginationControls"></div>
-    </div>
-</div>
-
-<!-- ========================================== -->
-<!-- 1. MARK / ADD ATTENDANCE MODAL -->
-<!-- ========================================== -->
-<div class="modal fade" id="markAttendanceModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg">
-            <div class="modal-header bg-msec-navy text-white">
-                <h5 class="modal-title"><i class="fa-solid fa-user-check me-2 text-warning"></i> Mark Student Attendance</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <form id="markAttendanceForm" onsubmit="handleCreateAttendance(event)">
-                <div class="modal-body p-4">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold fs-7">Select Student <span class="text-danger">*</span></label>
-                        <select name="student_id" id="markModalStudentSelect" class="form-select" required>
-                            <option value="">-- Choose Student --</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold fs-7">Date <span class="text-danger">*</span></label>
-                        <input type="date" name="date" id="markModalDateInput" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold fs-7">Attendance Status <span class="text-danger">*</span></label>
-                        <div class="d-flex gap-4 p-2 bg-light rounded border">
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="status" id="statusPresentRadio" value="Present" checked>
-                                <label class="form-check-label fw-bold text-success" for="statusPresentRadio">
-                                    <i class="fa-solid fa-circle-check me-1"></i> Present
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="status" id="statusAbsentRadio" value="Absent">
-                                <label class="form-check-label fw-bold text-danger" for="statusAbsentRadio">
-                                    <i class="fa-solid fa-circle-xmark me-1"></i> Absent
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label fw-bold fs-7">Subject (Optional)</label>
-                        <select name="subject_id" id="markModalSubjectSelect" class="form-select">
-                            <option value="">-- General / Daily Overall Attendance --</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-secondary fs-7" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-msec fs-7" id="markSubmitBtn">
-                        <i class="fa-solid fa-check me-1"></i> Save to Database
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
                     </button>
                 </div>
             </form>
@@ -313,7 +176,6 @@
     </div>
 </div>
 
-<<<<<<< HEAD
 <!-- DELETE CONFIRMATION MODAL -->
 <div class="modal fade" id="deleteAttModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -335,44 +197,6 @@
                     <i class="fa-solid fa-trash-can me-1"></i> Delete Record
                 </button>
             </div>
-=======
-<!-- ========================================== -->
-<!-- 2. EDIT ATTENDANCE MODAL -->
-<!-- ========================================== -->
-<div class="modal fade" id="editAttendanceModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg">
-            <div class="modal-header bg-msec-navy text-white">
-                <h5 class="modal-title"><i class="fa-solid fa-pen-to-square me-2 text-warning"></i> Edit Attendance Entry</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <form id="editAttendanceForm" onsubmit="handleUpdateAttendance(event)">
-                <input type="hidden" id="editAttId">
-                <div class="modal-body p-4">
-                    <div class="p-3 bg-light rounded border mb-3">
-                        <div class="fw-bold" id="editAttStudentName">--</div>
-                        <div class="text-muted font-monospace fs-7" id="editAttStudentRegNo">--</div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold fs-7">Date <span class="text-danger">*</span></label>
-                        <input type="date" id="editAttDateInput" class="form-control" required>
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label fw-bold fs-7">Status <span class="text-danger">*</span></label>
-                        <select id="editAttStatusSelect" class="form-select" required>
-                            <option value="Present">Present</option>
-                            <option value="Absent">Absent</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-secondary fs-7" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-msec fs-7" id="editAttSubmitBtn">
-                        <i class="fa-solid fa-save me-1"></i> Update Status
-                    </button>
-                </div>
-            </form>
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
         </div>
     </div>
 </div>
@@ -381,7 +205,6 @@
 
 {% block scripts %}
 <script>
-<<<<<<< HEAD
     let allSubjectsList = [];
     let allStudentsList = [];
     let currentAttPage = 1;
@@ -408,18 +231,6 @@
         container.innerHTML = `
             <div class="alert alert-${type} alert-dismissible fade show shadow-sm mb-4" role="alert">
                 <i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'} me-2"></i>
-=======
-    let attCurrentPage = 1;
-    const attPageSize = 50;
-    let markModalInstance = null;
-    let editModalInstance = null;
-
-    function showAlert(message, type = 'success') {
-        const container = document.getElementById('alertContainer');
-        container.innerHTML = `
-            <div class="alert alert-${type} alert-dismissible fade show shadow-sm" role="alert">
-                <i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-triangle-exclamation'} me-2"></i>
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
                 ${message}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
@@ -430,7 +241,6 @@
         }, 5000);
     }
 
-<<<<<<< HEAD
     async function loadSubjectsDropdown() {
         try {
             const res = await fetch('/hod/api/subjects');
@@ -463,23 +273,15 @@
     }
 
     async function loadAttendanceAnalytics() {
-=======
-    async function loadAttendanceChart() {
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
         try {
             const res = await fetch('/hod/api/analytics');
             const data = await res.json();
             const dist = data.attendance_distribution || { below_75: 0, between_75_85: 0, above_85: 0 };
 
-<<<<<<< HEAD
             if (attChartInstance) attChartInstance.destroy();
 
             const ctx = document.getElementById('attCategoryBarChart').getContext('2d');
             attChartInstance = new Chart(ctx, {
-=======
-            const ctx = document.getElementById('attCategoryBarChart').getContext('2d');
-            new Chart(ctx, {
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
                 type: 'bar',
                 data: {
                     labels: ['Below 75% (Critical Action)', '75% - 85% (Average Standing)', 'Above 85% (Excellent)'],
@@ -489,11 +291,7 @@
                         backgroundColor: ['#dc2626', '#f59e0b', '#059669'],
                         borderRadius: 6,
                         barPercentage: 0.45,
-<<<<<<< HEAD
                         categoryPercentage: 0.6
-=======
-                        categoryPercentage: 0.65
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
                     }]
                 },
                 options: {
@@ -501,7 +299,6 @@
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-<<<<<<< HEAD
                         x: { ticks: { font: { weight: '600', size: 11 } } },
                         y: { precision: 0 }
                     }
@@ -532,19 +329,11 @@
                 `;
                 }).join('');
             }
-=======
-                        y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
-                        x: { grid: { display: false } }
-                    }
-                }
-            });
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
         } catch (e) {
             console.error('Error loading chart:', e);
         }
     }
 
-<<<<<<< HEAD
     function debounceAttSearch() {
         clearTimeout(attSearchDebounce);
         attSearchDebounce = setTimeout(() => loadAttendanceRecords(1), 300);
@@ -577,61 +366,10 @@
         } catch (e) {
             console.error('Error fetching attendance:', e);
             tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-danger">Network error loading attendance logs.</td></tr>`;
-=======
-    async function loadFilterDropdowns() {
-        try {
-            // Load students for modal
-            const stuRes = await fetch('/hod/api/students?limit=200');
-            const stuData = await stuRes.json();
-            const stuList = stuData.students || (Array.isArray(stuData) ? stuData : []);
-            const stuOpts = stuList.map(s => `<option value="${s.studentid}">${s.regno} - ${s.name}</option>`).join('');
-            document.getElementById('markModalStudentSelect').innerHTML = `<option value="">-- Choose Student --</option>` + stuOpts;
-
-            // Load subjects
-            const subRes = await fetch('/hod/api/subjects');
-            const subList = await subRes.json();
-            const subOpts = subList.map(s => `<option value="${s.subjectid}">${s.subject_code} - ${s.subject_name}</option>`).join('');
-            document.getElementById('attSubjectFilter').innerHTML = `<option value="">All Subjects</option>` + subOpts;
-            document.getElementById('markModalSubjectSelect').innerHTML = `<option value="">-- General / Daily Overall Attendance --</option>` + subOpts;
-
-            // Set default date to today
-            document.getElementById('markModalDateInput').value = new Date().toISOString().split('T')[0];
-        } catch (e) {
-            console.error('Error loading dropdowns:', e);
-        }
-    }
-
-    async function loadAttendanceRecords(page = 1) {
-        attCurrentPage = page;
-        const search = document.getElementById('attSearchInput').value.trim();
-        const date = document.getElementById('attDateFilter').value;
-        const status = document.getElementById('attStatusFilter').value;
-        const subjectId = document.getElementById('attSubjectFilter').value;
-
-        const tbody = document.getElementById('attRecordsTableBody');
-        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading live attendance records...</td></tr>`;
-
-        try {
-            const url = new URL('/hod/api/attendance/records', window.location.origin);
-            url.searchParams.set('page', page);
-            url.searchParams.set('limit', attPageSize);
-            if (search) url.searchParams.set('search', search);
-            if (date) url.searchParams.set('date', date);
-            if (status !== 'All') url.searchParams.set('status', status);
-            if (subjectId) url.searchParams.set('subject_id', subjectId);
-
-            const res = await fetch(url);
-            const data = await res.json();
-            renderAttendanceTable(data.records || [], data.total || 0, page, data.total_pages || 1);
-        } catch (e) {
-            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-danger"><i class="fa-solid fa-circle-exclamation me-1"></i> Failed to connect to attendance database.</td></tr>`;
-            console.error('Error loading attendance:', e);
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
         }
     }
 
     function renderAttendanceTable(records, total, page, totalPages) {
-<<<<<<< HEAD
         const tbody = document.getElementById('attendanceRecordsTableBody');
         document.getElementById('attCountBadge').innerText = `Showing ${records.length} of ${total} records`;
         document.getElementById('attPaginationText').innerText = `Page ${page} of ${totalPages} (${total} total records)`;
@@ -639,21 +377,11 @@
         if (!records || records.length === 0) {
             tbody.innerHTML = `<tr><td colspan="8" class="text-center py-5 text-muted">No attendance logs matching your filters.</td></tr>`;
             document.getElementById('attPaginationControls').innerHTML = '';
-=======
-        const tbody = document.getElementById('attRecordsTableBody');
-        document.getElementById('attRecordsCount').innerText = `Total Logged Records: ${total}`;
-        document.getElementById('attPaginationText').innerText = `Showing page ${page} of ${totalPages} (${records.length} records on this page)`;
-
-        if (!records || records.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted">No attendance logs matching the filters were found.</td></tr>`;
-            renderAttPagination(0, 1);
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
             return;
         }
 
         let html = '';
         records.forEach(r => {
-<<<<<<< HEAD
             const isPresent = String(r.status).toLowerCase() === 'present';
             const statusBadge = isPresent
                 ? `<span class="badge-status badge-pass"><i class="fa-solid fa-circle-check me-1"></i> Present</span>`
@@ -682,29 +410,6 @@
                                 <i class="fa-solid fa-pen-to-square"></i>
                             </button>
                             <button type="button" class="btn btn-outline-danger" title="Delete Log" onclick="promptDeleteAttendance(${r.id}, '${escapeHtml(r.student_name)}', '${r.date_str || r.date}', '${r.status}')">
-=======
-            const isPresent = r.status.toLowerCase() === 'present';
-            const statusBadge = isPresent
-                ? `<span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1"><i class="fa-solid fa-check me-1"></i> Present</span>`
-                : `<span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1"><i class="fa-solid fa-xmark me-1"></i> Absent</span>`;
-
-            const rJson = JSON.stringify(r).replace(/"/g, '&quot;');
-
-            html += `
-                <tr>
-                    <td class="font-monospace fw-bold text-secondary">${r.date}</td>
-                    <td class="font-monospace fw-bold text-navy">${r.regno}</td>
-                    <td class="fw-semibold">${r.student_name}</td>
-                    <td><span class="badge bg-light text-dark font-monospace">${r.department || 'IT'}</span></td>
-                    <td>${r.subject_name ? `<span class="fw-semibold text-navy fs-8">${r.subject_code} - ${r.subject_name}</span>` : '<span class="text-muted fst-italic fs-8">General Daily</span>'}</td>
-                    <td>${statusBadge}</td>
-                    <td class="text-center">
-                        <div class="btn-group btn-group-sm">
-                            <button type="button" class="btn btn-outline-secondary" title="Edit Entry" onclick="openEditAttendanceModal(${rJson})">
-                                <i class="fa-solid fa-pen-to-square"></i>
-                            </button>
-                            <button type="button" class="btn btn-outline-danger" title="Delete Entry" onclick="executeDeleteAttendance(${r.id})">
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
                                 <i class="fa-solid fa-trash-can"></i>
                             </button>
                         </div>
@@ -712,7 +417,6 @@
                 </tr>
             `;
         });
-<<<<<<< HEAD
 
         tbody.innerHTML = html;
         renderAttPagination(page, totalPages);
@@ -722,21 +426,10 @@
         const container = document.getElementById('attPaginationControls');
         if (totalPages <= 1) {
             container.innerHTML = '';
-=======
-        tbody.innerHTML = html;
-        renderAttPagination(total, totalPages);
-    }
-
-    function renderAttPagination(total, totalPages) {
-        const controls = document.getElementById('attPaginationControls');
-        if (totalPages <= 1) {
-            controls.innerHTML = '';
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
             return;
         }
 
         let html = `
-<<<<<<< HEAD
             <button class="btn btn-sm btn-outline-secondary ${page === 1 ? 'disabled' : ''}" onclick="loadAttendanceRecords(${page - 1})">
                 <i class="fa-solid fa-chevron-left"></i>
             </button>
@@ -768,37 +461,10 @@
         document.getElementById('attSubjectFilter').value = 'All';
         document.getElementById('attSearchInput').value = '';
         document.getElementById('attStatusFilter').value = 'All';
-=======
-            <button class="btn btn-sm btn-outline-secondary" ${attCurrentPage <= 1 ? 'disabled' : ''} onclick="loadAttendanceRecords(${attCurrentPage - 1})">
-                <i class="fa-solid fa-chevron-left"></i>
-            </button>
-            <span class="fs-8 fw-bold mx-2">Page ${attCurrentPage} / ${totalPages}</span>
-            <button class="btn btn-sm btn-outline-secondary" ${attCurrentPage >= totalPages ? 'disabled' : ''} onclick="loadAttendanceRecords(${attCurrentPage + 1})">
-                <i class="fa-solid fa-chevron-right"></i>
-            </button>
-        `;
-        controls.innerHTML = html;
-    }
-
-    let filterTimeout;
-    function onAttFilterChange() {
-        clearTimeout(filterTimeout);
-        filterTimeout = setTimeout(() => {
-            loadAttendanceRecords(1);
-        }, 250);
-    }
-
-    function resetAttFilters() {
-        document.getElementById('attSearchInput').value = '';
-        document.getElementById('attDateFilter').value = '';
-        document.getElementById('attStatusFilter').value = 'All';
-        document.getElementById('attSubjectFilter').value = '';
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
         loadAttendanceRecords(1);
     }
 
     function openMarkAttendanceModal() {
-<<<<<<< HEAD
         document.getElementById('markAttendanceForm').reset();
         document.getElementById('editAttendanceId').value = '';
         document.getElementById('formAttDate').value = new Date().toISOString().split('T')[0];
@@ -890,103 +556,10 @@
 
         try {
             const res = await fetch(`/hod/api/attendance/${pendingDeleteAttId}`, {
-=======
-        if (!markModalInstance) {
-            markModalInstance = new bootstrap.Modal(document.getElementById('markAttendanceModal'));
-        }
-        markModalInstance.show();
-    }
-
-    function openEditAttendanceModal(entry) {
-        document.getElementById('editAttId').value = entry.id;
-        document.getElementById('editAttStudentName').innerText = entry.student_name;
-        document.getElementById('editAttStudentRegNo').innerText = `Reg No: ${entry.regno}`;
-        document.getElementById('editAttDateInput').value = entry.date;
-        document.getElementById('editAttStatusSelect').value = entry.status;
-
-        if (!editModalInstance) {
-            editModalInstance = new bootstrap.Modal(document.getElementById('editAttendanceModal'));
-        }
-        editModalInstance.show();
-    }
-
-    async function handleCreateAttendance(e) {
-        e.preventDefault();
-        const form = e.target;
-        const btn = document.getElementById('markSubmitBtn');
-        const formData = new FormData(form);
-        const payload = Object.fromEntries(formData.entries());
-
-        btn.disabled = true;
-        btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Saving...`;
-
-        try {
-            const res = await fetch('/hod/api/attendance', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            const data = await res.json();
-            if (res.ok && data.success) {
-                markModalInstance.hide();
-                showAlert(`Attendance recorded successfully for ${payload.date}!`, 'success');
-                loadAttendanceRecords(attCurrentPage);
-            } else {
-                showAlert(data.error || 'Failed to mark attendance.', 'danger');
-            }
-        } catch (err) {
-            showAlert('Server error while marking attendance.', 'danger');
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = `<i class="fa-solid fa-check me-1"></i> Save to Database`;
-        }
-    }
-
-    async function handleUpdateAttendance(e) {
-        e.preventDefault();
-        const attId = document.getElementById('editAttId').value;
-        const btn = document.getElementById('editAttSubmitBtn');
-        const payload = {
-            date: document.getElementById('editAttDateInput').value,
-            status: document.getElementById('editAttStatusSelect').value
-        };
-
-        btn.disabled = true;
-        btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Updating...`;
-
-        try {
-            const res = await fetch(`/hod/api/attendance/${attId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            const data = await res.json();
-            if (res.ok && data.success) {
-                editModalInstance.hide();
-                showAlert('Attendance updated successfully!', 'success');
-                loadAttendanceRecords(attCurrentPage);
-            } else {
-                showAlert(data.error || 'Failed to update attendance.', 'danger');
-            }
-        } catch (err) {
-            showAlert('Server error while updating attendance.', 'danger');
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = `<i class="fa-solid fa-save me-1"></i> Update Status`;
-        }
-    }
-
-    async function executeDeleteAttendance(attId) {
-        if (!confirm('Are you sure you want to remove this attendance log entry?')) return;
-
-        try {
-            const res = await fetch(`/hod/api/attendance/${attId}`, {
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
                 method: 'DELETE'
             });
             const data = await res.json();
             if (res.ok && data.success) {
-<<<<<<< HEAD
                 deleteAttModalInstance.hide();
                 showAttAlert('Attendance record deleted from live database.', 'warning');
                 loadAttendanceRecords(currentAttPage);
@@ -1001,20 +574,10 @@
             btn.disabled = false;
             btn.innerHTML = '<i class="fa-solid fa-trash-can me-1"></i> Delete Record';
             pendingDeleteAttId = null;
-=======
-                showAlert('Attendance entry removed.', 'success');
-                loadAttendanceRecords(attCurrentPage);
-            } else {
-                showAlert(data.error || 'Failed to remove entry.', 'danger');
-            }
-        } catch (err) {
-            showAlert('Server error while deleting entry.', 'danger');
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
         }
     }
 
     function exportAttendanceCSV() {
-<<<<<<< HEAD
         const date = document.getElementById('attDateFilter').value;
         const sub = document.getElementById('attSubjectFilter').value;
         const search = document.getElementById('attSearchInput').value.trim();
@@ -1036,24 +599,5 @@
         if (!str) return '';
         return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;');
     }
-=======
-        const search = document.getElementById('attSearchInput').value.trim();
-        const date = document.getElementById('attDateFilter').value;
-        const status = document.getElementById('attStatusFilter').value;
-
-        const url = new URL('/hod/api/attendance/export', window.location.origin);
-        if (search) url.searchParams.set('search', search);
-        if (date) url.searchParams.set('date', date);
-        if (status !== 'All') url.searchParams.set('status', status);
-
-        window.location.href = url.toString();
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        loadAttendanceChart();
-        loadFilterDropdowns();
-        loadAttendanceRecords(1);
-    });
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
 </script>
 {% endblock %}
