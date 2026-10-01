@@ -1,15 +1,10 @@
 {% extends "base.html" %}
-<<<<<<< HEAD
 {% block title %}Internal Marks Management &amp; Analytics - ERP Panel{% endblock %}
 {% block breadcrumb %}Internal Marks{% endblock %}
-=======
-{% block title %}Internal Marks Management - ERP Portal{% endblock %}
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
 
 {% block content %}
 <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3">
     <div>
-<<<<<<< HEAD
         <h1 class="page-title"><i class="fa-solid fa-award me-2 text-warning"></i> Internal Marks &amp; Assessment Management</h1>
         <div class="page-subtitle">Record, evaluate, edit internal exam marks, and generate multi-dimensional academic reports</div>
     </div>
@@ -22,17 +17,6 @@
         </a>
         <button class="btn btn-outline-secondary fs-7" onclick="refreshAllMarks()">
             <i class="fa-solid fa-rotate me-1"></i> Refresh
-=======
-        <h1 class="page-title"><i class="fa-solid fa-award me-2 text-warning"></i> Internal Marks Management Module</h1>
-        <div class="page-subtitle">Enter, edit, review, and evaluate continuous internal assessment marks and pass ratios</div>
-    </div>
-    <div class="d-flex gap-2">
-        <a href="{{ url_for('hod.queries_page') }}" class="btn btn-outline-warning fw-bold px-3 text-dark">
-            <i class="fa-solid fa-clipboard-check me-1"></i> Mark Corrections
-        </a>
-        <button class="btn btn-msec" onclick="openAddMarkModal()">
-            <i class="fa-solid fa-plus-circle me-1"></i> Enter Marks
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
         </button>
     </div>
 </div>
@@ -40,22 +24,14 @@
 <!-- ALERT BANNER -->
 <div id="alertContainer"></div>
 
-<<<<<<< HEAD
 <!-- CHARTS SECTION (PRESERVED) -->
-=======
-<!-- CHARTS ROW -->
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
 <div class="row g-4 mb-4">
     <div class="col-lg-8">
         <div class="analytics-card h-100">
             <div class="card-title-bar">
                 <h3><i class="fa-solid fa-chart-column me-2 text-warning"></i> Subject Average Marks Comparison</h3>
             </div>
-<<<<<<< HEAD
             <div style="height: 250px;">
-=======
-            <div style="height: 260px;">
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
                 <canvas id="subjectAvgBarChart"></canvas>
             </div>
         </div>
@@ -65,18 +41,13 @@
             <div class="card-title-bar">
                 <h3><i class="fa-solid fa-chart-pie me-2 text-warning"></i> Overall Pass / Fail Ratio</h3>
             </div>
-<<<<<<< HEAD
             <div style="height: 250px;" class="d-flex align-items-center justify-content-center">
-=======
-            <div style="height: 260px;" class="d-flex align-items-center justify-content-center">
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
                 <canvas id="passFailDoughnutChart"></canvas>
             </div>
         </div>
     </div>
 </div>
 
-<<<<<<< HEAD
 <!-- TABS FOR MARKS DIRECTORY & REPORTS -->
 <div class="custom-table-card p-4 shadow-sm mb-4">
     <ul class="nav nav-pills mb-4 border-bottom pb-3 gap-2" id="marksTab" role="tablist">
@@ -238,66 +209,6 @@
                 </table>
             </div>
         </div>
-=======
-<!-- FILTERS CARD -->
-<div class="analytics-card mb-4">
-    <div class="row g-3 align-items-center">
-        <div class="col-md-4">
-            <label class="form-label fw-semibold fs-7 text-secondary">Search Student / Subject</label>
-            <div class="input-group">
-                <span class="input-group-text bg-light"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                <input type="text" id="marksSearchInput" class="form-control" placeholder="Search Reg No, Name, or Subject..." onkeyup="onMarksFilterChange()">
-            </div>
-        </div>
-        <div class="col-md-3">
-            <label class="form-label fw-semibold fs-7 text-secondary">Filter by Subject</label>
-            <select id="marksSubjectFilter" class="form-select" onchange="onMarksFilterChange()">
-                <option value="">All Subjects</option>
-            </select>
-        </div>
-        <div class="col-md-3">
-            <label class="form-label fw-semibold fs-7 text-secondary">Internal Test Number</label>
-            <select id="marksTestFilter" class="form-select" onchange="onMarksFilterChange()">
-                <option value="All">All Tests</option>
-                <option value="1">Test 1 (Internal Assessment 1)</option>
-                <option value="2">Test 2 (Internal Assessment 2)</option>
-                <option value="3">Test 3 (Model Exam)</option>
-            </select>
-        </div>
-        <div class="col-md-2 text-end">
-            <button class="btn btn-outline-secondary w-100 mt-4 fs-7" onclick="resetMarksFilters()">
-                <i class="fa-solid fa-rotate-left me-1"></i> Reset
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- MARKS LEDGER TABLE -->
-<div class="custom-table-card mb-4">
-    <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
-        <h4 class="h6 fw-bold mb-0 text-navy"><i class="fa-solid fa-table-list me-2 text-warning"></i> Internal Assessment Marks Records</h4>
-        <span class="fs-8 text-muted" id="marksRecordsCount">Loading records...</span>
-    </div>
-    <div class="table-responsive">
-        <table class="table table-custom align-middle mb-0">
-            <thead>
-                <tr>
-                    <th>Register No</th>
-                    <th>Student Name</th>
-                    <th>Subject</th>
-                    <th>Assessment</th>
-                    <th>Marks Obtained</th>
-                    <th>Max Marks</th>
-                    <th>Score %</th>
-                    <th>Result</th>
-                    <th class="text-center" style="width: 140px;">Actions</th>
-                </tr>
-            </thead>
-            <tbody id="marksRecordsTableBody">
-                <tr><td colspan="9" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading live marks...</td></tr>
-            </tbody>
-        </table>
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
     </div>
     <div class="p-3 d-flex justify-content-between align-items-center bg-light border-top">
         <span class="fs-7 text-muted" id="marksPaginationText">Showing records</span>
@@ -305,7 +216,6 @@
     </div>
 </div>
 
-<<<<<<< HEAD
 <!-- ADD / EDIT MARK MODAL -->
 <div class="modal fade" id="markFormModal" tabindex="-1" aria-labelledby="markModalTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -347,61 +257,13 @@
                         <div class="col-md-4">
                             <label class="form-label fw-semibold fs-7 text-secondary">Maximum Marks <span class="text-danger">*</span></label>
                             <input type="number" id="formMaxMarks" class="form-control" value="100" min="1" max="100" required>
-=======
-<!-- ========================================== -->
-<!-- 1. ADD / ENTER MARKS MODAL -->
-<!-- ========================================== -->
-<div class="modal fade" id="addMarkModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg">
-            <div class="modal-header bg-msec-navy text-white">
-                <h5 class="modal-title"><i class="fa-solid fa-file-pen me-2 text-warning"></i> Enter Internal Marks</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <form id="addMarkForm" onsubmit="handleCreateMark(event)">
-                <div class="modal-body p-4">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold fs-7">Select Student <span class="text-danger">*</span></label>
-                        <select name="student_id" id="markModalStudentSelect" class="form-select" required>
-                            <option value="">-- Choose Student --</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold fs-7">Select Subject <span class="text-danger">*</span></label>
-                        <select name="subject_id" id="markModalSubjectSelect" class="form-select" required>
-                            <option value="">-- Choose Subject --</option>
-                        </select>
-                    </div>
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold fs-7">Test Number <span class="text-danger">*</span></label>
-                            <select name="test_number" class="form-select" required>
-                                <option value="1">Test 1</option>
-                                <option value="2">Test 2</option>
-                                <option value="3">Test 3</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold fs-7">Marks Obtained <span class="text-danger">*</span></label>
-                            <input type="number" step="0.5" min="0" max="100" name="marks_obtained" class="form-control" placeholder="e.g. 85" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold fs-7">Max Marks <span class="text-danger">*</span></label>
-                            <input type="number" step="0.5" min="1" max="100" name="max_marks" class="form-control" value="100" required>
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer bg-light">
-<<<<<<< HEAD
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" id="saveMarkBtn" class="btn btn-warning text-dark fw-bold px-4">
                         <i class="fa-solid fa-check me-1"></i> Save Internal Mark
-=======
-                    <button type="button" class="btn btn-secondary fs-7" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-msec fs-7" id="addMarkSubmitBtn">
-                        <i class="fa-solid fa-check me-1"></i> Save Marks to Live DB
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
                     </button>
                 </div>
             </form>
@@ -409,7 +271,6 @@
     </div>
 </div>
 
-<<<<<<< HEAD
 <!-- DELETE CONFIRMATION MODAL -->
 <div class="modal fade" id="deleteMarkModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -434,52 +295,6 @@
                     <i class="fa-solid fa-trash-can me-1"></i> Delete Mark
                 </button>
             </div>
-=======
-<!-- ========================================== -->
-<!-- 2. EDIT MARKS MODAL -->
-<!-- ========================================== -->
-<div class="modal fade" id="editMarkModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg">
-            <div class="modal-header bg-msec-navy text-white">
-                <h5 class="modal-title"><i class="fa-solid fa-pen-to-square me-2 text-warning"></i> Edit Internal Mark</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <form id="editMarkForm" onsubmit="handleUpdateMark(event)">
-                <input type="hidden" id="editMarkId">
-                <div class="modal-body p-4">
-                    <div class="p-3 bg-light rounded border mb-3">
-                        <div class="fw-bold" id="editMarkStudentName">--</div>
-                        <div class="text-muted font-monospace fs-7" id="editMarkStudentRegNo">--</div>
-                        <div class="fw-semibold text-navy fs-8 mt-1" id="editMarkSubjectText">--</div>
-                    </div>
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold fs-7">Test Number</label>
-                            <select id="editMarkTestNumber" class="form-select" required>
-                                <option value="1">Test 1</option>
-                                <option value="2">Test 2</option>
-                                <option value="3">Test 3</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold fs-7">Marks Obtained</label>
-                            <input type="number" step="0.5" min="0" max="100" id="editMarkObtained" class="form-control" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold fs-7">Max Marks</label>
-                            <input type="number" step="0.5" min="1" max="100" id="editMarkMax" class="form-control" required>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-secondary fs-7" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-msec fs-7" id="editMarkSubmitBtn">
-                        <i class="fa-solid fa-save me-1"></i> Update Mark Record
-                    </button>
-                </div>
-            </form>
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
         </div>
     </div>
 </div>
@@ -488,7 +303,6 @@
 
 {% block scripts %}
 <script>
-<<<<<<< HEAD
     let currentMarksPage = 1;
     let marksSearchTimer = null;
     let markModalInstance = null;
@@ -511,18 +325,6 @@
         container.innerHTML = `
             <div class="alert alert-${type} alert-dismissible fade show shadow-sm mb-4" role="alert">
                 <i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'} me-2"></i>
-=======
-    let marksCurrentPage = 1;
-    const marksPageSize = 50;
-    let addMarkModalInstance = null;
-    let editMarkModalInstance = null;
-
-    function showAlert(message, type = 'success') {
-        const container = document.getElementById('alertContainer');
-        container.innerHTML = `
-            <div class="alert alert-${type} alert-dismissible fade show shadow-sm" role="alert">
-                <i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-triangle-exclamation'} me-2"></i>
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
                 ${message}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
@@ -533,7 +335,6 @@
         }, 5000);
     }
 
-<<<<<<< HEAD
     async function loadSubjectsDropdown() {
         try {
             const res = await fetch('/hod/api/subjects');
@@ -566,9 +367,6 @@
     }
 
     async function loadMarksAnalytics() {
-=======
-    async function loadMarksCharts() {
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
         try {
             const res = await fetch('/hod/api/analytics');
             const data = await res.json();
@@ -577,13 +375,8 @@
             const subNames = subAvg.map(s => s.subject_name);
             const subScores = subAvg.map(s => s.average_marks);
 
-<<<<<<< HEAD
             if (subjectAvgChart) subjectAvgChart.destroy();
             subjectAvgChart = new Chart(document.getElementById('subjectAvgBarChart').getContext('2d'), {
-=======
-            // Bar Chart
-            new Chart(document.getElementById('subjectAvgBarChart').getContext('2d'), {
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
                 type: 'bar',
                 data: {
                     labels: subNames,
@@ -596,7 +389,6 @@
                         categoryPercentage: 0.65
                     }]
                 },
-<<<<<<< HEAD
                 options: { 
                     responsive: true, 
                     maintainAspectRatio: false, 
@@ -610,23 +402,6 @@
             if (passFailChart) passFailChart.destroy();
             const passPct = data.kpis ? data.kpis.overall_pass_percentage : 80;
             passFailChart = new Chart(document.getElementById('passFailDoughnutChart').getContext('2d'), {
-=======
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { beginAtZero: true, max: 100, grid: { color: '#f1f5f9' } },
-                        x: { grid: { display: false } }
-                    }
-                }
-            });
-
-            // Doughnut
-            const passPct = data.pass_percentage || 85;
-            const failPct = round(100 - passPct, 1);
-            new Chart(document.getElementById('passFailDoughnutChart').getContext('2d'), {
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
                 type: 'doughnut',
                 data: {
                     labels: ['Passed', 'Failed / Arrears'],
@@ -648,7 +423,6 @@
         }
     }
 
-<<<<<<< HEAD
     function debounceMarksSearch() {
         clearTimeout(marksSearchTimer);
         marksSearchTimer = setTimeout(() => loadMarksRecords(1), 300);
@@ -689,71 +463,10 @@
         if (!marks || marks.length === 0) {
             tbody.innerHTML = `<tr><td colspan="9" class="text-center py-5 text-muted">No marks records matching your filters.</td></tr>`;
             document.getElementById('marksPaginationControls').innerHTML = '';
-=======
-    function round(val, dec) {
-        return Number(Math.round(val + 'e' + dec) + 'e-' + dec);
-    }
-
-    async function loadMarksDropdowns() {
-        try {
-            // Students
-            const stuRes = await fetch('/hod/api/students?limit=200');
-            const stuData = await stuRes.json();
-            const stuList = stuData.students || (Array.isArray(stuData) ? stuData : []);
-            const stuOpts = stuList.map(s => `<option value="${s.studentid}">${s.regno} - ${s.name}</option>`).join('');
-            document.getElementById('markModalStudentSelect').innerHTML = `<option value="">-- Choose Student --</option>` + stuOpts;
-
-            // Subjects
-            const subRes = await fetch('/hod/api/subjects');
-            const subList = await subRes.json();
-            const subOpts = subList.map(s => `<option value="${s.subjectid}">${s.subject_code} - ${s.subject_name}</option>`).join('');
-            document.getElementById('marksSubjectFilter').innerHTML = `<option value="">All Subjects</option>` + subOpts;
-            document.getElementById('markModalSubjectSelect').innerHTML = `<option value="">-- Choose Subject --</option>` + subOpts;
-        } catch (e) {
-            console.error('Error loading dropdowns:', e);
-        }
-    }
-
-    async function loadMarksRecords(page = 1) {
-        marksCurrentPage = page;
-        const search = document.getElementById('marksSearchInput').value.trim();
-        const subjectId = document.getElementById('marksSubjectFilter').value;
-        const testNum = document.getElementById('marksTestFilter').value;
-
-        const tbody = document.getElementById('marksRecordsTableBody');
-        tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading live marks...</td></tr>`;
-
-        try {
-            const url = new URL('/hod/api/marks/records', window.location.origin);
-            url.searchParams.set('page', page);
-            url.searchParams.set('limit', marksPageSize);
-            if (search) url.searchParams.set('search', search);
-            if (subjectId) url.searchParams.set('subject_id', subjectId);
-            if (testNum !== 'All') url.searchParams.set('test_number', testNum);
-
-            const res = await fetch(url);
-            const data = await res.json();
-            renderMarksTable(data.records || [], data.total || 0, page, data.total_pages || 1);
-        } catch (e) {
-            tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-danger"><i class="fa-solid fa-circle-exclamation me-1"></i> Failed to connect to marks database.</td></tr>`;
-            console.error('Error fetching marks:', e);
-        }
-    }
-
-    function renderMarksTable(records, total, page, totalPages) {
-        const tbody = document.getElementById('marksRecordsTableBody');
-        document.getElementById('marksRecordsCount').innerText = `Total Assessment Records: ${total}`;
-        document.getElementById('marksPaginationText').innerText = `Showing page ${page} of ${totalPages} (${records.length} records on this page)`;
-
-        if (!records || records.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-muted">No marks entries found matching criteria.</td></tr>`;
-            renderMarksPagination(0, 1);
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
             return;
         }
 
         let html = '';
-<<<<<<< HEAD
         marks.forEach(m => {
             const isPass = m.result === 'Pass';
             const statusBadge = isPass
@@ -785,32 +498,6 @@
                                 <i class="fa-solid fa-pen-to-square"></i>
                             </button>
                             <button type="button" class="btn btn-outline-danger" title="Delete Mark" onclick="promptDeleteMark(${m.id}, '${escapeHtml(m.student_name)}', '${m.subject_code}', ${m.test_number}, ${m.marks_obtained})">
-=======
-        records.forEach(r => {
-            const isPass = r.status === 'Pass';
-            const statusBadge = isPass
-                ? `<span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1"><i class="fa-solid fa-check me-1"></i> Pass</span>`
-                : `<span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1"><i class="fa-solid fa-xmark me-1"></i> Fail</span>`;
-
-            const rJson = JSON.stringify(r).replace(/"/g, '&quot;');
-
-            html += `
-                <tr>
-                    <td class="font-monospace fw-bold text-navy">${r.regno}</td>
-                    <td class="fw-semibold">${r.student_name}</td>
-                    <td><span class="fw-bold fs-8 text-navy">${r.subject_code}</span> <span class="fs-8 text-secondary d-block">${r.subject_name}</span></td>
-                    <td><span class="badge bg-light text-dark border">Test ${r.test_number}</span></td>
-                    <td class="font-monospace fw-bold fs-7">${r.marks_obtained}</td>
-                    <td class="font-monospace text-muted fs-8">${r.max_marks}</td>
-                    <td><span class="fw-bold ${isPass ? 'text-success' : 'text-danger'}">${r.percentage}%</span></td>
-                    <td>${statusBadge}</td>
-                    <td class="text-center">
-                        <div class="btn-group btn-group-sm">
-                            <button type="button" class="btn btn-outline-secondary" title="Edit Mark" onclick="openEditMarkModal(${rJson})">
-                                <i class="fa-solid fa-pen-to-square"></i>
-                            </button>
-                            <button type="button" class="btn btn-outline-danger" title="Delete Mark" onclick="executeDeleteMark(${r.id})">
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
                                 <i class="fa-solid fa-trash-can"></i>
                             </button>
                         </div>
@@ -818,7 +505,6 @@
                 </tr>
             `;
         });
-<<<<<<< HEAD
 
         tbody.innerHTML = html;
         renderMarksPagination(page, totalPages);
@@ -828,21 +514,10 @@
         const container = document.getElementById('marksPaginationControls');
         if (totalPages <= 1) {
             container.innerHTML = '';
-=======
-        tbody.innerHTML = html;
-        renderMarksPagination(total, totalPages);
-    }
-
-    function renderMarksPagination(total, totalPages) {
-        const controls = document.getElementById('marksPaginationControls');
-        if (totalPages <= 1) {
-            controls.innerHTML = '';
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
             return;
         }
 
         let html = `
-<<<<<<< HEAD
             <button class="btn btn-sm btn-outline-secondary ${page === 1 ? 'disabled' : ''}" onclick="loadMarksRecords(${page - 1})">
                 <i class="fa-solid fa-chevron-left"></i>
             </button>
@@ -873,36 +548,10 @@
         document.getElementById('marksSubjectFilter').value = 'All';
         document.getElementById('marksTestFilter').value = 'All';
         document.getElementById('marksSearchInput').value = '';
-=======
-            <button class="btn btn-sm btn-outline-secondary" ${marksCurrentPage <= 1 ? 'disabled' : ''} onclick="loadMarksRecords(${marksCurrentPage - 1})">
-                <i class="fa-solid fa-chevron-left"></i>
-            </button>
-            <span class="fs-8 fw-bold mx-2">Page ${marksCurrentPage} / ${totalPages}</span>
-            <button class="btn btn-sm btn-outline-secondary" ${marksCurrentPage >= totalPages ? 'disabled' : ''} onclick="loadMarksRecords(${marksCurrentPage + 1})">
-                <i class="fa-solid fa-chevron-right"></i>
-            </button>
-        `;
-        controls.innerHTML = html;
-    }
-
-    let marksFilterTimeout;
-    function onMarksFilterChange() {
-        clearTimeout(marksFilterTimeout);
-        marksFilterTimeout = setTimeout(() => {
-            loadMarksRecords(1);
-        }, 250);
-    }
-
-    function resetMarksFilters() {
-        document.getElementById('marksSearchInput').value = '';
-        document.getElementById('marksSubjectFilter').value = '';
-        document.getElementById('marksTestFilter').value = 'All';
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
         loadMarksRecords(1);
     }
 
     function openAddMarkModal() {
-<<<<<<< HEAD
         document.getElementById('markForm').reset();
         document.getElementById('editMarkId').value = '';
         document.getElementById('formMaxMarks').value = '100';
@@ -998,107 +647,10 @@
 
         try {
             const res = await fetch(`/hod/api/marks/${pendingDeleteMarkId}`, {
-=======
-        document.getElementById('addMarkForm').reset();
-        if (!addMarkModalInstance) {
-            addMarkModalInstance = new bootstrap.Modal(document.getElementById('addMarkModal'));
-        }
-        addMarkModalInstance.show();
-    }
-
-    function openEditMarkModal(r) {
-        document.getElementById('editMarkId').value = r.id;
-        document.getElementById('editMarkStudentName').innerText = r.student_name;
-        document.getElementById('editMarkStudentRegNo').innerText = `Reg No: ${r.regno}`;
-        document.getElementById('editMarkSubjectText').innerText = `${r.subject_code} - ${r.subject_name}`;
-        document.getElementById('editMarkTestNumber').value = r.test_number;
-        document.getElementById('editMarkObtained').value = r.marks_obtained;
-        document.getElementById('editMarkMax').value = r.max_marks;
-
-        if (!editMarkModalInstance) {
-            editMarkModalInstance = new bootstrap.Modal(document.getElementById('editMarkModal'));
-        }
-        editMarkModalInstance.show();
-    }
-
-    async function handleCreateMark(e) {
-        e.preventDefault();
-        const form = e.target;
-        const btn = document.getElementById('addMarkSubmitBtn');
-        const formData = new FormData(form);
-        const payload = Object.fromEntries(formData.entries());
-
-        btn.disabled = true;
-        btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Saving...`;
-
-        try {
-            const res = await fetch('/hod/api/marks', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            const data = await res.json();
-            if (res.ok && data.success) {
-                addMarkModalInstance.hide();
-                showAlert('Internal mark saved successfully to live database!', 'success');
-                loadMarksRecords(marksCurrentPage);
-            } else {
-                showAlert(data.error || 'Failed to save marks.', 'danger');
-            }
-        } catch (err) {
-            showAlert('Server error while saving marks.', 'danger');
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = `<i class="fa-solid fa-check me-1"></i> Save Marks to Live DB`;
-        }
-    }
-
-    async function handleUpdateMark(e) {
-        e.preventDefault();
-        const markId = document.getElementById('editMarkId').value;
-        const btn = document.getElementById('editMarkSubmitBtn');
-        const payload = {
-            test_number: document.getElementById('editMarkTestNumber').value,
-            marks_obtained: document.getElementById('editMarkObtained').value,
-            max_marks: document.getElementById('editMarkMax').value
-        };
-
-        btn.disabled = true;
-        btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Updating...`;
-
-        try {
-            const res = await fetch(`/hod/api/marks/${markId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            const data = await res.json();
-            if (res.ok && data.success) {
-                editMarkModalInstance.hide();
-                showAlert('Mark entry updated successfully!', 'success');
-                loadMarksRecords(marksCurrentPage);
-            } else {
-                showAlert(data.error || 'Failed to update marks.', 'danger');
-            }
-        } catch (err) {
-            showAlert('Server error while updating marks.', 'danger');
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = `<i class="fa-solid fa-save me-1"></i> Update Mark Record`;
-        }
-    }
-
-    async function executeDeleteMark(markId) {
-        if (!confirm('Are you sure you want to permanently delete this internal mark entry?')) return;
-
-        try {
-            const res = await fetch(`/hod/api/marks/${markId}`, {
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
                 method: 'DELETE'
             });
             const data = await res.json();
             if (res.ok && data.success) {
-<<<<<<< HEAD
                 deleteMarkModalInstance.hide();
                 showMarksAlert('Internal mark record permanently removed from database.', 'warning');
                 loadMarksRecords(currentMarksPage);
@@ -1214,22 +766,5 @@
         if (!str) return '';
         return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;');
     }
-=======
-                showAlert('Mark entry deleted permanently.', 'success');
-                loadMarksRecords(marksCurrentPage);
-            } else {
-                showAlert(data.error || 'Failed to delete mark.', 'danger');
-            }
-        } catch (err) {
-            showAlert('Server error while deleting mark.', 'danger');
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        loadMarksCharts();
-        loadMarksDropdowns();
-        loadMarksRecords(1);
-    });
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
 </script>
 {% endblock %}

@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-<<<<<<< HEAD
 {% block title %}Subject Management - ERP Panel{% endblock %}
 {% block breadcrumb %}Subject Management{% endblock %}
 
@@ -15,19 +14,6 @@
         </button>
         <button class="btn btn-outline-secondary fs-7" onclick="loadSubjects(true)">
             <i class="fa-solid fa-rotate me-1"></i> Refresh
-=======
-{% block title %}Subject Management - ERP Portal{% endblock %}
-
-{% block content %}
-<div class="page-header d-flex flex-wrap align-items-center justify-content-between gap-3">
-    <div>
-        <h1 class="page-title"><i class="fa-solid fa-book-open me-2 text-warning"></i> Subject Management Module</h1>
-        <div class="page-subtitle">Course catalog, semester mappings, syllabus codes, and faculty allocation</div>
-    </div>
-    <div>
-        <button class="btn btn-msec" onclick="openAddSubjectModal()">
-            <i class="fa-solid fa-plus-circle me-2"></i> Add New Subject
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
         </button>
     </div>
 </div>
@@ -42,11 +28,7 @@
             <label class="form-label fw-semibold fs-7 text-secondary">Search Subjects</label>
             <div class="input-group">
                 <span class="input-group-text bg-light"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-<<<<<<< HEAD
                 <input type="text" id="subjectSearchInput" class="form-control" placeholder="Search by Code, Subject Name, Faculty..." oninput="filterSubjects()">
-=======
-                <input type="text" id="subjectSearchInput" class="form-control" placeholder="Search by subject code, title, or faculty..." onkeyup="filterSubjects()">
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
             </div>
         </div>
         <div class="col-md-3">
@@ -65,15 +47,9 @@
         </div>
         <div class="col-md-2">
             <label class="form-label fw-semibold fs-7 text-secondary">Department</label>
-<<<<<<< HEAD
             <select id="subjectDeptFilter" class="form-select" onchange="filterSubjects()">
                 <option value="All">All Depts</option>
                 <option value="Information Technology" selected>Information Technology</option>
-=======
-            <select id="subDeptFilter" class="form-select" onchange="filterSubjects()">
-                <option value="All">All Departments</option>
-                <option value="Information Technology">Information Technology</option>
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
                 <option value="Computer Science">Computer Science</option>
             </select>
         </div>
@@ -85,19 +61,13 @@
     </div>
 </div>
 
-<<<<<<< HEAD
 <!-- SUBJECTS TABLE -->
 <div class="custom-table-card shadow-sm">
-=======
-<!-- SUBJECTS DIRECTORY TABLE -->
-<div class="custom-table-card">
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
     <div class="table-responsive">
         <table class="table table-custom align-middle mb-0">
             <thead>
                 <tr>
                     <th>Subject Code</th>
-<<<<<<< HEAD
                     <th>Course Title</th>
                     <th>Semester</th>
                     <th>Department</th>
@@ -109,22 +79,10 @@
             </thead>
             <tbody id="subjectsTableBody">
                 <tr><td colspan="8" class="text-center py-5 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading curriculum from MySQL...</td></tr>
-=======
-                    <th>Subject Title</th>
-                    <th>Semester</th>
-                    <th>Department</th>
-                    <th>Assigned Faculty</th>
-                    <th class="text-center" style="width: 140px;">Actions</th>
-                </tr>
-            </thead>
-            <tbody id="subjectsTableBody">
-                <tr><td colspan="6" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading courses...</td></tr>
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
             </tbody>
         </table>
     </div>
     <div class="p-3 d-flex justify-content-between align-items-center bg-light border-top">
-<<<<<<< HEAD
         <span class="fs-7 text-muted" id="subjectsCountText">Showing subjects</span>
     </div>
 </div>
@@ -154,36 +112,6 @@
                         <div class="col-md-4">
                             <label class="form-label fw-semibold fs-7 text-secondary">Semester Mapping <span class="text-danger">*</span></label>
                             <select id="subjectFormSemester" class="form-select" required>
-=======
-        <span class="fs-7 text-muted" id="subjectCountText">Loading subjects...</span>
-    </div>
-</div>
-
-<!-- ========================================== -->
-<!-- 1. ADD SUBJECT MODAL -->
-<!-- ========================================== -->
-<div class="modal fade" id="addSubjectModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 shadow-lg">
-            <div class="modal-header bg-msec-navy text-white">
-                <h5 class="modal-title"><i class="fa-solid fa-plus-circle me-2 text-warning"></i> Add New Subject</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <form id="addSubjectForm" onsubmit="handleCreateSubject(event)">
-                <div class="modal-body p-4">
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold fs-7">Subject Code <span class="text-danger">*</span></label>
-                            <input type="text" name="subject_code" class="form-control font-monospace text-uppercase" placeholder="e.g. 24IT3502" required>
-                        </div>
-                        <div class="col-md-8">
-                            <label class="form-label fw-bold fs-7">Subject Title <span class="text-danger">*</span></label>
-                            <input type="text" name="subject_name" class="form-control" placeholder="e.g. Artificial Intelligence & Machine Learning" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold fs-7">Semester <span class="text-danger">*</span></label>
-                            <select name="semester" class="form-select" required>
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
                                 <option value="1">Semester 1</option>
                                 <option value="2">Semester 2</option>
                                 <option value="3">Semester 3</option>
@@ -195,7 +123,6 @@
                             </select>
                         </div>
                         <div class="col-md-4">
-<<<<<<< HEAD
                             <label class="form-label fw-semibold fs-7 text-secondary">Department <span class="text-danger">*</span></label>
                             <select id="subjectFormDept" class="form-select" required>
                                 <option value="Information Technology" selected>Information Technology</option>
@@ -206,31 +133,14 @@
                         <div class="col-md-4">
                             <label class="form-label fw-semibold fs-7 text-secondary">Assign Faculty Member</label>
                             <select id="subjectFormStaff" class="form-select">
-=======
-                            <label class="form-label fw-bold fs-7">Department</label>
-                            <select name="department" class="form-select">
-                                <option value="Information Technology" selected>Information Technology</option>
-                                <option value="Computer Science">Computer Science</option>
-                                <option value="AI & Data Science">AI &amp; Data Science</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold fs-7">Assigned Faculty Member</label>
-                            <select name="staff_id" id="addSubjectStaffSelect" class="form-select">
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
                                 <option value="">-- Unassigned --</option>
                             </select>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer bg-light">
-<<<<<<< HEAD
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" id="saveSubjectBtn" class="btn btn-warning text-dark fw-bold px-4">
-=======
-                    <button type="button" class="btn btn-secondary fs-7" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-msec fs-7" id="addSubjectSubmitBtn">
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
                         <i class="fa-solid fa-check me-1"></i> Save Subject
                     </button>
                 </div>
@@ -239,80 +149,11 @@
     </div>
 </div>
 
-<<<<<<< HEAD
 <!-- DELETE CONFIRMATION MODAL -->
-=======
-<!-- ========================================== -->
-<!-- 2. EDIT SUBJECT MODAL -->
-<!-- ========================================== -->
-<div class="modal fade" id="editSubjectModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 shadow-lg">
-            <div class="modal-header bg-msec-navy text-white">
-                <h5 class="modal-title"><i class="fa-solid fa-pen-to-square me-2 text-warning"></i> Edit Subject Record</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <form id="editSubjectForm" onsubmit="handleUpdateSubject(event)">
-                <input type="hidden" name="original_code" id="editSubjectOriginalCode">
-                <div class="modal-body p-4">
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold fs-7">Subject Code</label>
-                            <input type="text" id="editSubjectCode" class="form-control font-monospace" disabled>
-                        </div>
-                        <div class="col-md-8">
-                            <label class="form-label fw-bold fs-7">Subject Title <span class="text-danger">*</span></label>
-                            <input type="text" name="subject_name" id="editSubjectName" class="form-control" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold fs-7">Semester <span class="text-danger">*</span></label>
-                            <select name="semester" id="editSubjectSemester" class="form-select" required>
-                                <option value="1">Semester 1</option>
-                                <option value="2">Semester 2</option>
-                                <option value="3">Semester 3</option>
-                                <option value="4">Semester 4</option>
-                                <option value="5">Semester 5</option>
-                                <option value="6">Semester 6</option>
-                                <option value="7">Semester 7</option>
-                                <option value="8">Semester 8</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold fs-7">Department</label>
-                            <select name="department" id="editSubjectDept" class="form-select">
-                                <option value="Information Technology">Information Technology</option>
-                                <option value="Computer Science">Computer Science</option>
-                                <option value="AI & Data Science">AI &amp; Data Science</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold fs-7">Assigned Faculty Member</label>
-                            <select name="staff_id" id="editSubjectStaffSelect" class="form-select">
-                                <option value="">-- Unassigned --</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-secondary fs-7" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-msec fs-7" id="editSubjectSubmitBtn">
-                        <i class="fa-solid fa-save me-1"></i> Update Subject
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- ========================================== -->
-<!-- 3. DELETE CONFIRMATION MODAL -->
-<!-- ========================================== -->
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
 <div class="modal fade" id="deleteSubjectModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="modal-header bg-danger text-white">
-<<<<<<< HEAD
                 <h5 class="modal-title fw-bold"><i class="fa-solid fa-triangle-exclamation me-2"></i> Confirm Subject Deletion</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -330,24 +171,6 @@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" id="confirmDeleteSubjectBtn" class="btn btn-danger fw-bold" onclick="executeDeleteSubject()">
                     <i class="fa-solid fa-trash-can me-1"></i> Delete Subject
-=======
-                <h5 class="modal-title"><i class="fa-solid fa-triangle-exclamation me-2"></i> Confirm Subject Deletion</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body p-4">
-                <p class="mb-2">Are you sure you want to permanently delete this subject from the live course catalog?</p>
-                <div class="p-3 bg-light rounded border mb-3">
-                    <div class="fw-bold" id="deleteSubjectNameText">--</div>
-                    <div class="text-muted font-monospace fs-7" id="deleteSubjectCodeText">--</div>
-                </div>
-                <p class="text-danger small mb-0"><i class="fa-solid fa-circle-exclamation me-1"></i> All linked marks, timetable slots, and notes for this subject will also be deleted.</p>
-            </div>
-            <div class="modal-footer bg-light">
-                <input type="hidden" id="deleteSubjectTargetCode">
-                <button type="button" class="btn btn-secondary fs-7" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger fs-7" id="confirmDeleteSubjectBtn" onclick="executeDeleteSubject()">
-                    <i class="fa-solid fa-trash-can me-1"></i> Yes, Delete Subject
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
                 </button>
             </div>
         </div>
@@ -359,7 +182,6 @@
 {% block scripts %}
 <script>
     let allSubjectsData = [];
-<<<<<<< HEAD
     let facultyOptions = [];
     let subjectModalInstance = null;
     let deleteSubjectModalInstance = null;
@@ -377,18 +199,6 @@
         container.innerHTML = `
             <div class="alert alert-${type} alert-dismissible fade show shadow-sm mb-4" role="alert">
                 <i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'} me-2"></i>
-=======
-    let allStaffOptions = [];
-    let addSubModalInstance = null;
-    let editSubModalInstance = null;
-    let deleteSubModalInstance = null;
-
-    function showAlert(message, type = 'success') {
-        const container = document.getElementById('alertContainer');
-        container.innerHTML = `
-            <div class="alert alert-${type} alert-dismissible fade show shadow-sm" role="alert">
-                <i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-triangle-exclamation'} me-2"></i>
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
                 ${message}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
@@ -399,7 +209,6 @@
         }, 5000);
     }
 
-<<<<<<< HEAD
     async function loadFacultyDropdown() {
         try {
             const res = await fetch('/hod/api/staff');
@@ -467,46 +276,10 @@
 
         if (!subjects || subjects.length === 0) {
             tbody.innerHTML = `<tr><td colspan="8" class="text-center py-5 text-muted">No subjects found matching the filter.</td></tr>`;
-=======
-    async function loadStaffOptions() {
-        try {
-            const res = await fetch('/hod/api/staff');
-            allStaffOptions = await res.json();
-            const opts = allStaffOptions.map(st => `<option value="${st.staffid}">${st.name} (${st.designation || 'Faculty'})</option>`).join('');
-
-            document.getElementById('addSubjectStaffSelect').innerHTML = `<option value="">-- Unassigned --</option>` + opts;
-            document.getElementById('editSubjectStaffSelect').innerHTML = `<option value="">-- Unassigned --</option>` + opts;
-        } catch (e) {
-            console.error('Error loading staff dropdown:', e);
-        }
-    }
-
-    async function loadSubjects() {
-        const tbody = document.getElementById('subjectsTableBody');
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading courses from live database...</td></tr>`;
-
-        try {
-            const res = await fetch('/hod/api/subjects/all');
-            allSubjectsData = await res.json();
-            renderSubjectsTable(allSubjectsData);
-        } catch (e) {
-            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-danger"><i class="fa-solid fa-circle-exclamation me-1"></i> Failed to connect to course database.</td></tr>`;
-            console.error('Error fetching subjects:', e);
-        }
-    }
-
-    function renderSubjectsTable(subjects) {
-        const tbody = document.getElementById('subjectsTableBody');
-        document.getElementById('subjectCountText').innerText = `Total Subjects: ${subjects.length}`;
-
-        if (!subjects || subjects.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">No subjects found matching criteria.</td></tr>`;
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
             return;
         }
 
         let html = '';
-<<<<<<< HEAD
         subjects.forEach(s => {
             const facultyDisplay = s.faculty_name 
                 ? `<span class="fw-semibold text-navy"><i class="fa-solid fa-chalkboard-user text-warning me-1"></i> ${s.faculty_name}</span>`
@@ -539,27 +312,6 @@
                                 <i class="fa-solid fa-pen-to-square"></i> Edit
                             </button>
                             <button type="button" class="btn btn-outline-danger" title="Delete Subject" onclick="promptDeleteSubject('${s.subject_code}', '${escapeHtml(s.subject_name)}')">
-=======
-        subjects.forEach(sub => {
-            const subJson = JSON.stringify(sub).replace(/"/g, '&quot;');
-            const staffBadge = sub.staff_name 
-                ? `<span class="fw-semibold text-navy"><i class="fa-solid fa-user-tie me-1 text-secondary"></i> ${sub.staff_name}</span>`
-                : `<span class="badge bg-warning-subtle text-dark border"><i class="fa-solid fa-circle-exclamation me-1"></i> Unassigned</span>`;
-
-            html += `
-                <tr>
-                    <td class="font-monospace fw-bold text-navy">${sub.subject_code}</td>
-                    <td class="fw-bold">${sub.subject_name}</td>
-                    <td><span class="badge bg-light text-dark border">Semester ${sub.semester}</span></td>
-                    <td><span class="badge bg-primary-subtle text-primary border">${sub.department || 'Information Technology'}</span></td>
-                    <td>${staffBadge}</td>
-                    <td class="text-center">
-                        <div class="btn-group btn-group-sm">
-                            <button type="button" class="btn btn-outline-secondary" title="Edit Subject" onclick="openEditSubjectModal(${subJson})">
-                                <i class="fa-solid fa-pen-to-square"></i>
-                            </button>
-                            <button type="button" class="btn btn-outline-danger" title="Delete Subject" onclick="openDeleteSubjectModal('${sub.subject_code}', '${sub.subject_name}')">
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
                                 <i class="fa-solid fa-trash-can"></i>
                             </button>
                         </div>
@@ -570,7 +322,6 @@
         tbody.innerHTML = html;
     }
 
-<<<<<<< HEAD
     function openAddSubjectModal() {
         document.getElementById('subjectForm').reset();
         document.getElementById('subjectOriginalCode').value = '';
@@ -657,143 +408,10 @@
 
         try {
             const res = await fetch(`/hod/api/subject/${encodeURIComponent(pendingDeleteSubjectCode)}`, {
-=======
-    function filterSubjects() {
-        const search = document.getElementById('subjectSearchInput').value.toLowerCase().trim();
-        const sem = document.getElementById('semesterFilter').value;
-        const dept = document.getElementById('subDeptFilter').value;
-
-        const filtered = allSubjectsData.filter(s => {
-            const matchesSearch = s.subject_code.toLowerCase().includes(search) ||
-                                  s.subject_name.toLowerCase().includes(search) ||
-                                  (s.staff_name && s.staff_name.toLowerCase().includes(search));
-            const matchesSem = (sem === 'All' || s.semester == sem);
-            const matchesDept = (dept === 'All' || s.department === dept);
-            return matchesSearch && matchesSem && matchesDept;
-        });
-
-        renderSubjectsTable(filtered);
-    }
-
-    function resetSubjectFilters() {
-        document.getElementById('subjectSearchInput').value = '';
-        document.getElementById('semesterFilter').value = 'All';
-        document.getElementById('subDeptFilter').value = 'All';
-        renderSubjectsTable(allSubjectsData);
-    }
-
-    function openAddSubjectModal() {
-        document.getElementById('addSubjectForm').reset();
-        if (!addSubModalInstance) {
-            addSubModalInstance = new bootstrap.Modal(document.getElementById('addSubjectModal'));
-        }
-        addSubModalInstance.show();
-    }
-
-    function openEditSubjectModal(sub) {
-        document.getElementById('editSubjectOriginalCode').value = sub.subject_code;
-        document.getElementById('editSubjectCode').value = sub.subject_code;
-        document.getElementById('editSubjectName').value = sub.subject_name;
-        document.getElementById('editSubjectSemester').value = sub.semester;
-        document.getElementById('editSubjectDept').value = sub.department || 'Information Technology';
-        document.getElementById('editSubjectStaffSelect').value = sub.staff_id || '';
-
-        if (!editSubModalInstance) {
-            editSubModalInstance = new bootstrap.Modal(document.getElementById('editSubjectModal'));
-        }
-        editSubModalInstance.show();
-    }
-
-    function openDeleteSubjectModal(code, name) {
-        document.getElementById('deleteSubjectTargetCode').value = code;
-        document.getElementById('deleteSubjectNameText').innerText = name;
-        document.getElementById('deleteSubjectCodeText').innerText = `Code: ${code}`;
-
-        if (!deleteSubModalInstance) {
-            deleteSubModalInstance = new bootstrap.Modal(document.getElementById('deleteSubjectModal'));
-        }
-        deleteSubModalInstance.show();
-    }
-
-    async function handleCreateSubject(e) {
-        e.preventDefault();
-        const form = e.target;
-        const btn = document.getElementById('addSubjectSubmitBtn');
-        const formData = new FormData(form);
-        const payload = Object.fromEntries(formData.entries());
-
-        btn.disabled = true;
-        btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Saving...`;
-
-        try {
-            const res = await fetch('/hod/api/subjects', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            const data = await res.json();
-            if (res.ok && data.success) {
-                addSubModalInstance.hide();
-                showAlert(`Subject ${payload.subject_code} added successfully!`, 'success');
-                loadSubjects();
-            } else {
-                showAlert(data.error || 'Failed to create subject.', 'danger');
-            }
-        } catch (err) {
-            showAlert('Server error while saving subject.', 'danger');
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = `<i class="fa-solid fa-check me-1"></i> Save Subject`;
-        }
-    }
-
-    async function handleUpdateSubject(e) {
-        e.preventDefault();
-        const form = e.target;
-        const subjectCode = document.getElementById('editSubjectOriginalCode').value;
-        const btn = document.getElementById('editSubjectSubmitBtn');
-        const formData = new FormData(form);
-        const payload = Object.fromEntries(formData.entries());
-
-        btn.disabled = true;
-        btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Updating...`;
-
-        try {
-            const res = await fetch(`/hod/api/subjects/${subjectCode}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            const data = await res.json();
-            if (res.ok && data.success) {
-                editSubModalInstance.hide();
-                showAlert(`Subject ${payload.subject_name} updated successfully!`, 'success');
-                loadSubjects();
-            } else {
-                showAlert(data.error || 'Failed to update subject.', 'danger');
-            }
-        } catch (err) {
-            showAlert('Server error while updating subject.', 'danger');
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = `<i class="fa-solid fa-save me-1"></i> Update Subject`;
-        }
-    }
-
-    async function executeDeleteSubject() {
-        const subjectCode = document.getElementById('deleteSubjectTargetCode').value;
-        const btn = document.getElementById('confirmDeleteSubjectBtn');
-        btn.disabled = true;
-        btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Deleting...`;
-
-        try {
-            const res = await fetch(`/hod/api/subjects/${subjectCode}`, {
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
                 method: 'DELETE'
             });
             const data = await res.json();
             if (res.ok && data.success) {
-<<<<<<< HEAD
                 deleteSubjectModalInstance.hide();
                 showSubjectAlert('Subject removed from curriculum and live database.', 'warning');
                 await loadSubjects(true);
@@ -814,25 +432,5 @@
         if (!str) return '';
         return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;');
     }
-=======
-                deleteSubModalInstance.hide();
-                showAlert('Subject removed from curriculum catalog.', 'success');
-                loadSubjects();
-            } else {
-                showAlert(data.error || 'Failed to delete subject.', 'danger');
-            }
-        } catch (err) {
-            showAlert('Server error while deleting subject.', 'danger');
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = `<i class="fa-solid fa-trash-can me-1"></i> Yes, Delete Subject`;
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        loadStaffOptions();
-        loadSubjects();
-    });
->>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
 </script>
 {% endblock %}
