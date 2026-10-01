@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+<<<<<<< HEAD
 {% block title %}Department Timetable &amp; Schedule - ERP Panel{% endblock %}
 {% block breadcrumb %}Timetable Management{% endblock %}
 
@@ -14,6 +15,19 @@
         </button>
         <button class="btn btn-outline-secondary fs-7" onclick="loadTimetable(true)">
             <i class="fa-solid fa-rotate me-1"></i> Refresh
+=======
+{% block title %}Department Timetable Management - ERP Portal{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex flex-wrap align-items-center justify-content-between gap-3">
+    <div>
+        <h1 class="page-title"><i class="fa-solid fa-clock me-2 text-warning"></i> Timetable Management Module</h1>
+        <div class="page-subtitle">Schedule weekly class routines, allocate lecture halls, and assign subject faculty</div>
+    </div>
+    <div>
+        <button class="btn btn-msec" onclick="openAddSlotModal()">
+            <i class="fa-solid fa-calendar-plus me-1"></i> Add Timetable Period
+>>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
         </button>
     </div>
 </div>
@@ -24,6 +38,7 @@
 <!-- CONTROLS & FILTERS -->
 <div class="analytics-card mb-4">
     <div class="row g-3 align-items-center">
+<<<<<<< HEAD
         <div class="col-md-3">
             <label class="form-label fw-semibold fs-7 text-secondary">Academic Year</label>
             <select id="ttYearFilter" class="form-select" onchange="loadTimetable()">
@@ -60,10 +75,34 @@
                     <i class="fa-solid fa-list me-1"></i> List View
                 </button>
             </div>
+=======
+        <div class="col-md-4">
+            <label class="form-label fw-semibold fs-7 text-secondary">Academic Year</label>
+            <select id="ttYearFilter" class="form-select" onchange="loadTimetableGrid()">
+                <option value="Third year" selected>Third Year (Semester 5)</option>
+                <option value="Second year">Second Year (Semester 3)</option>
+                <option value="First year">First Year (Semester 1)</option>
+                <option value="Final year">Final Year (Semester 7)</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label fw-semibold fs-7 text-secondary">Classroom Section</label>
+            <select id="ttSectionFilter" class="form-select" onchange="loadTimetableGrid()">
+                <option value="A" selected>Section A</option>
+                <option value="B">Section B</option>
+                <option value="C">Section C</option>
+            </select>
+        </div>
+        <div class="col-md-4 text-end">
+            <button class="btn btn-outline-secondary w-100 mt-4 fs-7" onclick="loadTimetableGrid()">
+                <i class="fa-solid fa-rotate me-1"></i> Refresh Schedule
+            </button>
+>>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
         </div>
     </div>
 </div>
 
+<<<<<<< HEAD
 <!-- WEEKLY GRID VIEW CONTAINER -->
 <div id="gridScheduleView" class="mb-4">
     <div id="timetableGridLoading" class="text-center py-5">
@@ -92,11 +131,41 @@
             </thead>
             <tbody id="timetableTableBody">
                 <tr><td colspan="8" class="text-center py-4 text-muted">Loading timetable entries...</td></tr>
+=======
+<!-- TIMETABLE WEEKLY MATRIX -->
+<div class="custom-table-card mb-4 p-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="h6 fw-bold text-navy mb-0">
+            <i class="fa-solid fa-table me-2 text-warning"></i> Weekly Academic Schedule Matrix
+        </h3>
+        <span class="badge bg-light text-navy font-monospace border">Working Hours: 09:00 AM - 04:00 PM</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-bordered align-middle text-center mb-0 timetable-grid-table">
+            <thead class="bg-msec-navy text-white">
+                <tr>
+                    <th style="width: 120px;" class="py-3">Day / Time</th>
+                    <th class="py-3"><div class="fw-bold">P1</div><div class="fs-8 fw-normal opacity-75">09:00 - 09:50</div></th>
+                    <th class="py-3"><div class="fw-bold">P2</div><div class="fs-8 fw-normal opacity-75">09:50 - 10:40</div></th>
+                    <th style="width: 40px; background-color: #334155;" class="py-3"><div class="fs-8 text-uppercase" style="writing-mode: vertical-rl; transform: rotate(180deg);">Tea Break</div></th>
+                    <th class="py-3"><div class="fw-bold">P3</div><div class="fs-8 fw-normal opacity-75">11:00 - 11:50</div></th>
+                    <th class="py-3"><div class="fw-bold">P4</div><div class="fs-8 fw-normal opacity-75">11:50 - 12:40</div></th>
+                    <th style="width: 40px; background-color: #334155;" class="py-3"><div class="fs-8 text-uppercase" style="writing-mode: vertical-rl; transform: rotate(180deg);">Lunch Break</div></th>
+                    <th class="py-3"><div class="fw-bold">P5</div><div class="fs-8 fw-normal opacity-75">01:30 - 02:20</div></th>
+                    <th class="py-3"><div class="fw-bold">P6</div><div class="fs-8 fw-normal opacity-75">02:20 - 03:10</div></th>
+                    <th class="py-3"><div class="fw-bold">P7</div><div class="fs-8 fw-normal opacity-75">03:10 - 04:00</div></th>
+                </tr>
+            </thead>
+            <tbody id="timetableGridBody">
+                <tr><td colspan="10" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading schedule...</td></tr>
+>>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
             </tbody>
         </table>
     </div>
 </div>
 
+<<<<<<< HEAD
 <!-- ADD / EDIT TIMETABLE SLOT MODAL -->
 <div class="modal fade" id="slotFormModal" tabindex="-1" aria-labelledby="slotModalTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -114,17 +183,43 @@
                         <div class="col-md-4">
                             <label class="form-label fw-semibold fs-7 text-secondary">Day of Week <span class="text-danger">*</span></label>
                             <select id="formSlotDay" class="form-select" required>
+=======
+<!-- ========================================== -->
+<!-- 1. ADD / ASSIGN PERIOD MODAL -->
+<!-- ========================================== -->
+<div class="modal fade" id="addSlotModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-msec-navy text-white">
+                <h5 class="modal-title"><i class="fa-solid fa-calendar-plus me-2 text-warning"></i> Schedule Timetable Period</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addSlotForm" onsubmit="handleCreateSlot(event)">
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold fs-7">Day of Week <span class="text-danger">*</span></label>
+                            <select name="day_of_week" id="slotModalDaySelect" class="form-select" required>
+>>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
                                 <option value="Monday">Monday</option>
                                 <option value="Tuesday">Tuesday</option>
                                 <option value="Wednesday">Wednesday</option>
                                 <option value="Thursday">Thursday</option>
                                 <option value="Friday">Friday</option>
+<<<<<<< HEAD
                                 <option value="Saturday">Saturday</option>
                             </select>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-semibold fs-7 text-secondary">Period Number <span class="text-danger">*</span></label>
                             <select id="formSlotPeriod" class="form-select" required onchange="handlePeriodChange()">
+=======
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold fs-7">Period Number <span class="text-danger">*</span></label>
+                            <select name="period_number" id="slotModalPeriodSelect" class="form-select" required>
+>>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
                                 <option value="1">Period 1 (09:00 - 09:50 AM)</option>
                                 <option value="2">Period 2 (09:50 - 10:40 AM)</option>
                                 <option value="3">Period 3 (11:00 - 11:50 AM)</option>
@@ -134,6 +229,7 @@
                                 <option value="7">Period 7 (03:10 - 04:00 PM)</option>
                             </select>
                         </div>
+<<<<<<< HEAD
                         <div class="col-md-4">
                             <label class="form-label fw-semibold fs-7 text-secondary">Time Slot Label</label>
                             <input type="text" id="formSlotTime" class="form-control" placeholder="09:00 AM - 09:50 AM" required>
@@ -141,10 +237,16 @@
                         <div class="col-md-6">
                             <label class="form-label fw-semibold fs-7 text-secondary">Subject Course <span class="text-danger">*</span></label>
                             <select id="formSlotSubject" class="form-select" required onchange="handleSubjectSelect()">
+=======
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold fs-7">Subject <span class="text-danger">*</span></label>
+                            <select name="subject_code" id="slotModalSubjectSelect" class="form-select" required onchange="onSubjectPick()">
+>>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
                                 <option value="">-- Choose Subject --</option>
                             </select>
                         </div>
                         <div class="col-md-6">
+<<<<<<< HEAD
                             <label class="form-label fw-semibold fs-7 text-secondary">Faculty Assignment</label>
                             <select id="formSlotStaff" class="form-select">
                                 <option value="">-- Faculty / Unassigned --</option>
@@ -159,22 +261,53 @@
                             <select id="formSlotYear" class="form-select" required>
                                 <option value="Third year" selected>Third Year</option>
                                 <option value="Second year">Second Year</option>
+=======
+                            <label class="form-label fw-bold fs-7">Assigned Faculty</label>
+                            <select name="staff_id" id="slotModalStaffSelect" class="form-select">
+                                <option value="">-- Faculty Member --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold fs-7">Classroom / Hall</label>
+                            <input type="text" name="classroom" class="form-control font-monospace" value="LH-201" placeholder="e.g. LH-201, LAB-3">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold fs-7">Year</label>
+                            <select name="year" id="slotModalYearSelect" class="form-select">
+                                <option value="Third year">Third Year</option>
+                                <option value="Second year">Second Year</option>
+                                <option value="First year">First Year</option>
+>>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
                                 <option value="Final year">Final Year</option>
                             </select>
                         </div>
                         <div class="col-md-4">
+<<<<<<< HEAD
                             <label class="form-label fw-semibold fs-7 text-secondary">Section <span class="text-danger">*</span></label>
                             <select id="formSlotSection" class="form-select" required>
                                 <option value="A" selected>Section A</option>
                                 <option value="B">Section B</option>
+=======
+                            <label class="form-label fw-bold fs-7">Section</label>
+                            <select name="section" id="slotModalSectionSelect" class="form-select">
+                                <option value="A">Section A</option>
+                                <option value="B">Section B</option>
+                                <option value="C">Section C</option>
+>>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
                             </select>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer bg-light">
+<<<<<<< HEAD
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" id="saveSlotBtn" class="btn btn-warning text-dark fw-bold px-4">
                         <i class="fa-solid fa-check me-1"></i> Save Timetable Slot
+=======
+                    <button type="button" class="btn btn-secondary fs-7" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-msec fs-7" id="slotSubmitBtn">
+                        <i class="fa-solid fa-check me-1"></i> Save to Live Schedule
+>>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
                     </button>
                 </div>
             </form>
@@ -182,6 +315,7 @@
     </div>
 </div>
 
+<<<<<<< HEAD
 <!-- DELETE CONFIRMATION MODAL -->
 <div class="modal fade" id="deleteSlotModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -207,10 +341,13 @@
     </div>
 </div>
 
+=======
+>>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
 {% endblock %}
 
 {% block scripts %}
 <script>
+<<<<<<< HEAD
     let currentTimetableData = null;
     let allSubjectsList = [];
     let allStaffList = [];
@@ -241,6 +378,17 @@
         container.innerHTML = `
             <div class="alert alert-${type} alert-dismissible fade show shadow-sm mb-4" role="alert">
                 <i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'} me-2"></i>
+=======
+    let addSlotModalInstance = null;
+    let allSubjectsList = [];
+    let allStaffList = [];
+
+    function showAlert(message, type = 'success') {
+        const container = document.getElementById('alertContainer');
+        container.innerHTML = `
+            <div class="alert alert-${type} alert-dismissible fade show shadow-sm" role="alert">
+                <i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-triangle-exclamation'} me-2"></i>
+>>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
                 ${message}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
@@ -251,6 +399,7 @@
         }, 5000);
     }
 
+<<<<<<< HEAD
     async function loadSubjectsDropdown() {
         try {
             const res = await fetch('/hod/api/subjects');
@@ -532,10 +681,161 @@
 
         try {
             const res = await fetch(`/hod/api/timetable/${pendingDeleteSlotId}`, {
+=======
+    async function loadDropdowns() {
+        try {
+            const [subRes, stfRes] = await Promise.all([
+                fetch('/hod/api/subjects'),
+                fetch('/hod/api/staff')
+            ]);
+            allSubjectsList = await subRes.json();
+            allStaffList = await stfRes.json();
+
+            const subOpts = allSubjectsList.map(s => `<option value="${s.subject_code}" data-staff="${s.staff_id || ''}">${s.subject_code} - ${s.subject_name}</option>`).join('');
+            document.getElementById('slotModalSubjectSelect').innerHTML = `<option value="">-- Choose Subject --</option>` + subOpts;
+
+            const stfOpts = allStaffList.map(st => `<option value="${st.staffid}">${st.name}</option>`).join('');
+            document.getElementById('slotModalStaffSelect').innerHTML = `<option value="">-- Faculty Member --</option>` + stfOpts;
+        } catch (e) {
+            console.error('Error loading dropdowns:', e);
+        }
+    }
+
+    function onSubjectPick() {
+        const sel = document.getElementById('slotModalSubjectSelect');
+        const opt = sel.options[sel.selectedIndex];
+        const staffId = opt ? opt.getAttribute('data-staff') : '';
+        if (staffId) {
+            document.getElementById('slotModalStaffSelect').value = staffId;
+        }
+    }
+
+    async function loadTimetableGrid() {
+        const year = document.getElementById('ttYearFilter').value;
+        const section = document.getElementById('ttSectionFilter').value;
+        const tbody = document.getElementById('timetableGridBody');
+
+        tbody.innerHTML = `<tr><td colspan="10" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading live schedule...</td></tr>`;
+
+        try {
+            const url = new URL('/hod/api/timetable', window.location.origin);
+            url.searchParams.set('year', year);
+            url.searchParams.set('section', section);
+
+            const res = await fetch(url);
+            const data = await res.json();
+            renderTimetableMatrix(data.grid || {});
+        } catch (e) {
+            tbody.innerHTML = `<tr><td colspan="10" class="text-center py-4 text-danger"><i class="fa-solid fa-circle-exclamation me-1"></i> Failed to connect to timetable database.</td></tr>`;
+            console.error('Error fetching timetable:', e);
+        }
+    }
+
+    function renderTimetableMatrix(grid) {
+        const tbody = document.getElementById('timetableGridBody');
+        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+
+        let html = '';
+        days.forEach(day => {
+            const rowData = grid[day] || {};
+            html += `<tr>`;
+            html += `<td class="fw-bold bg-light text-navy text-uppercase fs-7">${day}</td>`;
+
+            for (let p = 1; p <= 7; p++) {
+                if (p === 3) {
+                    html += `<td class="bg-light-subtle text-muted fs-8 align-middle" style="writing-mode: vertical-rl; transform: rotate(180deg);">Break</td>`;
+                }
+                if (p === 5) {
+                    html += `<td class="bg-light-subtle text-muted fs-8 align-middle" style="writing-mode: vertical-rl; transform: rotate(180deg);">Lunch</td>`;
+                }
+
+                const slot = rowData[p];
+                if (slot) {
+                    html += `
+                        <td class="p-2 align-middle position-relative bg-white border" style="min-width: 120px;">
+                            <div class="fw-bold text-navy fs-8 mb-1">${slot.subject_code}</div>
+                            <div class="fs-8 text-secondary fw-semibold mb-1 text-truncate" title="${slot.subject_name}">${slot.subject_name}</div>
+                            <div class="badge bg-light text-dark font-monospace border mb-1">${slot.classroom || 'LH-201'}</div>
+                            <div class="fs-8 text-muted fst-italic">${slot.staff_name || 'Faculty'}</div>
+                            <button type="button" class="btn btn-sm btn-link text-danger p-0 mt-1 d-block mx-auto fs-8" title="Remove Slot" onclick="executeDeleteSlot(${slot.id})">
+                                <i class="fa-solid fa-xmark"></i> Remove
+                            </button>
+                        </td>
+                    `;
+                } else {
+                    html += `
+                        <td class="p-2 align-middle bg-light-subtle text-muted fs-8 border" style="min-width: 120px; cursor: pointer;" onclick="quickAddSlot('${day}', ${p})">
+                            <span class="text-muted"><i class="fa-solid fa-plus me-1"></i> Free Slot</span>
+                        </td>
+                    `;
+                }
+            }
+            html += `</tr>`;
+        });
+
+        tbody.innerHTML = html;
+    }
+
+    function openAddSlotModal() {
+        document.getElementById('addSlotForm').reset();
+        document.getElementById('slotModalYearSelect').value = document.getElementById('ttYearFilter').value;
+        document.getElementById('slotModalSectionSelect').value = document.getElementById('ttSectionFilter').value;
+
+        if (!addSlotModalInstance) {
+            addSlotModalInstance = new bootstrap.Modal(document.getElementById('addSlotModal'));
+        }
+        addSlotModalInstance.show();
+    }
+
+    function quickAddSlot(day, period) {
+        openAddSlotModal();
+        document.getElementById('slotModalDaySelect').value = day;
+        document.getElementById('slotModalPeriodSelect').value = period;
+    }
+
+    async function handleCreateSlot(e) {
+        e.preventDefault();
+        const form = e.target;
+        const btn = document.getElementById('slotSubmitBtn');
+        const formData = new FormData(form);
+        const payload = Object.fromEntries(formData.entries());
+
+        btn.disabled = true;
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Scheduling...`;
+
+        try {
+            const res = await fetch('/hod/api/timetable', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                addSlotModalInstance.hide();
+                showAlert(`Period scheduled on ${payload.day_of_week} (Period ${payload.period_number})!`, 'success');
+                loadTimetableGrid();
+            } else {
+                showAlert(data.error || 'Failed to schedule timetable.', 'danger');
+            }
+        } catch (err) {
+            showAlert('Server error while saving timetable.', 'danger');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fa-solid fa-check me-1"></i> Save to Live Schedule`;
+        }
+    }
+
+    async function executeDeleteSlot(slotId) {
+        if (!confirm('Are you sure you want to remove this period from the schedule?')) return;
+
+        try {
+            const res = await fetch(`/hod/api/timetable/${slotId}`, {
+>>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
                 method: 'DELETE'
             });
             const data = await res.json();
             if (res.ok && data.success) {
+<<<<<<< HEAD
                 deleteSlotModalInstance.hide();
                 showTAlert('Timetable slot removed successfully.', 'warning');
                 await loadTimetable(true);
@@ -551,5 +851,21 @@
             pendingDeleteSlotId = null;
         }
     }
+=======
+                showAlert('Period removed from schedule.', 'success');
+                loadTimetableGrid();
+            } else {
+                showAlert(data.error || 'Failed to remove period.', 'danger');
+            }
+        } catch (err) {
+            showAlert('Server error while deleting slot.', 'danger');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadDropdowns();
+        loadTimetableGrid();
+    });
+>>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
 </script>
 {% endblock %}

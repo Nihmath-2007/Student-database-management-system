@@ -8,6 +8,7 @@ from db import fetch_all, fetch_one, execute
 from services.analytics import calculate_department_analytics
 from services.database_service import get_all_students, get_student_details, get_all_subjects
 from services.correction_service import get_hod_queries, get_hod_summary_stats, get_all_audit_logs, resolve_mark_correction_query, get_query_details
+<<<<<<< HEAD
 from services.cache_service import api_cache
 from services.erp_service import (
     erp_get_students, erp_get_student_by_id, erp_create_student, erp_update_student, erp_delete_student,
@@ -24,6 +25,16 @@ def get_current_user_meta():
         'user_name': session.get('display_name', 'HOD - IT Department'),
         'user_role': session.get('role', 'hod')
     }
+=======
+from services.erp_service import (
+    get_students_paginated, add_student, update_student, delete_student,
+    get_staff_detailed, add_staff, update_staff, delete_staff,
+    get_subjects_detailed, add_subject, update_subject, delete_subject,
+    get_attendance_records, add_attendance, update_attendance, delete_attendance,
+    get_marks_records, add_mark, update_mark, delete_mark,
+    get_timetable_grid, add_timetable_entry, delete_timetable_entry
+)
+>>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
 
 hod_bp = Blueprint('hod', __name__, url_prefix='/hod')
 
@@ -90,6 +101,7 @@ def reports_page():
 def csv_upload_page():
     return render_template('hod/csv_upload.html')
 
+<<<<<<< HEAD
 # =========================================================================
 # ERP REST API ENDPOINTS
 # =========================================================================
@@ -117,9 +129,34 @@ def api_hod_students():
             return jsonify({'error': f'Failed to create student: {str(e)}'}), 500
 
     # GET
+=======
+@hod_bp.route('/subjects')
+@role_required('hod')
+def subjects_page():
+    return render_template('hod/subjects.html')
+
+@hod_bp.route('/timetable')
+@role_required('hod')
+def timetable_page():
+    return render_template('hod/timetable.html')
+
+# ==============================================================================
+# HOD ERP REST API ENDPOINTS
+# ==============================================================================
+
+# --- Student Management Endpoints ---
+@hod_bp.route('/api/students', methods=['GET'])
+@role_required('hod')
+def api_hod_students():
+    page = int(request.args.get('page', 1))
+    limit = int(request.args.get('limit', 15))
+    search = request.args.get('search')
+    department = request.args.get('department')
+>>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
     year = request.args.get('year')
     department = request.args.get('department')
     subject = request.args.get('subject')
+<<<<<<< HEAD
     search = request.args.get('search')
     status = request.args.get('status')
     page = request.args.get('page')
@@ -127,6 +164,57 @@ def api_hod_students():
     paginate = request.args.get('paginate') in ('1', 'true', 'yes') or page is not None
     simple = request.args.get('simple') in ('1', 'true', 'yes')
     refresh = request.args.get('refresh') in ('1', 'true', 'yes')
+=======
+
+    # If requested without pagination params, maintain backward compatibility
+    if not request.args.get('page'):
+        students = get_all_students(year_filter=year, subject_filter=subject, search=search)
+        return jsonify(students)
+
+    result = get_students_paginated(search=search, department=department, year=year, page=page, limit=limit)
+    return jsonify(result)
+
+@hod_bp.route('/api/students', methods=['POST'])
+@role_required('hod')
+def api_hod_add_student():
+    data = request.get_json() if request.is_json else request.form
+    actor_name = session.get('display_name') or 'HOD'
+    actor_id = session.get('user_id')
+    try:
+        res = add_student(data, actor_name=actor_name, actor_id=actor_id)
+        return jsonify({'success': True, 'message': 'Student added successfully!', 'student': res}), 201
+    except ValueError as ve:
+        return jsonify({'error': str(ve)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Failed to create student: {str(e)}'}), 500
+
+@hod_bp.route('/api/students/<int:student_id>', methods=['PUT', 'POST'])
+@role_required('hod')
+def api_hod_update_student(student_id):
+    data = request.get_json() if request.is_json else request.form
+    actor_name = session.get('display_name') or 'HOD'
+    actor_id = session.get('user_id')
+    try:
+        res = update_student(student_id, data, actor_name=actor_name, actor_id=actor_id)
+        return jsonify({'success': True, 'message': 'Student updated successfully!', 'student': res})
+    except ValueError as ve:
+        return jsonify({'error': str(ve)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Failed to update student: {str(e)}'}), 500
+
+@hod_bp.route('/api/students/<int:student_id>', methods=['DELETE'])
+@role_required('hod')
+def api_hod_delete_student(student_id):
+    actor_name = session.get('display_name') or 'HOD'
+    actor_id = session.get('user_id')
+    try:
+        delete_student(student_id, actor_name=actor_name, actor_id=actor_id)
+        return jsonify({'success': True, 'message': 'Student removed successfully!'})
+    except ValueError as ve:
+        return jsonify({'error': str(ve)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Failed to delete student: {str(e)}'}), 500
+>>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
 
     cache_key = f"students_{simple}_{paginate}_{page}_{per_page}_{year}_{department}_{subject}_{search}_{status}"
     if not refresh:
@@ -199,6 +287,7 @@ def api_hod_student_detail(student_id):
         return jsonify({'error': 'Student not found.'}), 404
     return jsonify(data)
 
+<<<<<<< HEAD
 
 # --- 2. Staff Management APIs ---
 @hod_bp.route('/api/staff', methods=['GET', 'POST'])
@@ -256,6 +345,61 @@ def api_hod_staff_detail(staff_id):
 # --- 3. Subject Management APIs ---
 @hod_bp.route('/api/subjects', methods=['GET', 'POST'])
 @role_required('hod', 'admin')
+=======
+# --- Staff Management Endpoints ---
+@hod_bp.route('/api/staff', methods=['GET'])
+@role_required('hod')
+def api_hod_get_staff():
+    search = request.args.get('search')
+    department = request.args.get('department')
+    staff_members = get_staff_detailed(search=search, department=department)
+    return jsonify(staff_members)
+
+@hod_bp.route('/api/staff', methods=['POST'])
+@role_required('hod')
+def api_hod_add_staff():
+    data = request.get_json() if request.is_json else request.form
+    actor_name = session.get('display_name') or 'HOD'
+    actor_id = session.get('user_id')
+    try:
+        res = add_staff(data, actor_name=actor_name, actor_id=actor_id)
+        return jsonify({'success': True, 'message': 'Faculty member added successfully!', 'staff': res}), 201
+    except ValueError as ve:
+        return jsonify({'error': str(ve)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Failed to add staff: {str(e)}'}), 500
+
+@hod_bp.route('/api/staff/<int:staff_id>', methods=['PUT', 'POST'])
+@role_required('hod')
+def api_hod_update_staff(staff_id):
+    data = request.get_json() if request.is_json else request.form
+    actor_name = session.get('display_name') or 'HOD'
+    actor_id = session.get('user_id')
+    try:
+        res = update_staff(staff_id, data, actor_name=actor_name, actor_id=actor_id)
+        return jsonify({'success': True, 'message': 'Faculty updated successfully!', 'staff': res})
+    except ValueError as ve:
+        return jsonify({'error': str(ve)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Failed to update staff: {str(e)}'}), 500
+
+@hod_bp.route('/api/staff/<int:staff_id>', methods=['DELETE'])
+@role_required('hod')
+def api_hod_delete_staff(staff_id):
+    actor_name = session.get('display_name') or 'HOD'
+    actor_id = session.get('user_id')
+    try:
+        delete_staff(staff_id, actor_name=actor_name, actor_id=actor_id)
+        return jsonify({'success': True, 'message': 'Faculty removed successfully!'})
+    except ValueError as ve:
+        return jsonify({'error': str(ve)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Failed to delete staff: {str(e)}'}), 500
+
+# --- Subject Management Endpoints ---
+@hod_bp.route('/api/subjects', methods=['GET'])
+@role_required('hod')
+>>>>>>> 64facb2054844e04b8271f84d38f7e0146e7f6f1
 def api_hod_subjects():
     if request.method == 'POST':
         data = request.get_json() if request.is_json else request.form.to_dict()
@@ -535,6 +679,221 @@ def api_hod_timetable_detail(slot_id):
         return jsonify({'error': f'Failed to update timetable slot: {str(e)}'}), 500
 
 
+
+@hod_bp.route('/api/subjects/all', methods=['GET'])
+@role_required('hod')
+def api_hod_subjects_all():
+    search = request.args.get('search')
+    semester = request.args.get('semester')
+    department = request.args.get('department')
+    subjects = get_subjects_detailed(search=search, semester=semester, department=department)
+    return jsonify(subjects)
+
+@hod_bp.route('/api/subjects', methods=['POST'])
+@role_required('hod')
+def api_hod_add_subject():
+    data = request.get_json() if request.is_json else request.form
+    actor_name = session.get('display_name') or 'HOD'
+    actor_id = session.get('user_id')
+    try:
+        res = add_subject(data, actor_name=actor_name, actor_id=actor_id)
+        return jsonify({'success': True, 'message': 'Subject created successfully!', 'subject': res}), 201
+    except ValueError as ve:
+        return jsonify({'error': str(ve)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Failed to create subject: {str(e)}'}), 500
+
+@hod_bp.route('/api/subjects/<subject_code>', methods=['PUT', 'POST'])
+@role_required('hod')
+def api_hod_update_subject(subject_code):
+    data = request.get_json() if request.is_json else request.form
+    actor_name = session.get('display_name') or 'HOD'
+    actor_id = session.get('user_id')
+    try:
+        res = update_subject(subject_code, data, actor_name=actor_name, actor_id=actor_id)
+        return jsonify({'success': True, 'message': 'Subject updated successfully!', 'subject': res})
+    except ValueError as ve:
+        return jsonify({'error': str(ve)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Failed to update subject: {str(e)}'}), 500
+
+@hod_bp.route('/api/subjects/<subject_code>', methods=['DELETE'])
+@role_required('hod')
+def api_hod_delete_subject(subject_code):
+    actor_name = session.get('display_name') or 'HOD'
+    actor_id = session.get('user_id')
+    try:
+        delete_subject(subject_code, actor_name=actor_name, actor_id=actor_id)
+        return jsonify({'success': True, 'message': 'Subject deleted successfully!'})
+    except ValueError as ve:
+        return jsonify({'error': str(ve)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Failed to delete subject: {str(e)}'}), 500
+
+# --- Attendance Management Endpoints ---
+@hod_bp.route('/api/attendance/records', methods=['GET'])
+@role_required('hod')
+def api_hod_attendance_records():
+    date = request.args.get('date')
+    student_id = request.args.get('student_id')
+    subject_id = request.args.get('subject_id')
+    status = request.args.get('status')
+    search = request.args.get('search')
+    page = int(request.args.get('page', 1))
+    limit = int(request.args.get('limit', 50))
+    result = get_attendance_records(date=date, student_id=student_id, subject_id=subject_id, status=status, search=search, page=page, limit=limit)
+    return jsonify(result)
+
+@hod_bp.route('/api/attendance', methods=['POST'])
+@role_required('hod')
+def api_hod_add_attendance():
+    data = request.get_json() if request.is_json else request.form
+    actor_name = session.get('display_name') or 'HOD'
+    actor_id = session.get('user_id')
+    try:
+        res = add_attendance(data, actor_name=actor_name, actor_id=actor_id)
+        return jsonify({'success': True, 'message': 'Attendance marked successfully!', 'record': res})
+    except ValueError as ve:
+        return jsonify({'error': str(ve)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Failed to mark attendance: {str(e)}'}), 500
+
+@hod_bp.route('/api/attendance/<int:attendance_id>', methods=['PUT', 'POST'])
+@role_required('hod')
+def api_hod_update_attendance(attendance_id):
+    data = request.get_json() if request.is_json else request.form
+    actor_name = session.get('display_name') or 'HOD'
+    actor_id = session.get('user_id')
+    try:
+        res = update_attendance(attendance_id, data, actor_name=actor_name, actor_id=actor_id)
+        return jsonify({'success': True, 'message': 'Attendance updated successfully!', 'record': res})
+    except ValueError as ve:
+        return jsonify({'error': str(ve)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Failed to update attendance: {str(e)}'}), 500
+
+@hod_bp.route('/api/attendance/<int:attendance_id>', methods=['DELETE'])
+@role_required('hod')
+def api_hod_delete_attendance(attendance_id):
+    actor_name = session.get('display_name') or 'HOD'
+    actor_id = session.get('user_id')
+    try:
+        delete_attendance(attendance_id, actor_name=actor_name, actor_id=actor_id)
+        return jsonify({'success': True, 'message': 'Attendance entry removed!'})
+    except Exception as e:
+        return jsonify({'error': f'Failed to delete attendance: {str(e)}'}), 500
+
+@hod_bp.route('/api/attendance/export', methods=['GET'])
+@role_required('hod')
+def api_hod_attendance_export():
+    import csv
+    import io
+    date = request.args.get('date')
+    student_id = request.args.get('student_id')
+    status = request.args.get('status')
+    search = request.args.get('search')
+    data = get_attendance_records(date=date, student_id=student_id, status=status, search=search, page=1, limit=5000)
+    records = data.get('records', [])
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['Record ID', 'Register Number', 'Student Name', 'Department', 'Year', 'Date', 'Status', 'Subject'])
+    for r in records:
+        writer.writerow([r['id'], r['regno'], r['student_name'], r['department'], r['year'], r['date'], r['status'], r.get('subject_name') or 'General'])
+
+    output.seek(0)
+    filename = f"attendance_export_{datetime.today().strftime('%Y%m%d')}.csv"
+    return Response(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": f"attachment;filename={filename}"}
+    )
+
+# --- Internal Marks Management Endpoints ---
+@hod_bp.route('/api/marks/records', methods=['GET'])
+@role_required('hod')
+def api_hod_marks_records():
+    student_id = request.args.get('student_id')
+    subject_id = request.args.get('subject_id')
+    test_number = request.args.get('test_number')
+    search = request.args.get('search')
+    page = int(request.args.get('page', 1))
+    limit = int(request.args.get('limit', 50))
+    result = get_marks_records(student_id=student_id, subject_id=subject_id, test_number=test_number, search=search, page=page, limit=limit)
+    return jsonify(result)
+
+@hod_bp.route('/api/marks', methods=['POST'])
+@role_required('hod')
+def api_hod_add_mark():
+    data = request.get_json() if request.is_json else request.form
+    actor_name = session.get('display_name') or 'HOD'
+    actor_id = session.get('user_id')
+    try:
+        res = add_mark(data, actor_name=actor_name, actor_id=actor_id)
+        return jsonify({'success': True, 'message': 'Internal mark saved successfully!', 'mark': res}), 201
+    except ValueError as ve:
+        return jsonify({'error': str(ve)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Failed to save marks: {str(e)}'}), 500
+
+@hod_bp.route('/api/marks/<int:mark_id>', methods=['PUT', 'POST'])
+@role_required('hod')
+def api_hod_update_mark(mark_id):
+    data = request.get_json() if request.is_json else request.form
+    actor_name = session.get('display_name') or 'HOD'
+    actor_id = session.get('user_id')
+    try:
+        res = update_mark(mark_id, data, actor_name=actor_name, actor_id=actor_id)
+        return jsonify({'success': True, 'message': 'Marks updated successfully!', 'mark': res})
+    except ValueError as ve:
+        return jsonify({'error': str(ve)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Failed to update marks: {str(e)}'}), 500
+
+@hod_bp.route('/api/marks/<int:mark_id>', methods=['DELETE'])
+@role_required('hod')
+def api_hod_delete_mark(mark_id):
+    actor_name = session.get('display_name') or 'HOD'
+    actor_id = session.get('user_id')
+    try:
+        delete_mark(mark_id, actor_name=actor_name, actor_id=actor_id)
+        return jsonify({'success': True, 'message': 'Internal mark record deleted!'})
+    except Exception as e:
+        return jsonify({'error': f'Failed to delete mark: {str(e)}'}), 500
+
+# --- Timetable Management Endpoints ---
+@hod_bp.route('/api/timetable', methods=['GET'])
+@role_required('hod')
+def api_hod_get_timetable():
+    year = request.args.get('year', 'Third year')
+    section = request.args.get('section', 'A')
+    grid_data = get_timetable_grid(year=year, section=section)
+    return jsonify(grid_data)
+
+@hod_bp.route('/api/timetable', methods=['POST'])
+@role_required('hod')
+def api_hod_add_timetable():
+    data = request.get_json() if request.is_json else request.form
+    actor_name = session.get('display_name') or 'HOD'
+    actor_id = session.get('user_id')
+    try:
+        res = add_timetable_entry(data, actor_name=actor_name, actor_id=actor_id)
+        return jsonify({'success': True, 'message': 'Timetable entry assigned successfully!', 'entry': res})
+    except ValueError as ve:
+        return jsonify({'error': str(ve)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Failed to schedule timetable: {str(e)}'}), 500
+
+@hod_bp.route('/api/timetable/<int:entry_id>', methods=['DELETE'])
+@role_required('hod')
+def api_hod_delete_timetable(entry_id):
+    actor_name = session.get('display_name') or 'HOD'
+    actor_id = session.get('user_id')
+    try:
+        delete_timetable_entry(entry_id, actor_name=actor_name, actor_id=actor_id)
+        return jsonify({'success': True, 'message': 'Timetable period removed!'})
+    except Exception as e:
+        return jsonify({'error': f'Failed to delete timetable entry: {str(e)}'}), 500
 
 # Gallery Management Endpoints
 @hod_bp.route('/gallery/upload', methods=['POST'])

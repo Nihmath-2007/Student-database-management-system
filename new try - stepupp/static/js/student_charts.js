@@ -14,7 +14,11 @@ async function initStudentDashboard() {
             const el = document.getElementById(id);
             if (el) {
                 el.innerText = text;
-                if (id === 'stuKpiBest' || id === 'stuKpiLowest') el.title = text;
+                if (id === 'stuKpiBest' || id === 'stuKpiLowest') {
+                    el.title = text;
+                    const card = el.closest('.kpi-card');
+                    if (card) card.title = text;
+                }
             }
         };
 
