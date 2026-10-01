@@ -163,7 +163,7 @@
         <aside class="portal-left-sidebar" id="portalSidebar">
             <nav class="sidebar-nav">
                 <ul class="sidebar-menu-list">
-                    {% if session.get('role') == 'hod' %}
+                    {% if session.get('role') in ['hod', 'admin'] %}
                         <li>
                             <a href="{{ url_for('hod.dashboard') }}" class="sidebar-link-btn {% if request.endpoint == 'hod.dashboard' %}active{% endif %}">
                                 <i class="fa-solid fa-chart-pie me-2"></i> DASHBOARD
@@ -180,6 +180,11 @@
                             </a>
                         </li>
                         <li>
+                            <a href="{{ url_for('hod.subjects_page') }}" class="sidebar-link-btn {% if request.endpoint == 'hod.subjects_page' %}active{% endif %}">
+                                <i class="fa-solid fa-book-open me-2"></i> SUBJECTS
+                            </a>
+                        </li>
+                        <li>
                             <a href="{{ url_for('hod.attendance_analytics_page') }}" class="sidebar-link-btn {% if request.endpoint == 'hod.attendance_analytics_page' %}active{% endif %}">
                                 <i class="fa-solid fa-calendar-check me-2"></i> ATTENDANCE
                             </a>
@@ -187,6 +192,11 @@
                         <li>
                             <a href="{{ url_for('hod.marks_analytics_page') }}" class="sidebar-link-btn {% if request.endpoint == 'hod.marks_analytics_page' %}active{% endif %}">
                                 <i class="fa-solid fa-award me-2"></i> MARKS
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('hod.timetable_page') }}" class="sidebar-link-btn {% if request.endpoint == 'hod.timetable_page' %}active{% endif %}">
+                                <i class="fa-solid fa-clock me-2"></i> TIMETABLE
                             </a>
                         </li>
                         <li>
