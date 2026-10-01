@@ -163,7 +163,7 @@
         <aside class="portal-left-sidebar" id="portalSidebar">
             <nav class="sidebar-nav">
                 <ul class="sidebar-menu-list">
-                    {% if session.get('role') == 'hod' %}
+                    {% if session.get('role') in ['hod', 'admin'] %}
                         <li>
                             <a href="{{ url_for('hod.dashboard') }}" class="sidebar-link-btn {% if request.endpoint == 'hod.dashboard' %}active{% endif %}">
                                 <i class="fa-solid fa-chart-pie me-2"></i> DASHBOARD
@@ -180,6 +180,16 @@
                             </a>
                         </li>
                         <li>
+                            <a href="{{ url_for('hod.subjects_page') }}" class="sidebar-link-btn {% if request.endpoint == 'hod.subjects_page' %}active{% endif %}">
+                                <i class="fa-solid fa-book-open me-2"></i> SUBJECTS
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('hod.edit_details_page') }}" class="sidebar-link-btn {% if request.endpoint == 'hod.edit_details_page' %}active{% endif %}">
+                                <i class="fa-solid fa-pen-to-square me-2 text-warning"></i> EDIT DETAILS
+                            </a>
+                        </li>
+                        <li>
                             <a href="{{ url_for('hod.attendance_analytics_page') }}" class="sidebar-link-btn {% if request.endpoint == 'hod.attendance_analytics_page' %}active{% endif %}">
                                 <i class="fa-solid fa-calendar-check me-2"></i> ATTENDANCE
                             </a>
@@ -190,13 +200,18 @@
                             </a>
                         </li>
                         <li>
-                            <a href="{{ url_for('hod.analytics_page') }}" class="sidebar-link-btn {% if request.endpoint == 'hod.analytics_page' %}active{% endif %}">
-                                <i class="fa-solid fa-chart-line me-2"></i> ANALYTICS
+                            <a href="{{ url_for('hod.timetable_page') }}" class="sidebar-link-btn {% if request.endpoint == 'hod.timetable_page' %}active{% endif %}">
+                                <i class="fa-solid fa-calendar-days me-2"></i> TIMETABLE
                             </a>
                         </li>
                         <li>
-                            <a href="{{ url_for('hod.queries_page') }}" class="sidebar-link-btn {% if request.endpoint == 'hod.queries_page' %}active{% endif %}">
-                                <i class="fa-solid fa-clipboard-check me-2 text-warning"></i> CORRECTIONS
+                            <a href="{{ url_for('hod.reports_page') }}" class="sidebar-link-btn {% if request.endpoint == 'hod.reports_page' %}active{% endif %}">
+                                <i class="fa-solid fa-file-lines me-2"></i> REPORTS
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('hod.analytics_page') }}" class="sidebar-link-btn {% if request.endpoint == 'hod.analytics_page' %}active{% endif %}">
+                                <i class="fa-solid fa-chart-line me-2"></i> ANALYTICS
                             </a>
                         </li>
                         <li>
