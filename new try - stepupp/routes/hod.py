@@ -1,12 +1,29 @@
 import os
+from datetime import datetime
 from uuid import uuid4
 from werkzeug.utils import secure_filename
-from flask import Blueprint, render_template, jsonify, request, session, redirect, url_for, flash, current_app
+from flask import Blueprint, render_template, jsonify, request, session, redirect, url_for, flash, current_app, Response
 from routes.auth import role_required, login_required
 from db import fetch_all, fetch_one, execute
 from services.analytics import calculate_department_analytics
 from services.database_service import get_all_students, get_student_details, get_all_subjects
 from services.correction_service import get_hod_queries, get_hod_summary_stats, get_all_audit_logs, resolve_mark_correction_query, get_query_details
+from services.cache_service import api_cache
+from services.erp_service import (
+    erp_get_students, erp_get_student_by_id, erp_create_student, erp_update_student, erp_delete_student,
+    erp_get_all_staff, erp_create_staff, erp_update_staff, erp_delete_staff,
+    erp_get_all_subjects, erp_create_subject, erp_update_subject, erp_delete_subject,
+    erp_get_attendance, erp_add_attendance, erp_update_attendance, erp_delete_attendance, erp_export_attendance_csv,
+    erp_get_marks, erp_add_mark, erp_update_mark, erp_delete_mark, erp_get_marks_reports,
+    erp_get_timetable, erp_add_timetable_slot, erp_update_timetable_slot, erp_delete_timetable_slot
+)
+
+def get_current_user_meta():
+    return {
+        'user_id': session.get('user_id'),
+        'user_name': session.get('display_name', 'HOD - IT Department'),
+        'user_role': session.get('role', 'hod')
+    }
 
 hod_bp = Blueprint('hod', __name__, url_prefix='/hod')
 
@@ -17,6 +34,11 @@ ALLOWED_GALLERY_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.webp'}
 def dashboard():
     gallery_items = fetch_all("SELECT * FROM gallery ORDER BY uploaded_at DESC")
     return render_template('hod/dashboard.html', gallery_items=gallery_items)
+
+@hod_bp.route('/edit-details')
+@role_required('hod', 'admin')
+def edit_details_page():
+    return render_template('hod/edit_details.html')
 
 @hod_bp.route('/students')
 @role_required('hod')
@@ -39,55 +61,480 @@ def marks_analytics_page():
     return render_template('hod/marks.html')
 
 @hod_bp.route('/staff')
-@role_required('hod')
+@role_required('hod', 'admin')
 def staff_page():
     return render_template('hod/staff.html')
 
+@hod_bp.route('/subjects')
+@role_required('hod', 'admin')
+def subjects_page():
+    return render_template('hod/subjects.html')
+
+@hod_bp.route('/timetable')
+@role_required('hod', 'admin')
+def timetable_page():
+    return render_template('hod/timetable.html')
+
 @hod_bp.route('/analytics')
-@role_required('hod')
+@role_required('hod', 'admin')
 def analytics_page():
     return render_template('hod/analytics.html')
 
 @hod_bp.route('/reports')
-@role_required('hod')
+@role_required('hod', 'admin')
 def reports_page():
     return render_template('hod/reports.html')
 
 @hod_bp.route('/csv-upload')
-@role_required('hod')
+@role_required('hod', 'admin')
 def csv_upload_page():
     return render_template('hod/csv_upload.html')
 
-# API Endpoints
+# =========================================================================
+# ERP REST API ENDPOINTS
+# =========================================================================
+
 @hod_bp.route('/api/analytics')
-@role_required('hod')
+@role_required('hod', 'admin')
 def api_hod_analytics():
-    data = calculate_department_analytics()
+    refresh = request.args.get('refresh') in ('1', 'true', 'yes')
+    data = calculate_department_analytics(force_refresh=refresh)
     return jsonify(data)
 
-@hod_bp.route('/api/students')
-@role_required('hod')
+# --- 1. Student Management APIs ---
+@hod_bp.route('/api/students', methods=['GET', 'POST'])
+@role_required('hod', 'admin')
 def api_hod_students():
+    if request.method == 'POST':
+        data = request.get_json() if request.is_json else request.form.to_dict()
+        try:
+            res = erp_create_student(data, get_current_user_meta())
+            api_cache.invalidate('students')
+            return jsonify({'success': True, 'data': res}), 201
+        except ValueError as ve:
+            return jsonify({'error': str(ve)}), 400
+        except Exception as e:
+            return jsonify({'error': f'Failed to create student: {str(e)}'}), 500
+
+    # GET
     year = request.args.get('year')
+    department = request.args.get('department')
     subject = request.args.get('subject')
     search = request.args.get('search')
-    
-    students = get_all_students(year_filter=year, subject_filter=subject, search=search)
-    return jsonify(students)
+    status = request.args.get('status')
+    page = request.args.get('page')
+    per_page = request.args.get('per_page')
+    paginate = request.args.get('paginate') in ('1', 'true', 'yes') or page is not None
+    simple = request.args.get('simple') in ('1', 'true', 'yes')
+    refresh = request.args.get('refresh') in ('1', 'true', 'yes')
 
-@hod_bp.route('/api/student/<int:student_id>')
-@role_required('hod')
+    cache_key = f"students_{simple}_{paginate}_{page}_{per_page}_{year}_{department}_{subject}_{search}_{status}"
+    if not refresh:
+        cached = api_cache.get(cache_key)
+        if cached is not None:
+            return jsonify(cached)
+
+    if simple:
+        # Fast student list query directly on students table without heavy cross-table joins
+        query = "SELECT studentid, regno, name, department, year, section, email, phone FROM students WHERE 1=1"
+        params = []
+        if department and department != 'All':
+            query += " AND (department = %s OR department = %s)"
+            dept_map = {'Information Technology': 'IT', 'IT': 'Information Technology', 'Computer Science': 'CSE', 'CSE': 'Computer Science', 'Artificial Intelligence': 'AI', 'AI': 'Artificial Intelligence'}
+            params.extend([department, dept_map.get(department, department)])
+        if year and year != 'All':
+            query += " AND year = %s"
+            params.append(year)
+        if search:
+            query += " AND (name LIKE %s OR regno LIKE %s OR email LIKE %s)"
+            s_term = f"%{search.strip()}%"
+            params.extend([s_term, s_term, s_term])
+        query += " ORDER BY regno ASC"
+        students = fetch_all(query, tuple(params)) or []
+        for s in students:
+            s['status'] = 'Active'
+            s['at_risk'] = False
+        api_cache.set(cache_key, students, ttl=60)
+        return jsonify(students)
+
+    if paginate:
+        p = int(page or 1)
+        pp = int(per_page or 20)
+        res = erp_get_students(search=search, department=department, year=year, status=status, page=p, per_page=pp)
+        api_cache.set(cache_key, res, ttl=45)
+        return jsonify(res)
+    else:
+        # Backward-compatible list for analytics pages
+        students = get_all_students(year_filter=year, subject_filter=subject, search=search)
+        api_cache.set(cache_key, students, ttl=45)
+        return jsonify(students)
+
+@hod_bp.route('/api/student/<int:student_id>', methods=['GET', 'PUT', 'PATCH', 'DELETE'])
+@role_required('hod', 'admin')
 def api_hod_student_detail(student_id):
-    data = get_student_details(student_id)
+    if request.method == 'DELETE':
+        try:
+            res = erp_delete_student(student_id, get_current_user_meta())
+            api_cache.invalidate('students')
+            return jsonify({'success': True, 'data': res})
+        except ValueError as ve:
+            return jsonify({'error': str(ve)}), 404
+        except Exception as e:
+            return jsonify({'error': f'Failed to delete student: {str(e)}'}), 500
+
+    if request.method in ('PUT', 'PATCH'):
+        data = request.get_json() if request.is_json else request.form.to_dict()
+        try:
+            res = erp_update_student(student_id, data, get_current_user_meta())
+            api_cache.invalidate('students')
+            return jsonify({'success': True, 'data': res})
+        except ValueError as ve:
+            return jsonify({'error': str(ve)}), 400
+        except Exception as e:
+            return jsonify({'error': f'Failed to update student: {str(e)}'}), 500
+
+    # GET
+    data = erp_get_student_by_id(student_id)
     if not data:
         return jsonify({'error': 'Student not found.'}), 404
     return jsonify(data)
 
-@hod_bp.route('/api/subjects')
-@role_required('hod')
+
+# --- 2. Staff Management APIs ---
+@hod_bp.route('/api/staff', methods=['GET', 'POST'])
+@role_required('hod', 'admin')
+def api_hod_staff():
+    if request.method == 'POST':
+        data = request.get_json() if request.is_json else request.form.to_dict()
+        try:
+            res = erp_create_staff(data, get_current_user_meta())
+            api_cache.invalidate('staff')
+            return jsonify({'success': True, 'data': res}), 201
+        except ValueError as ve:
+            return jsonify({'error': str(ve)}), 400
+        except Exception as e:
+            return jsonify({'error': f'Failed to create staff: {str(e)}'}), 500
+
+    search = request.args.get('search')
+    department = request.args.get('department')
+    refresh = request.args.get('refresh') in ('1', 'true', 'yes')
+    cache_key = f"staff_{search}_{department}"
+    if not refresh:
+        cached = api_cache.get(cache_key)
+        if cached is not None:
+            return jsonify(cached)
+
+    staff_members = erp_get_all_staff(search=search, department=department)
+    res = {'staff': staff_members}
+    api_cache.set(cache_key, res, ttl=60)
+    return jsonify(res)
+
+@hod_bp.route('/api/staff/<int:staff_id>', methods=['PUT', 'PATCH', 'DELETE'])
+@role_required('hod', 'admin')
+def api_hod_staff_detail(staff_id):
+    if request.method == 'DELETE':
+        try:
+            res = erp_delete_staff(staff_id, get_current_user_meta())
+            api_cache.invalidate('staff')
+            return jsonify({'success': True, 'data': res})
+        except ValueError as ve:
+            return jsonify({'error': str(ve)}), 404
+        except Exception as e:
+            return jsonify({'error': f'Failed to delete faculty member: {str(e)}'}), 500
+
+    data = request.get_json() if request.is_json else request.form.to_dict()
+    try:
+        res = erp_update_staff(staff_id, data, get_current_user_meta())
+        api_cache.invalidate('staff')
+        return jsonify({'success': True, 'data': res})
+    except ValueError as ve:
+        return jsonify({'error': str(ve)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Failed to update faculty member: {str(e)}'}), 500
+
+
+# --- 3. Subject Management APIs ---
+@hod_bp.route('/api/subjects', methods=['GET', 'POST'])
+@role_required('hod', 'admin')
 def api_hod_subjects():
-    subjects = get_all_subjects()
-    return jsonify(subjects)
+    if request.method == 'POST':
+        data = request.get_json() if request.is_json else request.form.to_dict()
+        try:
+            res = erp_create_subject(data, get_current_user_meta())
+            api_cache.invalidate('subjects')
+            return jsonify({'success': True, 'data': res}), 201
+        except ValueError as ve:
+            return jsonify({'error': str(ve)}), 400
+        except Exception as e:
+            return jsonify({'error': f'Failed to create subject: {str(e)}'}), 500
+
+    detailed = request.args.get('detailed') in ('1', 'true', 'yes')
+    search = request.args.get('search')
+    department = request.args.get('department')
+    semester = request.args.get('semester')
+    refresh = request.args.get('refresh') in ('1', 'true', 'yes')
+    cache_key = f"subjects_{detailed}_{department}_{semester}_{search}"
+    if not refresh:
+        cached = api_cache.get(cache_key)
+        if cached is not None:
+            return jsonify(cached)
+
+    if detailed:
+        subjects = erp_get_all_subjects(department=department, semester=semester, search=search)
+        res = {'subjects': subjects}
+        api_cache.set(cache_key, res, ttl=60)
+        return jsonify(res)
+    else:
+        # Standard list for dropdowns
+        subjects = get_all_subjects()
+        api_cache.set(cache_key, subjects, ttl=60)
+        return jsonify(subjects)
+
+@hod_bp.route('/api/subject/<subject_code>', methods=['PUT', 'PATCH', 'DELETE'])
+@role_required('hod', 'admin')
+def api_hod_subject_detail(subject_code):
+    if request.method == 'DELETE':
+        try:
+            res = erp_delete_subject(subject_code, get_current_user_meta())
+            api_cache.invalidate('subjects')
+            return jsonify({'success': True, 'data': res})
+        except ValueError as ve:
+            return jsonify({'error': str(ve)}), 404
+        except Exception as e:
+            return jsonify({'error': f'Failed to delete subject: {str(e)}'}), 500
+
+    data = request.get_json() if request.is_json else request.form.to_dict()
+    try:
+        res = erp_update_subject(subject_code, data, get_current_user_meta())
+        api_cache.invalidate('subjects')
+        return jsonify({'success': True, 'data': res})
+    except ValueError as ve:
+        return jsonify({'error': str(ve)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Failed to update subject: {str(e)}'}), 500
+
+
+# --- 4. Attendance Management APIs ---
+@hod_bp.route('/api/attendance', methods=['GET', 'POST'])
+@role_required('hod', 'admin')
+def api_hod_attendance():
+    if request.method == 'POST':
+        data = request.get_json() if request.is_json else request.form.to_dict()
+        try:
+            res = erp_add_attendance(data, get_current_user_meta())
+            api_cache.invalidate('att')
+            return jsonify({'success': True, 'data': res}), 201
+        except Exception as e:
+            return jsonify({'error': f'Failed to record attendance: {str(e)}'}), 500
+
+    date_filter = request.args.get('date')
+    subject_id = request.args.get('subject_id')
+    student_id = request.args.get('student_id')
+    status_filter = request.args.get('status')
+    search = request.args.get('search')
+    page = int(request.args.get('page', 1))
+    per_page = int(request.args.get('per_page', 25))
+    refresh = request.args.get('refresh') in ('1', 'true', 'yes')
+
+    cache_key = f"att_{date_filter}_{subject_id}_{student_id}_{status_filter}_{search}_{page}_{per_page}"
+    if not refresh:
+        cached = api_cache.get(cache_key)
+        if cached is not None:
+            return jsonify(cached)
+
+    res = erp_get_attendance(
+        date_filter=date_filter,
+        subject_id=subject_id,
+        student_id=student_id,
+        status_filter=status_filter,
+        search=search,
+        page=page,
+        per_page=per_page
+    )
+    api_cache.set(cache_key, res, ttl=60)
+    return jsonify(res)
+
+@hod_bp.route('/api/attendance/<int:att_id>', methods=['PUT', 'PATCH', 'DELETE'])
+@role_required('hod', 'admin')
+def api_hod_attendance_detail(att_id):
+    if request.method == 'DELETE':
+        try:
+            res = erp_delete_attendance(att_id, get_current_user_meta())
+            api_cache.invalidate('att')
+            return jsonify({'success': True, 'data': res})
+        except ValueError as ve:
+            return jsonify({'error': str(ve)}), 404
+        except Exception as e:
+            return jsonify({'error': f'Failed to delete attendance record: {str(e)}'}), 500
+
+    data = request.get_json() if request.is_json else request.form.to_dict()
+    try:
+        res = erp_update_attendance(att_id, data, get_current_user_meta())
+        api_cache.invalidate('att')
+        return jsonify({'success': True, 'data': res})
+    except ValueError as ve:
+        return jsonify({'error': str(ve)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Failed to update attendance record: {str(e)}'}), 500
+
+@hod_bp.route('/api/attendance/export')
+@role_required('hod', 'admin')
+def api_hod_attendance_export():
+    date_filter = request.args.get('date')
+    subject_id = request.args.get('subject_id')
+    search = request.args.get('search')
+
+    csv_data = erp_export_attendance_csv(date_filter=date_filter, subject_id=subject_id, search=search)
+    filename = f"attendance_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    return Response(
+        csv_data,
+        mimetype="text/csv",
+        headers={"Content-disposition": f"attachment; filename={filename}"}
+    )
+
+
+# --- 5. Internal Marks Management APIs ---
+@hod_bp.route('/api/marks', methods=['GET', 'POST'])
+@role_required('hod', 'admin')
+def api_hod_marks():
+    if request.method == 'POST':
+        data = request.get_json() if request.is_json else request.form.to_dict()
+        try:
+            res = erp_add_mark(data, get_current_user_meta())
+            api_cache.invalidate('marks')
+            return jsonify({'success': True, 'data': res}), 201
+        except ValueError as ve:
+            return jsonify({'error': str(ve)}), 400
+        except Exception as e:
+            return jsonify({'error': f'Failed to record mark: {str(e)}'}), 500
+
+    student_id = request.args.get('student_id')
+    subject_id = request.args.get('subject_id')
+    test_number = request.args.get('test_number')
+    search = request.args.get('search')
+    page = int(request.args.get('page', 1))
+    per_page = int(request.args.get('per_page', 25))
+    refresh = request.args.get('refresh') in ('1', 'true', 'yes')
+
+    cache_key = f"marks_{student_id}_{subject_id}_{test_number}_{search}_{page}_{per_page}"
+    if not refresh:
+        cached = api_cache.get(cache_key)
+        if cached is not None:
+            return jsonify(cached)
+
+    res = erp_get_marks(
+        student_id=student_id,
+        subject_id=subject_id,
+        test_number=test_number,
+        search=search,
+        page=page,
+        per_page=per_page
+    )
+    api_cache.set(cache_key, res, ttl=60)
+    return jsonify(res)
+
+@hod_bp.route('/api/marks/<int:mark_id>', methods=['PUT', 'PATCH', 'DELETE'])
+@role_required('hod', 'admin')
+def api_hod_mark_detail(mark_id):
+    if request.method == 'DELETE':
+        try:
+            res = erp_delete_mark(mark_id, get_current_user_meta())
+            api_cache.invalidate('marks')
+            return jsonify({'success': True, 'data': res})
+        except ValueError as ve:
+            return jsonify({'error': str(ve)}), 404
+        except Exception as e:
+            return jsonify({'error': f'Failed to delete mark: {str(e)}'}), 500
+
+    data = request.get_json() if request.is_json else request.form.to_dict()
+    try:
+        res = erp_update_mark(mark_id, data, get_current_user_meta())
+        api_cache.invalidate('marks')
+        return jsonify({'success': True, 'data': res})
+    except ValueError as ve:
+        return jsonify({'error': str(ve)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Failed to update mark: {str(e)}'}), 500
+
+@hod_bp.route('/api/marks/reports')
+@role_required('hod', 'admin')
+def api_hod_marks_reports():
+    report_type = request.args.get('type', 'student')
+    student_id = request.args.get('student_id')
+    subject_id = request.args.get('subject_id')
+    semester = request.args.get('semester')
+    refresh = request.args.get('refresh') in ('1', 'true', 'yes')
+
+    cache_key = f"mreports_{report_type}_{student_id}_{subject_id}_{semester}"
+    if not refresh:
+        cached = api_cache.get(cache_key)
+        if cached is not None:
+            return jsonify({'report': cached})
+
+    data = erp_get_marks_reports(
+        report_type=report_type,
+        student_id=student_id,
+        subject_id=subject_id,
+        semester=semester
+    )
+    api_cache.set(cache_key, data, ttl=60)
+    return jsonify({'report': data})
+
+
+# --- 6. Timetable Management APIs ---
+@hod_bp.route('/api/timetable', methods=['GET', 'POST'])
+@role_required('hod', 'admin')
+def api_hod_timetable():
+    if request.method == 'POST':
+        data = request.get_json() if request.is_json else request.form.to_dict()
+        try:
+            res = erp_add_timetable_slot(data, get_current_user_meta())
+            api_cache.invalidate('tt')
+            return jsonify({'success': True, 'data': res}), 201
+        except ValueError as ve:
+            return jsonify({'error': str(ve)}), 400
+        except Exception as e:
+            return jsonify({'error': f'Failed to add timetable slot: {str(e)}'}), 500
+
+    year = request.args.get('year', 'Third year')
+    section = request.args.get('section', 'A')
+    day = request.args.get('day')
+    refresh = request.args.get('refresh') in ('1', 'true', 'yes')
+
+    cache_key = f"tt_{year}_{section}_{day}"
+    if not refresh:
+        cached = api_cache.get(cache_key)
+        if cached is not None:
+            return jsonify(cached)
+
+    data = erp_get_timetable(year=year, section=section, day=day)
+    api_cache.set(cache_key, data, ttl=120)
+    return jsonify(data)
+
+@hod_bp.route('/api/timetable/<int:slot_id>', methods=['PUT', 'PATCH', 'DELETE'])
+@role_required('hod', 'admin')
+def api_hod_timetable_detail(slot_id):
+    if request.method == 'DELETE':
+        try:
+            res = erp_delete_timetable_slot(slot_id, get_current_user_meta())
+            api_cache.invalidate('tt')
+            return jsonify({'success': True, 'data': res})
+        except ValueError as ve:
+            return jsonify({'error': str(ve)}), 404
+        except Exception as e:
+            return jsonify({'error': f'Failed to delete timetable slot: {str(e)}'}), 500
+
+    data = request.get_json() if request.is_json else request.form.to_dict()
+    try:
+        res = erp_update_timetable_slot(slot_id, data, get_current_user_meta())
+        api_cache.invalidate('tt')
+        return jsonify({'success': True, 'data': res})
+    except ValueError as ve:
+        return jsonify({'error': str(ve)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Failed to update timetable slot: {str(e)}'}), 500
+
+
 
 # Gallery Management Endpoints
 @hod_bp.route('/gallery/upload', methods=['POST'])
@@ -187,7 +634,7 @@ def gallery_delete(photo_id):
 @hod_bp.route('/queries')
 @role_required('hod')
 def queries_page():
-    return render_template('hod/queries.html')
+    return redirect(url_for('hod.edit_details_page'))
 
 
 @hod_bp.route('/api/queries/summary')

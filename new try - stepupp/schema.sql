@@ -64,3 +64,19 @@ CREATE TABLE IF NOT EXISTS audit_log (
     changed_at          DATETIME DEFAULT CURRENT_TIMESTAMP,
     notes               TEXT NULL
 );
+
+-- College Timetable Management Schema
+CREATE TABLE IF NOT EXISTS timetable (
+    id            INT AUTO_INCREMENT PRIMARY KEY,
+    day_of_week   VARCHAR(20) NOT NULL,
+    period_number INT NOT NULL,
+    time_slot     VARCHAR(60) NOT NULL,
+    subject_code  VARCHAR(20) NOT NULL,
+    staff_id      INT NULL,
+    classroom     VARCHAR(50) NOT NULL,
+    year          VARCHAR(20) NOT NULL DEFAULT 'Third year',
+    section       VARCHAR(10) NOT NULL DEFAULT 'A',
+    created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (subject_code) REFERENCES subjects(subject_code) ON DELETE CASCADE,
+    FOREIGN KEY (staff_id) REFERENCES staff(staffid) ON DELETE SET NULL
+);

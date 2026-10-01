@@ -1,61 +1,402 @@
 {% extends "base.html" %}
-{% block title %}Faculty Members Directory - HOD Panel{% endblock %}
-{% block breadcrumb %}Staff Directory{% endblock %}
+{% block title %}Faculty &amp; Staff Management - ERP Panel{% endblock %}
+{% block breadcrumb %}Staff Management{% endblock %}
 
 {% block content %}
-<div class="page-header">
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3">
     <div>
-        <h1 class="page-title"><i class="fa-solid fa-chalkboard-user me-2 text-gold"></i> Faculty Members Directory</h1>
-        <div class="page-subtitle">Department faculty list, teaching subject assignments, and student benchmarks</div>
+        <h1 class="page-title"><i class="fa-solid fa-chalkboard-user me-2 text-warning"></i> Faculty &amp; Staff Management</h1>
+        <div class="page-subtitle">Department faculty directory, teaching subject assignments, and live database staff records</div>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-warning text-dark fw-bold px-3 shadow-sm" onclick="openAddStaffModal()">
+            <i class="fa-solid fa-user-plus me-1"></i> Add Faculty
+        </button>
+        <button class="btn btn-outline-secondary fs-7" onclick="loadStaff(true)">
+            <i class="fa-solid fa-rotate me-1"></i> Refresh
+        </button>
     </div>
 </div>
 
-<div class="custom-table-card p-4">
+<!-- ALERT BANNER -->
+<div id="alertContainer"></div>
+
+<!-- FILTERS CARD -->
+<div class="analytics-card mb-4">
+    <div class="row g-3 align-items-center">
+        <div class="col-md-5">
+            <label class="form-label fw-semibold fs-7 text-secondary">Search Faculty</label>
+            <div class="input-group">
+                <span class="input-group-text bg-light"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                <input type="text" id="staffSearchInput" class="form-control" placeholder="Search by Faculty Name, Subject, Email..." oninput="filterStaff()">
+            </div>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label fw-semibold fs-7 text-secondary">Filter by Department</label>
+            <select id="staffDeptFilter" class="form-select" onchange="filterStaff()">
+                <option value="All">All Departments</option>
+                <option value="Information Technology" selected>Information Technology</option>
+                <option value="Computer Science">Computer Science</option>
+                <option value="Artificial Intelligence">Artificial Intelligence</option>
+            </select>
+        </div>
+        <div class="col-md-3 text-end">
+            <button class="btn btn-outline-secondary w-100 mt-4 fs-7" onclick="resetStaffFilters()">
+                <i class="fa-solid fa-rotate-left me-1"></i> Reset Filters
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- STAFF DIRECTORY TABLE -->
+<div class="custom-table-card shadow-sm">
     <div class="table-responsive">
-        <table class="table table-custom align-middle">
+        <table class="table table-custom align-middle mb-0">
             <thead>
                 <tr>
                     <th>Staff ID</th>
-                    <th>Faculty Name</th>
+                    <th>Faculty Name &amp; Designation</th>
                     <th>Department</th>
-                    <th>Assigned Subject</th>
+                    <th>Contact Info</th>
+                    <th>Assigned Subject(s)</th>
                     <th>Status</th>
+                    <th class="text-center" style="min-width: 140px;">Actions</th>
                 </tr>
             </thead>
-            <tbody id="hodStaffTableBody">
-                <tr><td colspan="5" class="text-center py-4 text-muted">Loading faculty directory...</td></tr>
+            <tbody id="staffTableBody">
+                <tr><td colspan="7" class="text-center py-5 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Fetching faculty directory from MySQL...</td></tr>
             </tbody>
         </table>
     </div>
+    <div class="p-3 d-flex justify-content-between align-items-center bg-light border-top">
+        <span class="fs-7 text-muted" id="staffCountText">Showing faculty members</span>
+    </div>
 </div>
+
+<!-- ADD / EDIT STAFF MODAL -->
+<div class="modal fade" id="staffFormModal" tabindex="-1" aria-labelledby="staffModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-navy text-white">
+                <h5 class="modal-title fw-bold" id="staffModalTitle">
+                    <i class="fa-solid fa-user-plus text-warning me-2"></i> Add New Faculty Member
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="staffForm" onsubmit="handleSaveStaff(event)">
+                <div class="modal-body p-4">
+                    <input type="hidden" id="staffEditId" value="">
+                    <div class="row g-3">
+                        <div class="col-md-7">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Faculty Full Name <span class="text-danger">*</span></label>
+                            <input type="text" id="staffFormName" class="form-control" placeholder="e.g. Dr. K. AHAMED" required>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Designation</label>
+                            <select id="staffFormDesignation" class="form-select">
+                                <option value="Assistant Professor" selected>Assistant Professor</option>
+                                <option value="Associate Professor">Associate Professor</option>
+                                <option value="Professor">Professor</option>
+                                <option value="Head of Department">Head of Department</option>
+                                <option value="Lecturer">Lecturer</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Department <span class="text-danger">*</span></label>
+                            <select id="staffFormDept" class="form-select" required>
+                                <option value="Information Technology" selected>Information Technology</option>
+                                <option value="Computer Science">Computer Science</option>
+                                <option value="Artificial Intelligence">Artificial Intelligence</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Assigned Subject / Specialization</label>
+                            <input type="text" id="staffFormSubjects" class="form-control" placeholder="e.g. Distributed Computing, Cloud">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Email Address</label>
+                            <input type="email" id="staffFormEmail" class="form-control" placeholder="e.g. faculty@msec.org.in">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Contact Phone</label>
+                            <input type="tel" id="staffFormPhone" class="form-control" placeholder="e.g. +91 9840123456">
+                        </div>
+                    </div>
+                    <div class="alert alert-info mt-3 py-2 px-3 fs-8 mb-0">
+                        <i class="fa-solid fa-circle-info me-1"></i> A login account (username: <code>staff&lt;ID&gt;</code>, password: <code>staff123</code>) is automatically generated for this faculty member.
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="saveStaffBtn" class="btn btn-warning text-dark fw-bold px-4">
+                        <i class="fa-solid fa-check me-1"></i> Save Faculty
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- DELETE CONFIRMATION MODAL -->
+<div class="modal fade" id="deleteStaffModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-triangle-exclamation me-2"></i> Confirm Staff Removal</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="mb-2">Are you sure you want to remove faculty member:</p>
+                <div class="p-3 bg-light rounded border mb-3">
+                    <div class="fw-bold text-navy fs-6" id="deleteStaffName">---</div>
+                    <div class="text-muted fs-7" id="deleteStaffSubjects">---</div>
+                </div>
+                <div class="text-danger fs-8">
+                    <i class="fa-solid fa-circle-exclamation me-1"></i> This will remove the staff profile, unassign them from active subjects, and remove their faculty login account.
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="confirmDeleteStaffBtn" class="btn btn-danger fw-bold" onclick="executeDeleteStaff()">
+                    <i class="fa-solid fa-trash-can me-1"></i> Delete Faculty
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
 <script>
-    async function loadHodStaff() {
+    let allStaffData = [];
+    let staffModalInstance = null;
+    let deleteStaffModalInstance = null;
+    let pendingDeleteStaffId = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        staffModalInstance = new bootstrap.Modal(document.getElementById('staffFormModal'));
+        deleteStaffModalInstance = new bootstrap.Modal(document.getElementById('deleteStaffModal'));
+        loadStaff();
+    });
+
+    function showStaffAlert(message, type = 'success') {
+        const container = document.getElementById('alertContainer');
+        container.innerHTML = `
+            <div class="alert alert-${type} alert-dismissible fade show shadow-sm mb-4" role="alert">
+                <i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+        setTimeout(() => {
+            const el = container.querySelector('.alert');
+            if (el) bootstrap.Alert.getOrCreateInstance(el).close();
+        }, 5000);
+    }
+
+    async function loadStaff(forceRefresh = false) {
+        const tbody = document.getElementById('staffTableBody');
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-5 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Synchronizing faculty members...</td></tr>`;
+
         try {
-            const res = await fetch('/hod/api/subjects');
-            const subjects = await res.json();
-
-            const tbody = document.getElementById('hodStaffTableBody');
-            if (!subjects || subjects.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">No faculty members found.</td></tr>`;
-                return;
+            const res = await fetch('/hod/api/staff');
+            if (res.ok) {
+                const data = await res.json();
+                allStaffData = data.staff || [];
+                filterStaff();
+            } else {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-danger"><i class="fa-solid fa-triangle-exclamation me-1"></i> Failed to load faculty list.</td></tr>`;
             }
-
-            tbody.innerHTML = subjects.map((s, idx) => `
-                <tr>
-                    <td class="font-monospace fw-bold">STF-10${idx+1}</td>
-                    <td class="fw-semibold">${s.staff_name || 'Prof. MSEC Faculty'}</td>
-                    <td><span class="badge bg-light text-dark font-monospace">Information Technology</span></td>
-                    <td class="fw-bold text-navy">${s.subject_code} - ${s.subject_name}</td>
-                    <td><span class="badge-status badge-normal"><i class="fa-solid fa-circle-check me-1"></i> Active</span></td>
-                </tr>
-            `).join('');
         } catch (e) {
-            console.error('Error loading staff list:', e);
+            console.error('Error loading staff:', e);
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-danger"><i class="fa-solid fa-triangle-exclamation me-1"></i> Network error loading staff directory.</td></tr>`;
         }
     }
-    document.addEventListener('DOMContentLoaded', loadHodStaff);
+
+    function filterStaff() {
+        const search = document.getElementById('staffSearchInput').value.toLowerCase().trim();
+        const dept = document.getElementById('staffDeptFilter').value;
+
+        const filtered = allStaffData.filter(s => {
+            const matchesSearch = !search ||
+                (s.name && s.name.toLowerCase().includes(search)) ||
+                (s.subjects && s.subjects.toLowerCase().includes(search)) ||
+                (s.email && s.email.toLowerCase().includes(search));
+
+            const matchesDept = dept === 'All' || (s.department || 'Information Technology') === dept;
+            return matchesSearch && matchesDept;
+        });
+
+        renderStaffTable(filtered);
+    }
+
+    function resetStaffFilters() {
+        document.getElementById('staffSearchInput').value = '';
+        document.getElementById('staffDeptFilter').value = 'All';
+        filterStaff();
+    }
+
+    function renderStaffTable(staffList) {
+        const tbody = document.getElementById('staffTableBody');
+        document.getElementById('staffCountText').innerText = `Showing ${staffList.length} faculty members`;
+
+        if (!staffList || staffList.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-5 text-muted">No faculty members found matching your search.</td></tr>`;
+            return;
+        }
+
+        let html = '';
+        staffList.forEach(s => {
+            const subDisplay = s.detailed_subjects || s.subjects || '<span class="text-muted">No active assignment</span>';
+            const emailDisplay = s.email ? `<i class="fa-regular fa-envelope me-1"></i> ${s.email}` : '<span class="text-muted">No email</span>';
+            const phoneDisplay = s.phone ? `<br><i class="fa-solid fa-phone me-1"></i> ${s.phone}` : '';
+
+            html += `
+                <tr>
+                    <td class="font-monospace fw-bold text-navy">STF-${String(s.staffid).padStart(3, '0')}</td>
+                    <td>
+                        <div class="fw-bold text-dark">${s.name}</div>
+                        <div class="fs-8 text-secondary">${s.designation || 'Assistant Professor'}</div>
+                    </td>
+                    <td>
+                        <span class="badge bg-light text-dark border font-monospace fs-8">${s.department || 'Information Technology'}</span>
+                    </td>
+                    <td>
+                        <div class="fs-8 text-secondary">${emailDisplay}${phoneDisplay}</div>
+                    </td>
+                    <td>
+                        <span class="fw-semibold text-navy fs-8">${subDisplay}</span>
+                    </td>
+                    <td>
+                        <span class="badge-status badge-normal"><i class="fa-solid fa-circle-check me-1"></i> Active</span>
+                    </td>
+                    <td class="text-center">
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-warning text-dark" title="Edit Faculty" onclick="openEditStaffModal(${s.staffid})">
+                                <i class="fa-solid fa-pen-to-square"></i> Edit
+                            </button>
+                            <button type="button" class="btn btn-outline-danger" title="Delete Faculty" onclick="promptDeleteStaff(${s.staffid}, '${escapeHtml(s.name)}', '${escapeHtml(s.subjects || '')}')">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = html;
+    }
+
+    function openAddStaffModal() {
+        document.getElementById('staffForm').reset();
+        document.getElementById('staffEditId').value = '';
+        document.getElementById('staffModalTitle').innerHTML = '<i class="fa-solid fa-user-plus text-warning me-2"></i> Add New Faculty Member';
+        staffModalInstance.show();
+    }
+
+    function openEditStaffModal(staffId) {
+        const staff = allStaffData.find(s => s.staffid == staffId);
+        if (!staff) return;
+
+        document.getElementById('staffEditId').value = staff.staffid;
+        document.getElementById('staffFormName').value = staff.name || '';
+        document.getElementById('staffFormDesignation').value = staff.designation || 'Assistant Professor';
+        document.getElementById('staffFormDept').value = staff.department || 'Information Technology';
+        document.getElementById('staffFormSubjects').value = staff.subjects || '';
+        document.getElementById('staffFormEmail').value = staff.email || '';
+        document.getElementById('staffFormPhone').value = staff.phone || '';
+
+        document.getElementById('staffModalTitle').innerHTML = '<i class="fa-solid fa-user-pen text-warning me-2"></i> Edit Faculty Profile';
+        staffModalInstance.show();
+    }
+
+    async function handleSaveStaff(event) {
+        event.preventDefault();
+        const btn = document.getElementById('saveStaffBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
+
+        const editId = document.getElementById('staffEditId').value;
+        const payload = {
+            name: document.getElementById('staffFormName').value.trim(),
+            designation: document.getElementById('staffFormDesignation').value,
+            department: document.getElementById('staffFormDept').value,
+            subjects: document.getElementById('staffFormSubjects').value.trim(),
+            email: document.getElementById('staffFormEmail').value.trim(),
+            phone: document.getElementById('staffFormPhone').value.trim()
+        };
+
+        try {
+            let res;
+            if (editId) {
+                res = await fetch(`/hod/api/staff/${editId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            } else {
+                res = await fetch('/hod/api/staff', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            }
+
+            const data = await res.json();
+            if (res.ok && data.success) {
+                staffModalInstance.hide();
+                showStaffAlert(editId ? `Faculty "${payload.name}" updated successfully in database!` : `Faculty member "${payload.name}" added successfully!`);
+                await loadStaff(true);
+            } else {
+                alert(`Error: ${data.error || 'Failed to save faculty record.'}`);
+            }
+        } catch (e) {
+            console.error('Error saving faculty:', e);
+            alert('A network error occurred while updating the database.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Save Faculty';
+        }
+    }
+
+    function promptDeleteStaff(staffId, name, subjects) {
+        pendingDeleteStaffId = staffId;
+        document.getElementById('deleteStaffName').innerText = name;
+        document.getElementById('deleteStaffSubjects').innerText = subjects ? `Assigned: ${subjects}` : 'No active subjects';
+        deleteStaffModalInstance.show();
+    }
+
+    async function executeDeleteStaff() {
+        if (!pendingDeleteStaffId) return;
+        const btn = document.getElementById('confirmDeleteStaffBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Deleting...';
+
+        try {
+            const res = await fetch(`/hod/api/staff/${pendingDeleteStaffId}`, {
+                method: 'DELETE'
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                deleteStaffModalInstance.hide();
+                showStaffAlert('Faculty member removed successfully from live database.', 'warning');
+                await loadStaff(true);
+            } else {
+                alert(`Error: ${data.error || 'Failed to delete faculty member.'}`);
+            }
+        } catch (e) {
+            console.error('Error deleting faculty:', e);
+            alert('Network error while deleting faculty.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-trash-can me-1"></i> Delete Faculty';
+            pendingDeleteStaffId = null;
+        }
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    }
 </script>
 {% endblock %}

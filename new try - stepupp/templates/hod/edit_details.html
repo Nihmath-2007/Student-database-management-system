@@ -1,0 +1,2133 @@
+{% extends "base.html" %}
+{% block title %}Department Master Details Editor - HOD Portal{% endblock %}
+{% block breadcrumb %}Edit Details{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+        <h1 class="page-title"><i class="fa-solid fa-pen-to-square me-2 text-warning"></i> Master Edit Details Hub</h1>
+        <div class="page-subtitle">Centralized administrative console to add, edit, inspect, and update live records across all department entities</div>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-warning text-dark fw-bold px-3 shadow-sm" onclick="openActiveTabAddModal()">
+            <i class="fa-solid fa-plus me-1"></i> <span id="quickAddBtnLabel">Add Record</span>
+        </button>
+        <button class="btn btn-outline-secondary fs-7" onclick="refreshActiveTab()">
+            <i class="fa-solid fa-rotate me-1"></i> Refresh
+        </button>
+    </div>
+</div>
+
+<!-- ALERT BANNER -->
+<div id="alertContainer"></div>
+
+<!-- 1. SUMMARY QUICK JUMP CARDS -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-2 col-md-4 col-sm-6">
+        <div class="kpi-card text-center p-3 h-100" style="cursor: pointer;" onclick="switchEditTab('students')" title="Click to edit students">
+            <div class="kpi-icon mx-auto mb-2 text-primary" style="background: rgba(13, 110, 253, 0.1);">
+                <i class="fa-solid fa-user-graduate"></i>
+            </div>
+            <div class="kpi-value fs-4" id="statStudentCount">--</div>
+            <div class="fw-bold text-navy fs-7">Students</div>
+            <div class="fs-8 text-muted mt-1">Profile &amp; Enrollment</div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-sm-6">
+        <div class="kpi-card text-center p-3 h-100" style="cursor: pointer;" onclick="switchEditTab('staff')" title="Click to edit faculty">
+            <div class="kpi-icon mx-auto mb-2 text-info" style="background: rgba(13, 202, 240, 0.1);">
+                <i class="fa-solid fa-chalkboard-user"></i>
+            </div>
+            <div class="kpi-value fs-4" id="statStaffCount">--</div>
+            <div class="fw-bold text-navy fs-7">Faculty &amp; Staff</div>
+            <div class="fs-8 text-muted mt-1">Designations &amp; Roles</div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-sm-6">
+        <div class="kpi-card text-center p-3 h-100" style="cursor: pointer;" onclick="switchEditTab('subjects')" title="Click to edit subjects">
+            <div class="kpi-icon mx-auto mb-2 text-success" style="background: rgba(25, 135, 84, 0.1);">
+                <i class="fa-solid fa-book-open"></i>
+            </div>
+            <div class="kpi-value fs-4" id="statSubjectCount">--</div>
+            <div class="fw-bold text-navy fs-7">Subjects</div>
+            <div class="fs-8 text-muted mt-1">Syllabus &amp; Credits</div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-sm-6">
+        <div class="kpi-card text-center p-3 h-100" style="cursor: pointer;" onclick="switchEditTab('marks')" title="Click to edit marks">
+            <div class="kpi-icon mx-auto mb-2 text-warning" style="background: rgba(255, 193, 7, 0.15);">
+                <i class="fa-solid fa-award"></i>
+            </div>
+            <div class="kpi-value fs-4" id="statMarksCount">--</div>
+            <div class="fw-bold text-navy fs-7">Internal Marks</div>
+            <div class="fs-8 text-muted mt-1">Scores &amp; Assessments</div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-sm-6">
+        <div class="kpi-card text-center p-3 h-100" style="cursor: pointer;" onclick="switchEditTab('attendance')" title="Click to edit attendance">
+            <div class="kpi-icon mx-auto mb-2 text-danger" style="background: rgba(220, 53, 69, 0.1);">
+                <i class="fa-solid fa-calendar-check"></i>
+            </div>
+            <div class="kpi-value fs-4" id="statAttCount">--</div>
+            <div class="fw-bold text-navy fs-7">Attendance</div>
+            <div class="fs-8 text-muted mt-1">Daily Logs &amp; Status</div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-sm-6">
+        <div class="kpi-card text-center p-3 h-100" style="cursor: pointer;" onclick="switchEditTab('timetable')" title="Click to edit timetable">
+            <div class="kpi-icon mx-auto mb-2 text-secondary" style="background: rgba(108, 117, 125, 0.1);">
+                <i class="fa-solid fa-calendar-days"></i>
+            </div>
+            <div class="kpi-value fs-4" id="statTtCount">--</div>
+            <div class="fw-bold text-navy fs-7">Timetable</div>
+            <div class="fs-8 text-muted mt-1">Schedules &amp; Labs</div>
+        </div>
+    </div>
+</div>
+
+<!-- 2. EDIT NAVIGATION PILLS -->
+<ul class="nav nav-pills mb-4 gap-2 border-bottom pb-3" id="editCategoryTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active fw-bold px-3 py-2" id="tab-students-btn" data-bs-toggle="pill" data-bs-target="#tabStudentsPane" type="button" role="tab" onclick="onTabChanged('students')">
+            <i class="fa-solid fa-user-graduate me-2"></i> Student Details
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-bold px-3 py-2" id="tab-staff-btn" data-bs-toggle="pill" data-bs-target="#tabStaffPane" type="button" role="tab" onclick="onTabChanged('staff')">
+            <i class="fa-solid fa-chalkboard-user me-2"></i> Faculty &amp; Staff Details
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-bold px-3 py-2" id="tab-subjects-btn" data-bs-toggle="pill" data-bs-target="#tabSubjectsPane" type="button" role="tab" onclick="onTabChanged('subjects')">
+            <i class="fa-solid fa-book-open me-2"></i> Subject Details
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-bold px-3 py-2" id="tab-marks-btn" data-bs-toggle="pill" data-bs-target="#tabMarksPane" type="button" role="tab" onclick="onTabChanged('marks')">
+            <i class="fa-solid fa-award me-2"></i> Internal Marks Details
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-bold px-3 py-2" id="tab-attendance-btn" data-bs-toggle="pill" data-bs-target="#tabAttendancePane" type="button" role="tab" onclick="onTabChanged('attendance')">
+            <i class="fa-solid fa-calendar-check me-2"></i> Attendance Details
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-bold px-3 py-2" id="tab-timetable-btn" data-bs-toggle="pill" data-bs-target="#tabTimetablePane" type="button" role="tab" onclick="onTabChanged('timetable')">
+            <i class="fa-solid fa-calendar-days me-2"></i> Timetable Details
+        </button>
+    </li>
+</ul>
+
+<!-- 3. TAB CONTENT PANES -->
+<div class="tab-content" id="editCategoryTabsContent">
+
+    <!-- ========================================== -->
+    <!-- TAB 1: STUDENT DETAILS -->
+    <!-- ========================================== -->
+    <div class="tab-pane fade show active" id="tabStudentsPane" role="tabpanel">
+        <div class="analytics-card mb-3 p-3 bg-white shadow-sm border-start border-4 border-warning">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+                <div>
+                    <h5 class="fw-bold text-navy mb-0">
+                        <i class="fa-solid fa-users text-warning me-2"></i> All Enrolled Students &amp; Live Search
+                    </h5>
+                    <div class="text-muted fs-8">Search a particular student or edit live student details in MySQL database</div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-warning text-dark px-3 py-2 fw-bold fs-7 shadow-sm" id="studentTotalBadge">
+                        Loading students...
+                    </span>
+                    <button class="btn btn-warning text-dark fw-bold px-3 shadow-sm" onclick="openAddStudentModal()">
+                        <i class="fa-solid fa-user-plus me-1"></i> Add Student
+                    </button>
+                </div>
+            </div>
+
+            <!-- SEARCH BOX THAT ENABLES SEARCHING A PARTICULAR STUDENT -->
+            <div class="row g-2 align-items-center">
+                <div class="col-lg-6 col-md-12">
+                    <div class="input-group input-group-lg shadow-sm">
+                        <span class="input-group-text bg-white text-warning border-end-0 fs-6">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </span>
+                        <input type="text" id="studentSearchInput" class="form-control border-start-0 border-end-0 fs-7" placeholder="Search a particular student by Name, Register No, Email..." oninput="filterStudents()">
+                        <button class="btn btn-outline-secondary border-start-0 bg-white" type="button" onclick="clearStudentSearch()" title="Clear Search">
+                            <i class="fa-solid fa-xmark text-muted"></i> Clear
+                        </button>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <select id="studentDeptFilter" class="form-select form-select-lg fs-7" onchange="filterStudents()">
+                        <option value="All" selected>All Departments</option>
+                        <option value="IT">IT (Information Technology)</option>
+                        <option value="Computer Science">Computer Science</option>
+                        <option value="Artificial Intelligence">Artificial Intelligence</option>
+                    </select>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <select id="studentYearFilter" class="form-select form-select-lg fs-7" onchange="filterStudents()">
+                        <option value="All" selected>All Academic Years</option>
+                        <option value="First year">First Year</option>
+                        <option value="Second year">Second Year</option>
+                        <option value="Third year">Third Year</option>
+                        <option value="Final year">Final Year</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="custom-table-card shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-custom align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th style="width: 140px;">REG NO</th>
+                            <th>STUDENT NAME</th>
+                            <th style="width: 110px;">DEPARTMENT</th>
+                            <th style="width: 130px;">YEAR &amp; SECTION</th>
+                            <th class="text-center" style="width: 150px;">EDIT DETAILS</th>
+                            <th>EMAIL &amp; CONTACT</th>
+                            <th class="text-center" style="width: 130px;">STATUS &amp; ACTION</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentsTableBody">
+                        <tr><td colspan="7" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading student records...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="p-3 d-flex justify-content-between align-items-center bg-light border-top flex-wrap gap-2">
+                <span class="fs-8 text-muted fw-semibold" id="studentsCountText">Showing records</span>
+                <div class="btn-group btn-group-sm" id="studentsPagination"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: FACULTY & STAFF DETAILS -->
+    <!-- ========================================== -->
+    <div class="tab-pane fade" id="tabStaffPane" role="tabpanel">
+        <div class="analytics-card mb-3 p-3">
+            <div class="row g-2 align-items-center">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                        <input type="text" id="staffSearchInput" class="form-control" placeholder="Search by Faculty Name, ID, Email..." oninput="filterStaff()">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <select id="staffDeptFilter" class="form-select" onchange="filterStaff()">
+                        <option value="All" selected>All Departments</option>
+                        <option value="Information Technology">Information Technology</option>
+                        <option value="Computer Science">Computer Science</option>
+                        <option value="Artificial Intelligence">Artificial Intelligence</option>
+                    </select>
+                </div>
+                <div class="col-md-2 text-end">
+                    <button class="btn btn-warning text-dark fw-bold w-100" onclick="openAddStaffModal()">
+                        <i class="fa-solid fa-user-plus me-1"></i> Add Faculty
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="custom-table-card shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-custom align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Staff ID</th>
+                            <th>Faculty Name</th>
+                            <th>Designation</th>
+                            <th>Department</th>
+                            <th class="text-center" style="width: 150px;">EDIT DETAILS</th>
+                            <th>Email &amp; Phone</th>
+                            <th class="text-center" style="width: 130px;">Role &amp; Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="staffTableBody">
+                        <tr><td colspan="7" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading faculty directory...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="p-3 d-flex justify-content-between align-items-center bg-light border-top">
+                <span class="fs-8 text-muted" id="staffCountText">Showing faculty members</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 3: SUBJECT DETAILS -->
+    <!-- ========================================== -->
+    <div class="tab-pane fade" id="tabSubjectsPane" role="tabpanel">
+        <div class="analytics-card mb-3 p-3">
+            <div class="row g-2 align-items-center">
+                <div class="col-md-5">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                        <input type="text" id="subjectSearchInput" class="form-control" placeholder="Search by Code or Subject Name..." oninput="filterSubjects()">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select id="subjectDeptFilter" class="form-select" onchange="filterSubjects()">
+                        <option value="All" selected>All Departments</option>
+                        <option value="Information Technology">Information Technology</option>
+                        <option value="Computer Science">Computer Science</option>
+                        <option value="Artificial Intelligence">Artificial Intelligence</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select id="subjectSemFilter" class="form-select" onchange="filterSubjects()">
+                        <option value="All" selected>All Semesters</option>
+                        <option value="1">Sem 1</option>
+                        <option value="2">Sem 2</option>
+                        <option value="3">Sem 3</option>
+                        <option value="4">Sem 4</option>
+                        <option value="5">Sem 5</option>
+                        <option value="6">Sem 6</option>
+                        <option value="7">Sem 7</option>
+                        <option value="8">Sem 8</option>
+                    </select>
+                </div>
+                <div class="col-md-2 text-end">
+                    <button class="btn btn-warning text-dark fw-bold w-100" onclick="openAddSubjectModal()">
+                        <i class="fa-solid fa-plus me-1"></i> Add Subject
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="custom-table-card shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-custom align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Subject Code</th>
+                            <th>Subject Title</th>
+                            <th>Department</th>
+                            <th>Semester &amp; Credits</th>
+                            <th class="text-center" style="width: 150px;">EDIT DETAILS</th>
+                            <th>Assigned Faculty</th>
+                            <th class="text-center" style="width: 100px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="subjectsTableBody">
+                        <tr><td colspan="7" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading subjects...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="p-3 d-flex justify-content-between align-items-center bg-light border-top">
+                <span class="fs-8 text-muted" id="subjectsCountText">Showing subjects</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 4: INTERNAL MARKS DETAILS -->
+    <!-- ========================================== -->
+    <div class="tab-pane fade" id="tabMarksPane" role="tabpanel">
+        <div class="analytics-card mb-3 p-3">
+            <div class="row g-2 align-items-center">
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                        <input type="text" id="marksSearchInput" class="form-control" placeholder="Search by Reg No, Student Name..." oninput="handleMarksSearchDebounced()">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select id="marksSubjectFilter" class="form-select" onchange="loadMarks()">
+                        <option value="">All Subjects</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select id="marksTestFilter" class="form-select" onchange="loadMarks()">
+                        <option value="">All Assessments</option>
+                        <option value="Assessment 1">Assessment 1</option>
+                        <option value="Assessment 2">Assessment 2</option>
+                        <option value="Model Exam">Model Exam</option>
+                    </select>
+                </div>
+                <div class="col-md-2 text-end">
+                    <button class="btn btn-warning text-dark fw-bold w-100" onclick="openAddMarkModal()">
+                        <i class="fa-solid fa-plus me-1"></i> Add Mark
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="custom-table-card shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-custom align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Reg No</th>
+                            <th>Student Name</th>
+                            <th>Subject</th>
+                            <th>Assessment Type</th>
+                            <th class="text-center" style="width: 150px;">EDIT DETAILS</th>
+                            <th>Score / Max</th>
+                            <th>Percentage</th>
+                            <th>Result</th>
+                            <th class="text-center" style="width: 100px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="marksTableBody">
+                        <tr><td colspan="9" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading marks...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="p-3 d-flex justify-content-between align-items-center bg-light border-top flex-wrap gap-2">
+                <span class="fs-8 text-muted" id="marksCountText">Showing records</span>
+                <div class="btn-group btn-group-sm" id="marksPagination"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 5: ATTENDANCE DETAILS -->
+    <!-- ========================================== -->
+    <div class="tab-pane fade" id="tabAttendancePane" role="tabpanel">
+        <div class="analytics-card mb-3 p-3">
+            <div class="row g-2 align-items-center">
+                <div class="col-md-3">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                        <input type="text" id="attSearchInput" class="form-control" placeholder="Search Reg No, Name..." oninput="handleAttSearchDebounced()">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <input type="date" id="attDateFilter" class="form-control" onchange="loadAttendance()">
+                </div>
+                <div class="col-md-2">
+                    <select id="attSubjectFilter" class="form-select" onchange="loadAttendance()">
+                        <option value="">All Subjects</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select id="attStatusFilter" class="form-select" onchange="loadAttendance()">
+                        <option value="">All Status</option>
+                        <option value="Present">Present</option>
+                        <option value="Absent">Absent</option>
+                        <option value="OD">On Duty (OD)</option>
+                    </select>
+                </div>
+                <div class="col-md-2 text-end">
+                    <button class="btn btn-warning text-dark fw-bold w-100" onclick="openAddAttModal()">
+                        <i class="fa-solid fa-plus me-1"></i> Add Entry
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="custom-table-card shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-custom align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Reg No</th>
+                            <th>Student Name</th>
+                            <th>Subject</th>
+                            <th class="text-center" style="width: 150px;">EDIT DETAILS</th>
+                            <th>Status</th>
+                            <th>Hours</th>
+                            <th class="text-center" style="width: 100px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendanceTableBody">
+                        <tr><td colspan="8" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading attendance records...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="p-3 d-flex justify-content-between align-items-center bg-light border-top flex-wrap gap-2">
+                <span class="fs-8 text-muted" id="attCountText">Showing records</span>
+                <div class="btn-group btn-group-sm" id="attPagination"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 6: TIMETABLE DETAILS -->
+    <!-- ========================================== -->
+    <div class="tab-pane fade" id="tabTimetablePane" role="tabpanel">
+        <div class="analytics-card mb-3 p-3">
+            <div class="row g-2 align-items-center">
+                <div class="col-md-3">
+                    <select id="ttYearFilter" class="form-select" onchange="loadTimetable()">
+                        <option value="First year">First Year</option>
+                        <option value="Second year">Second Year</option>
+                        <option value="Third year" selected>Third Year</option>
+                        <option value="Final year">Final Year</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select id="ttSectionFilter" class="form-select" onchange="loadTimetable()">
+                        <option value="A" selected>Section A</option>
+                        <option value="B">Section B</option>
+                        <option value="C">Section C</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select id="ttDayFilter" class="form-select" onchange="loadTimetable()">
+                        <option value="">All Days</option>
+                        <option value="Monday">Monday</option>
+                        <option value="Tuesday">Tuesday</option>
+                        <option value="Wednesday">Wednesday</option>
+                        <option value="Thursday">Thursday</option>
+                        <option value="Friday">Friday</option>
+                        <option value="Saturday">Saturday</option>
+                    </select>
+                </div>
+                <div class="col-md-3 text-end">
+                    <button class="btn btn-warning text-dark fw-bold w-100" onclick="openAddTimetableModal()">
+                        <i class="fa-solid fa-plus me-1"></i> Add Timetable Slot
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="custom-table-card shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-custom align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Day</th>
+                            <th>Period / Time</th>
+                            <th>Subject</th>
+                            <th>Faculty</th>
+                            <th class="text-center" style="width: 150px;">EDIT DETAILS</th>
+                            <th>Room / Lab</th>
+                            <th class="text-center" style="width: 100px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="timetableTableBody">
+                        <tr><td colspan="7" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading timetable schedule...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="p-3 d-flex justify-content-between align-items-center bg-light border-top">
+                <span class="fs-8 text-muted" id="timetableCountText">Showing slots</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ========================================================================= -->
+<!-- EDIT / ADD MODALS -->
+<!-- ========================================================================= -->
+
+<!-- 1. STUDENT MODAL -->
+<div class="modal fade" id="studentFormModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-navy text-white">
+                <h5 class="modal-title fw-bold" id="studentModalTitle">
+                    <i class="fa-solid fa-user-pen text-warning me-2"></i> Edit Student Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="studentForm" onsubmit="handleSaveStudent(event)">
+                <div class="modal-body p-4">
+                    <input type="hidden" id="studentEditId" value="">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Register Number <span class="text-danger">*</span></label>
+                            <input type="text" id="formStudentRegNo" class="form-control" placeholder="e.g. 911522205001" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Student Full Name <span class="text-danger">*</span></label>
+                            <input type="text" id="formStudentName" class="form-control" placeholder="e.g. ARUN KUMAR M" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Department <span class="text-danger">*</span></label>
+                            <select id="formStudentDept" class="form-select" required>
+                                <option value="Information Technology">Information Technology</option>
+                                <option value="Computer Science">Computer Science</option>
+                                <option value="Artificial Intelligence">Artificial Intelligence</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Academic Year <span class="text-danger">*</span></label>
+                            <select id="formStudentYear" class="form-select" required>
+                                <option value="First year">First Year</option>
+                                <option value="Second year">Second Year</option>
+                                <option value="Third year">Third Year</option>
+                                <option value="Final year">Final Year</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Section <span class="text-danger">*</span></label>
+                            <select id="formStudentSection" class="form-select" required>
+                                <option value="A">Section A</option>
+                                <option value="B">Section B</option>
+                                <option value="C">Section C</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Email Address <span class="text-muted fs-8 fw-normal">(Optional)</span></label>
+                            <input type="email" id="formStudentEmail" class="form-control" placeholder="e.g. name@gmail.com">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Contact Phone</label>
+                            <input type="tel" id="formStudentPhone" class="form-control" placeholder="e.g. +91 9876543210">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="saveStudentBtn" class="btn btn-warning text-dark fw-bold px-4">
+                        <i class="fa-solid fa-check me-1"></i> Save Student Details
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 2. STAFF MODAL -->
+<div class="modal fade" id="staffFormModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-navy text-white">
+                <h5 class="modal-title fw-bold" id="staffModalTitle">
+                    <i class="fa-solid fa-user-pen text-warning me-2"></i> Edit Faculty Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="staffForm" onsubmit="handleSaveStaff(event)">
+                <div class="modal-body p-4">
+                    <input type="hidden" id="staffEditId" value="">
+                    <div class="row g-3">
+                        <div class="col-md-7">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Faculty Full Name <span class="text-danger">*</span></label>
+                            <input type="text" id="formStaffName" class="form-control" placeholder="e.g. Dr. K. AHAMED" required>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Designation</label>
+                            <select id="formStaffDesignation" class="form-select">
+                                <option value="Assistant Professor">Assistant Professor</option>
+                                <option value="Associate Professor">Associate Professor</option>
+                                <option value="Professor">Professor</option>
+                                <option value="Head of Department">Head of Department</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Staff ID / Code <span class="text-danger">*</span></label>
+                            <input type="text" id="formStaffCode" class="form-control" placeholder="e.g. STF101" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Department <span class="text-danger">*</span></label>
+                            <select id="formStaffDept" class="form-select" required>
+                                <option value="Information Technology">Information Technology</option>
+                                <option value="Computer Science">Computer Science</option>
+                                <option value="Artificial Intelligence">Artificial Intelligence</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Email Address <span class="text-danger">*</span></label>
+                            <input type="email" id="formStaffEmail" class="form-control" placeholder="e.g. faculty@msec.org.in" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Contact Phone</label>
+                            <input type="tel" id="formStaffPhone" class="form-control" placeholder="e.g. +91 9840123456">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold fs-7 text-secondary">System Role</label>
+                            <select id="formStaffRole" class="form-select">
+                                <option value="staff">Staff</option>
+                                <option value="hod">HOD</option>
+                                <option value="admin">Administrator</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="saveStaffBtn" class="btn btn-warning text-dark fw-bold px-4">
+                        <i class="fa-solid fa-check me-1"></i> Save Faculty Details
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 3. SUBJECT MODAL -->
+<div class="modal fade" id="subjectFormModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-navy text-white">
+                <h5 class="modal-title fw-bold" id="subjectModalTitle">
+                    <i class="fa-solid fa-book-pen text-warning me-2"></i> Edit Subject Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="subjectForm" onsubmit="handleSaveSubject(event)">
+                <div class="modal-body p-4">
+                    <input type="hidden" id="subjectEditCode" value="">
+                    <div class="row g-3">
+                        <div class="col-md-5">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Subject Code <span class="text-danger">*</span></label>
+                            <input type="text" id="formSubjectCode" class="form-control" placeholder="e.g. CS3351" required>
+                        </div>
+                        <div class="col-md-7">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Subject Title <span class="text-danger">*</span></label>
+                            <input type="text" id="formSubjectName" class="form-control" placeholder="e.g. Digital Principles & Computer Organization" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Department <span class="text-danger">*</span></label>
+                            <select id="formSubjectDept" class="form-select" required>
+                                <option value="Information Technology">Information Technology</option>
+                                <option value="Computer Science">Computer Science</option>
+                                <option value="Artificial Intelligence">Artificial Intelligence</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Semester</label>
+                            <select id="formSubjectSem" class="form-select">
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5" selected>5</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Credits</label>
+                            <input type="number" id="formSubjectCredits" class="form-control" value="3" min="1" max="10">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Assigned Faculty</label>
+                            <select id="formSubjectStaff" class="form-select">
+                                <option value="">-- Unassigned --</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="saveSubjectBtn" class="btn btn-warning text-dark fw-bold px-4">
+                        <i class="fa-solid fa-check me-1"></i> Save Subject Details
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 4. INTERNAL MARK MODAL -->
+<div class="modal fade" id="markFormModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-navy text-white">
+                <h5 class="modal-title fw-bold" id="markModalTitle">
+                    <i class="fa-solid fa-pen-to-square text-warning me-2"></i> Edit Internal Mark
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="markForm" onsubmit="handleSaveMark(event)">
+                <div class="modal-body p-4">
+                    <input type="hidden" id="markEditId" value="">
+                    <div class="mb-3" id="markStudentSelectorWrap">
+                        <label class="form-label fw-semibold fs-7 text-secondary">Student <span class="text-danger">*</span></label>
+                        <select id="formMarkStudent" class="form-select">
+                            <option value="">Select Student</option>
+                        </select>
+                    </div>
+                    <div class="mb-3" id="markSubjectSelectorWrap">
+                        <label class="form-label fw-semibold fs-7 text-secondary">Subject <span class="text-danger">*</span></label>
+                        <select id="formMarkSubject" class="form-select">
+                            <option value="">Select Subject</option>
+                        </select>
+                    </div>
+                    <div class="mb-3" id="markTestSelectorWrap">
+                        <label class="form-label fw-semibold fs-7 text-secondary">Assessment / Exam <span class="text-danger">*</span></label>
+                        <select id="formMarkTest" class="form-select">
+                            <option value="Assessment 1">Assessment 1</option>
+                            <option value="Assessment 2">Assessment 2</option>
+                            <option value="Model Exam">Model Exam</option>
+                        </select>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Marks Obtained <span class="text-danger">*</span></label>
+                            <input type="number" step="0.5" min="0" max="100" id="formMarkScore" class="form-control" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Max Marks <span class="text-danger">*</span></label>
+                            <input type="number" step="1" min="1" max="100" id="formMarkMax" class="form-control" value="100" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="saveMarkBtn" class="btn btn-warning text-dark fw-bold px-4">
+                        <i class="fa-solid fa-check me-1"></i> Save Marks
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 5. ATTENDANCE MODAL -->
+<div class="modal fade" id="attFormModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-navy text-white">
+                <h5 class="modal-title fw-bold" id="attModalTitle">
+                    <i class="fa-solid fa-calendar-pen text-warning me-2"></i> Edit Attendance Record
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="attForm" onsubmit="handleSaveAttendance(event)">
+                <div class="modal-body p-4">
+                    <input type="hidden" id="attEditId" value="">
+                    <div class="mb-3" id="attStudentSelectorWrap">
+                        <label class="form-label fw-semibold fs-7 text-secondary">Student <span class="text-danger">*</span></label>
+                        <select id="formAttStudent" class="form-select">
+                            <option value="">Select Student</option>
+                        </select>
+                    </div>
+                    <div class="mb-3" id="attSubjectSelectorWrap">
+                        <label class="form-label fw-semibold fs-7 text-secondary">Subject <span class="text-danger">*</span></label>
+                        <select id="formAttSubject" class="form-select">
+                            <option value="">Select Subject</option>
+                        </select>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Date <span class="text-danger">*</span></label>
+                            <input type="date" id="formAttDate" class="form-control" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Status <span class="text-danger">*</span></label>
+                            <select id="formAttStatus" class="form-select" required>
+                                <option value="Present">Present</option>
+                                <option value="Absent">Absent</option>
+                                <option value="OD">On Duty (OD)</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Hours</label>
+                            <input type="number" id="formAttHours" class="form-control" value="1" min="1" max="8">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="saveAttBtn" class="btn btn-warning text-dark fw-bold px-4">
+                        <i class="fa-solid fa-check me-1"></i> Save Attendance
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 6. TIMETABLE MODAL -->
+<div class="modal fade" id="ttFormModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-navy text-white">
+                <h5 class="modal-title fw-bold" id="ttModalTitle">
+                    <i class="fa-solid fa-calendar-pen text-warning me-2"></i> Edit Timetable Slot
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="ttForm" onsubmit="handleSaveTimetable(event)">
+                <div class="modal-body p-4">
+                    <input type="hidden" id="ttEditId" value="">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Academic Year <span class="text-danger">*</span></label>
+                            <select id="formTtYear" class="form-select" required>
+                                <option value="First year">First Year</option>
+                                <option value="Second year">Second Year</option>
+                                <option value="Third year" selected>Third Year</option>
+                                <option value="Final year">Final Year</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Section <span class="text-danger">*</span></label>
+                            <select id="formTtSection" class="form-select" required>
+                                <option value="A" selected>Section A</option>
+                                <option value="B">Section B</option>
+                                <option value="C">Section C</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Day <span class="text-danger">*</span></label>
+                            <select id="formTtDay" class="form-select" required>
+                                <option value="Monday">Monday</option>
+                                <option value="Tuesday">Tuesday</option>
+                                <option value="Wednesday">Wednesday</option>
+                                <option value="Thursday">Thursday</option>
+                                <option value="Friday">Friday</option>
+                                <option value="Saturday">Saturday</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Period <span class="text-danger">*</span></label>
+                            <select id="formTtPeriod" class="form-select" required>
+                                <option value="Period 1 (08:45 - 09:35)">Period 1 (08:45 - 09:35)</option>
+                                <option value="Period 2 (09:35 - 10:25)">Period 2 (09:35 - 10:25)</option>
+                                <option value="Period 3 (10:45 - 11:35)">Period 3 (10:45 - 11:35)</option>
+                                <option value="Period 4 (11:35 - 12:25)">Period 4 (11:35 - 12:25)</option>
+                                <option value="Period 5 (01:15 - 02:05)">Period 5 (01:15 - 02:05)</option>
+                                <option value="Period 6 (02:05 - 02:55)">Period 6 (02:05 - 02:55)</option>
+                                <option value="Period 7 (03:05 - 03:55)">Period 7 (03:05 - 03:55)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Subject <span class="text-danger">*</span></label>
+                            <select id="formTtSubject" class="form-select" required>
+                                <option value="">Select Subject</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Faculty</label>
+                            <select id="formTtStaff" class="form-select">
+                                <option value="">Select Faculty</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Classroom / Lab</label>
+                            <input type="text" id="formTtRoom" class="form-control" placeholder="e.g. IT Lab 2 or Room 304">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="saveTtBtn" class="btn btn-warning text-dark fw-bold px-4">
+                        <i class="fa-solid fa-check me-1"></i> Save Timetable Slot
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 7. UNIVERSAL DELETE CONFIRMATION MODAL -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-triangle-exclamation me-2"></i> Confirm Record Deletion</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="mb-2">Are you sure you want to permanently delete this record:</p>
+                <div class="p-3 bg-light rounded border mb-3">
+                    <div class="fw-bold text-navy fs-6" id="deleteTargetTitle">---</div>
+                    <div class="text-muted font-monospace fs-7" id="deleteTargetSubtitle">---</div>
+                </div>
+                <div class="text-danger fs-8">
+                    <i class="fa-solid fa-circle-exclamation me-1"></i> This change will be permanently applied to the live database and logged in the departmental audit trail.
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="confirmDeleteBtn" class="btn btn-danger fw-bold" onclick="executeDeleteRecord()">
+                    <i class="fa-solid fa-trash-can me-1"></i> Delete Permanently
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let activeTab = 'students';
+    let cachedSubjects = [];
+    let cachedStaff = [];
+    let cachedStudents = [];
+
+    // Data stores
+    let allStudents = [];
+    let allStaff = [];
+    let allSubjects = [];
+    let allMarks = [];
+    let allAttendance = [];
+    let allTimetable = [];
+
+    // Paginations
+    let studentPage = 1;
+    let marksPage = 1;
+    let attPage = 1;
+    const perPage = 15;
+
+    // Delete state
+    let pendingDeleteType = null;
+    let pendingDeleteId = null;
+
+    // Modals
+    let studentModal, staffModal, subjectModal, markModal, attModal, ttModal, deleteModal;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        studentModal = new bootstrap.Modal(document.getElementById('studentFormModal'));
+        staffModal = new bootstrap.Modal(document.getElementById('staffFormModal'));
+        subjectModal = new bootstrap.Modal(document.getElementById('subjectFormModal'));
+        markModal = new bootstrap.Modal(document.getElementById('markFormModal'));
+        attModal = new bootstrap.Modal(document.getElementById('attFormModal'));
+        ttModal = new bootstrap.Modal(document.getElementById('ttFormModal'));
+        deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+
+        // Tab loading tracker
+        window.loadedTabs = {
+            'students': true,
+            'staff': false,
+            'subjects': false,
+            'marks': false,
+            'attendance': false,
+            'timetable': false
+        };
+
+        // 1. Immediately load ONLY the active tab (Students) using fast query
+        await loadStudents();
+
+        // 2. Fetch catalogs and background counts asynchronously without blocking page view
+        setTimeout(loadCatalogs, 150);
+    });
+
+    function showAlert(message, type = 'success') {
+        const container = document.getElementById('alertContainer');
+        container.innerHTML = `
+            <div class="alert alert-${type} alert-dismissible fade show shadow-sm mb-4" role="alert">
+                <i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function loadCatalogs() {
+        try {
+            const [subRes, staffRes] = await Promise.all([
+                fetch('/hod/api/subjects?detailed=1'),
+                fetch('/hod/api/staff')
+            ]);
+            const subData = await subRes.json();
+            const staffData = await staffRes.json();
+
+            cachedSubjects = subData.subjects || [];
+            cachedStaff = staffData.staff || [];
+            cachedStudents = allStudents;
+
+            const staffCntEl = document.getElementById('statStaffCount');
+            if (staffCntEl && cachedStaff.length) staffCntEl.innerText = cachedStaff.length;
+
+            const subCntEl = document.getElementById('statSubjectCount');
+            if (subCntEl && cachedSubjects.length) subCntEl.innerText = cachedSubjects.length;
+
+            populateDropdowns();
+        } catch (e) {
+            console.error('Background catalog loading error:', e);
+        }
+    }
+
+    function populateDropdowns() {
+        // Subjects dropdowns
+        const subSelects = [
+            document.getElementById('marksSubjectFilter'),
+            document.getElementById('attSubjectFilter'),
+            document.getElementById('formMarkSubject'),
+            document.getElementById('formAttSubject'),
+            document.getElementById('formTtSubject')
+        ];
+        cachedSubjects.forEach(s => {
+            const opt = `<option value="${s.subject_code}">${s.subject_code} - ${s.subject_name}</option>`;
+            subSelects.forEach(sel => {
+                if (sel) sel.insertAdjacentHTML('beforeend', opt);
+            });
+        });
+
+        // Staff dropdowns
+        const staffSelects = [
+            document.getElementById('formSubjectStaff'),
+            document.getElementById('formTtStaff')
+        ];
+        cachedStaff.forEach(st => {
+            const opt = `<option value="${st.staff_id}">${st.name} (${st.designation || 'Faculty'})</option>`;
+            staffSelects.forEach(sel => {
+                if (sel) sel.insertAdjacentHTML('beforeend', opt);
+            });
+        });
+
+        // Students dropdowns
+        const studSelects = [
+            document.getElementById('formMarkStudent'),
+            document.getElementById('formAttStudent')
+        ];
+        cachedStudents.forEach(st => {
+            const opt = `<option value="${st.studentid}">${st.regno} - ${st.name}</option>`;
+            studSelects.forEach(sel => {
+                if (sel) sel.insertAdjacentHTML('beforeend', opt);
+            });
+        });
+    }
+
+    function switchEditTab(tabName) {
+        activeTab = tabName;
+        const btn = document.getElementById(`tab-${tabName}-btn`);
+        if (btn) {
+            const tabTrigger = new bootstrap.Tab(btn);
+            tabTrigger.show();
+        }
+        onTabChanged(tabName);
+    }
+
+    async function onTabChanged(tabName) {
+        activeTab = tabName;
+        updateQuickAddBtnLabel();
+
+        // Lazy-load data when tab is opened for the first time
+        if (!window.loadedTabs[tabName]) {
+            window.loadedTabs[tabName] = true;
+            if (tabName === 'staff') await loadStaff();
+            else if (tabName === 'subjects') await loadSubjects();
+            else if (tabName === 'marks') await loadMarks();
+            else if (tabName === 'attendance') await loadAttendance();
+            else if (tabName === 'timetable') await loadTimetable();
+        }
+    }
+
+    function updateQuickAddBtnLabel() {
+        const labelMap = {
+            'students': 'Add Student',
+            'staff': 'Add Faculty',
+            'subjects': 'Add Subject',
+            'marks': 'Add Mark Entry',
+            'attendance': 'Add Attendance',
+            'timetable': 'Add Timetable Slot'
+        };
+        const el = document.getElementById('quickAddBtnLabel');
+        if (el) el.innerText = labelMap[activeTab] || 'Add Record';
+    }
+
+    function openActiveTabAddModal() {
+        if (activeTab === 'students') openAddStudentModal();
+        else if (activeTab === 'staff') openAddStaffModal();
+        else if (activeTab === 'subjects') openAddSubjectModal();
+        else if (activeTab === 'marks') openAddMarkModal();
+        else if (activeTab === 'attendance') openAddAttModal();
+        else if (activeTab === 'timetable') openAddTimetableModal();
+    }
+
+    async function refreshActiveTab() {
+        if (activeTab === 'students') await loadStudents(true);
+        else if (activeTab === 'staff') await loadStaff(true);
+        else if (activeTab === 'subjects') await loadSubjects(true);
+        else if (activeTab === 'marks') await loadMarks(true);
+        else if (activeTab === 'attendance') await loadAttendance(true);
+        else if (activeTab === 'timetable') await loadTimetable(true);
+    }
+
+    // =========================================================================
+    // 1. STUDENTS
+    // =========================================================================
+    function clearStudentSearch() {
+        const input = document.getElementById('studentSearchInput');
+        if (input) {
+            input.value = '';
+            input.focus();
+        }
+        filterStudents();
+    }
+
+    async function loadStudents(forceRefresh = false) {
+        try {
+            const url = `/hod/api/students?simple=1&year=All&department=All${forceRefresh ? '&refresh=1' : ''}`;
+            const res = await fetch(url);
+            const data = await res.json();
+            allStudents = Array.isArray(data) ? data : (data.students || []);
+            cachedStudents = allStudents;
+            document.getElementById('statStudentCount').innerText = allStudents.length;
+            const badge = document.getElementById('studentTotalBadge');
+            if (badge) badge.innerText = `${allStudents.length} Students Enrolled`;
+            filterStudents();
+        } catch (e) {
+            console.error('Failed to load students:', e);
+            document.getElementById('studentsTableBody').innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">Failed to load students.</td></tr>`;
+        }
+    }
+
+    function filterStudents() {
+        const search = (document.getElementById('studentSearchInput').value || '').toLowerCase().trim();
+        const dept = document.getElementById('studentDeptFilter').value;
+        const year = document.getElementById('studentYearFilter').value;
+
+        const filtered = allStudents.filter(s => {
+            const nameStr = (s.name || '').toLowerCase();
+            const regStr = (s.regno || '').toLowerCase();
+            const emailStr = (s.email || '').toLowerCase();
+            const phoneStr = (s.phone || '').toLowerCase();
+
+            const matchesSearch = !search || 
+                nameStr.includes(search) || 
+                regStr.includes(search) || 
+                emailStr.includes(search) || 
+                phoneStr.includes(search);
+
+            let matchesDept = (dept === 'All');
+            if (!matchesDept) {
+                const sDept = (s.department || '').toUpperCase();
+                if (dept === 'IT' || dept === 'Information Technology') {
+                    matchesDept = (sDept === 'IT' || sDept.includes('INFO') || sDept.includes('TECH'));
+                } else if (dept === 'Computer Science' || dept === 'CSE') {
+                    matchesDept = (sDept === 'CSE' || sDept.includes('COMP') || sDept.includes('CS'));
+                } else if (dept === 'Artificial Intelligence' || dept === 'AI') {
+                    matchesDept = (sDept.includes('AI') || sDept.includes('AIDS'));
+                } else {
+                    matchesDept = (s.department === dept);
+                }
+            }
+
+            let matchesYear = (year === 'All');
+            if (!matchesYear) {
+                matchesYear = (s.year || '').toLowerCase() === year.toLowerCase();
+            }
+
+            return matchesSearch && matchesDept && matchesYear;
+        });
+
+        renderStudents(filtered);
+    }
+
+    function buildStudentRow(s) {
+        const isAtRisk = s.status === 'At Risk' || s.at_risk;
+        const emailClean = (s.email || '').trim();
+        const hasValidEmail = emailClean && emailClean.toLowerCase() !== 'student@msec.org.in';
+        const emailDisplay = hasValidEmail 
+            ? `<div class="fs-8 text-break"><i class="fa-solid fa-envelope me-1 text-muted"></i> ${escapeHtml(emailClean)}</div>`
+            : `<div class="fs-8 text-muted fst-italic"><i class="fa-regular fa-envelope me-1 text-muted"></i> Not provided</div>`;
+        const phoneClean = (s.phone || '').trim();
+        const phoneDisplay = phoneClean 
+            ? `<div class="fs-8"><i class="fa-solid fa-phone me-1 text-muted"></i> ${escapeHtml(phoneClean)}</div>`
+            : `<div class="fs-8 text-muted"><i class="fa-solid fa-phone me-1 text-muted"></i> --</div>`;
+
+        return `
+            <tr>
+                <td class="font-monospace fw-bold text-navy">${s.regno || '--'}</td>
+                <td>
+                    <div class="fw-semibold text-dark">${escapeHtml(s.name || '--')}</div>
+                    <div class="fs-8 text-muted">${s.section ? 'Section ' + s.section : 'Section A'}</div>
+                </td>
+                <td><span class="badge bg-light text-dark border">${s.department || 'IT'}</span></td>
+                <td><span class="badge bg-secondary-subtle text-secondary">${s.year || 'Third year'}</span></td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-semibold" onclick="openEditStudentModal(${s.studentid})" title="Edit Student Details">
+                        <i class="fa-solid fa-pen-to-square me-1"></i> Edit Student
+                    </button>
+                </td>
+                <td>
+                    ${emailDisplay}
+                    ${phoneDisplay}
+                </td>
+                <td class="text-center">
+                    <div class="d-flex align-items-center justify-content-center gap-2">
+                        <span class="badge ${isAtRisk ? 'bg-danger-subtle text-danger' : 'bg-success-subtle text-success'}">
+                            ${s.status || 'Active'}
+                        </span>
+                        <button class="btn btn-sm btn-outline-danger" onclick="promptDelete('student', ${s.studentid}, '${escapeHtml(s.name)}', 'Reg No: ${s.regno}')" title="Delete Student">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }
+
+    function renderStudents(list) {
+        studentPage = 1;
+        const tbody = document.getElementById('studentsTableBody');
+        const countText = document.getElementById('studentsCountText');
+        const studentPerPage = 100;
+
+        if (!list.length) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-5 text-muted"><i class="fa-solid fa-user-slash fs-3 mb-2 d-block text-warning"></i>No student records found matching filters.<br><button class="btn btn-sm btn-outline-secondary mt-2" onclick="clearStudentSearch()">Clear Filters</button></td></tr>`;
+            countText.innerText = '0 records found';
+            document.getElementById('studentsPagination').innerHTML = '';
+            return;
+        }
+
+        const startIdx = (studentPage - 1) * studentPerPage;
+        const pageItems = list.slice(startIdx, startIdx + studentPerPage);
+
+        tbody.innerHTML = pageItems.map(s => buildStudentRow(s)).join('');
+
+        if (list.length <= studentPerPage) {
+            countText.innerText = `Showing all ${list.length} student records`;
+            document.getElementById('studentsPagination').innerHTML = '';
+        } else {
+            countText.innerText = `Showing ${pageItems.length} of ${list.length} student records`;
+            renderPagination('studentsPagination', list.length, studentPage, studentPerPage, (p) => {
+                studentPage = p;
+                const start = (p - 1) * studentPerPage;
+                const pItems = list.slice(start, start + studentPerPage);
+                tbody.innerHTML = pItems.map(s => buildStudentRow(s)).join('');
+                countText.innerText = `Showing ${pItems.length} of ${list.length} student records (Page ${p})`;
+            });
+        }
+    }
+
+    function openAddStudentModal() {
+        document.getElementById('studentForm').reset();
+        document.getElementById('studentEditId').value = '';
+        document.getElementById('studentModalTitle').innerHTML = '<i class="fa-solid fa-user-plus text-warning me-2"></i> Add New Student';
+        document.getElementById('formStudentRegNo').removeAttribute('readonly');
+        studentModal.show();
+    }
+
+    function openEditStudentModal(id) {
+        const s = allStudents.find(item => item.studentid == id);
+        if (!s) return;
+        document.getElementById('studentEditId').value = s.studentid;
+        document.getElementById('formStudentRegNo').value = s.regno || '';
+        document.getElementById('formStudentRegNo').setAttribute('readonly', 'readonly');
+        document.getElementById('formStudentName').value = s.name || '';
+        document.getElementById('formStudentDept').value = s.department || 'Information Technology';
+        document.getElementById('formStudentYear').value = s.year || 'Third year';
+        document.getElementById('formStudentSection').value = s.section || 'A';
+        document.getElementById('formStudentEmail').value = s.email || '';
+        document.getElementById('formStudentPhone').value = s.phone || '';
+        document.getElementById('studentModalTitle').innerHTML = '<i class="fa-solid fa-user-pen text-warning me-2"></i> Edit Student Details';
+        studentModal.show();
+    }
+
+    async function handleSaveStudent(e) {
+        e.preventDefault();
+        const btn = document.getElementById('saveStudentBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
+
+        const editId = document.getElementById('studentEditId').value;
+        const payload = {
+            regno: document.getElementById('formStudentRegNo').value.trim(),
+            name: document.getElementById('formStudentName').value.trim(),
+            department: document.getElementById('formStudentDept').value,
+            year: document.getElementById('formStudentYear').value,
+            section: document.getElementById('formStudentSection').value,
+            email: document.getElementById('formStudentEmail').value.trim(),
+            phone: document.getElementById('formStudentPhone').value.trim()
+        };
+
+        try {
+            const url = editId ? `/hod/api/student/${editId}` : '/hod/api/students';
+            const method = editId ? 'PUT' : 'POST';
+            const res = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (res.ok && (data.success || data.studentid)) {
+                studentModal.hide();
+                showAlert(`Student "${payload.name}" details saved successfully!`);
+                await loadStudents();
+                await loadCatalogs();
+            } else {
+                alert(`Error: ${data.error || 'Failed to save student.'}`);
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Network error while saving student.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Save Student Details';
+        }
+    }
+
+    // =========================================================================
+    // 2. STAFF / FACULTY
+    // =========================================================================
+    async function loadStaff(forceRefresh = false) {
+        if (!forceRefresh && cachedStaff && cachedStaff.length > 0) {
+            allStaff = cachedStaff;
+            document.getElementById('statStaffCount').innerText = allStaff.length;
+            filterStaff();
+            return;
+        }
+        try {
+            const res = await fetch(`/hod/api/staff${forceRefresh ? '?refresh=1' : ''}`);
+            const data = await res.json();
+            allStaff = data.staff || [];
+            cachedStaff = allStaff;
+            document.getElementById('statStaffCount').innerText = allStaff.length;
+            filterStaff();
+        } catch (e) {
+            console.error('Failed to load staff:', e);
+            document.getElementById('staffTableBody').innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">Failed to load faculty.</td></tr>`;
+        }
+    }
+
+    function filterStaff() {
+        const search = (document.getElementById('staffSearchInput').value || '').toLowerCase().trim();
+        const dept = document.getElementById('staffDeptFilter').value;
+
+        const filtered = allStaff.filter(st => {
+            const matchesSearch = !search || 
+                (st.name && st.name.toLowerCase().includes(search)) || 
+                (st.staff_id && String(st.staff_id).toLowerCase().includes(search)) || 
+                (st.email && st.email.toLowerCase().includes(search));
+            const matchesDept = dept === 'All' || st.department === dept;
+            return matchesSearch && matchesDept;
+        });
+
+        renderStaff(filtered);
+    }
+
+    function renderStaff(list) {
+        const tbody = document.getElementById('staffTableBody');
+        const countText = document.getElementById('staffCountText');
+
+        if (!list.length) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted">No faculty members found.</td></tr>`;
+            countText.innerText = '0 faculty members';
+            return;
+        }
+
+        tbody.innerHTML = list.map(st => `
+            <tr>
+                <td class="font-monospace fw-bold text-navy">${st.staff_id}</td>
+                <td>
+                    <div class="fw-semibold text-dark">${escapeHtml(st.name)}</div>
+                    <div class="fs-8 text-muted">${st.qualification || ''}</div>
+                </td>
+                <td><span class="badge bg-light text-dark border">${st.designation || 'Faculty'}</span></td>
+                <td><span class="badge bg-secondary-subtle text-secondary">${st.department || 'IT'}</span></td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-semibold" onclick="openEditStaffModal(${st.staff_id})" title="Edit Faculty Details">
+                        <i class="fa-solid fa-pen-to-square me-1"></i> Edit Faculty
+                    </button>
+                </td>
+                <td>
+                    <div class="fs-8"><i class="fa-solid fa-envelope me-1 text-muted"></i> ${st.email || '--'}</div>
+                    <div class="fs-8"><i class="fa-solid fa-phone me-1 text-muted"></i> ${st.phone || '--'}</div>
+                </td>
+                <td class="text-center">
+                    <div class="d-flex align-items-center justify-content-center gap-2">
+                        <span class="badge bg-info-subtle text-info text-uppercase font-monospace">${st.role || 'staff'}</span>
+                        <button class="btn btn-sm btn-outline-danger" onclick="promptDelete('staff', ${st.staff_id}, '${escapeHtml(st.name)}', 'Staff ID: ${st.staff_id}')" title="Delete Faculty">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+
+        countText.innerText = `Showing ${list.length} faculty members`;
+    }
+
+    function openAddStaffModal() {
+        document.getElementById('staffForm').reset();
+        document.getElementById('staffEditId').value = '';
+        document.getElementById('staffModalTitle').innerHTML = '<i class="fa-solid fa-user-plus text-warning me-2"></i> Add New Faculty Member';
+        document.getElementById('formStaffCode').removeAttribute('readonly');
+        staffModal.show();
+    }
+
+    function openEditStaffModal(id) {
+        const st = allStaff.find(item => item.staff_id == id);
+        if (!st) return;
+        document.getElementById('staffEditId').value = st.staff_id;
+        document.getElementById('formStaffName').value = st.name || '';
+        document.getElementById('formStaffDesignation').value = st.designation || 'Assistant Professor';
+        document.getElementById('formStaffCode').value = st.staff_id || '';
+        document.getElementById('formStaffCode').setAttribute('readonly', 'readonly');
+        document.getElementById('formStaffDept').value = st.department || 'Information Technology';
+        document.getElementById('formStaffEmail').value = st.email || '';
+        document.getElementById('formStaffPhone').value = st.phone || '';
+        document.getElementById('formStaffRole').value = st.role || 'staff';
+        document.getElementById('staffModalTitle').innerHTML = '<i class="fa-solid fa-user-pen text-warning me-2"></i> Edit Faculty Details';
+        staffModal.show();
+    }
+
+    async function handleSaveStaff(e) {
+        e.preventDefault();
+        const btn = document.getElementById('saveStaffBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
+
+        const editId = document.getElementById('staffEditId').value;
+        const payload = {
+            staff_id: document.getElementById('formStaffCode').value.trim(),
+            name: document.getElementById('formStaffName').value.trim(),
+            designation: document.getElementById('formStaffDesignation').value,
+            department: document.getElementById('formStaffDept').value,
+            email: document.getElementById('formStaffEmail').value.trim(),
+            phone: document.getElementById('formStaffPhone').value.trim(),
+            role: document.getElementById('formStaffRole').value
+        };
+
+        try {
+            const url = editId ? `/hod/api/staff/${editId}` : '/hod/api/staff';
+            const method = editId ? 'PUT' : 'POST';
+            const res = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (res.ok && (data.success || data.staff_id)) {
+                staffModal.hide();
+                showAlert(`Faculty "${payload.name}" details saved successfully!`);
+                await loadStaff();
+                await loadCatalogs();
+            } else {
+                alert(`Error: ${data.error || 'Failed to save faculty record.'}`);
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Network error while saving faculty.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Save Faculty Details';
+        }
+    }
+
+    // =========================================================================
+    // 3. SUBJECTS
+    // =========================================================================
+    async function loadSubjects(forceRefresh = false) {
+        if (!forceRefresh && cachedSubjects && cachedSubjects.length > 0) {
+            allSubjects = cachedSubjects;
+            document.getElementById('statSubjectCount').innerText = allSubjects.length;
+            filterSubjects();
+            return;
+        }
+        try {
+            const res = await fetch(`/hod/api/subjects?detailed=1${forceRefresh ? '&refresh=1' : ''}`);
+            const data = await res.json();
+            allSubjects = data.subjects || [];
+            cachedSubjects = allSubjects;
+            document.getElementById('statSubjectCount').innerText = allSubjects.length;
+            filterSubjects();
+        } catch (e) {
+            console.error('Failed to load subjects:', e);
+            document.getElementById('subjectsTableBody').innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">Failed to load subjects.</td></tr>`;
+        }
+    }
+
+    function filterSubjects() {
+        const search = (document.getElementById('subjectSearchInput').value || '').toLowerCase().trim();
+        const dept = document.getElementById('subjectDeptFilter').value;
+        const sem = document.getElementById('subjectSemFilter').value;
+
+        const filtered = allSubjects.filter(sub => {
+            const matchesSearch = !search || 
+                (sub.subject_code && sub.subject_code.toLowerCase().includes(search)) || 
+                (sub.subject_name && sub.subject_name.toLowerCase().includes(search));
+            const matchesDept = dept === 'All' || sub.department === dept;
+            const matchesSem = sem === 'All' || String(sub.semester) === String(sem);
+            return matchesSearch && matchesDept && matchesSem;
+        });
+
+        renderSubjects(filtered);
+    }
+
+    function renderSubjects(list) {
+        const tbody = document.getElementById('subjectsTableBody');
+        const countText = document.getElementById('subjectsCountText');
+
+        if (!list.length) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted">No subjects found.</td></tr>`;
+            countText.innerText = '0 subjects';
+            return;
+        }
+
+        tbody.innerHTML = list.map(sub => `
+            <tr>
+                <td class="font-monospace fw-bold text-navy">${sub.subject_code}</td>
+                <td><div class="fw-semibold text-dark">${escapeHtml(sub.subject_name)}</div></td>
+                <td><span class="badge bg-light text-dark border">${sub.department || 'IT'}</span></td>
+                <td><span class="badge bg-secondary-subtle text-secondary">Sem ${sub.semester || 5} (${sub.credits || 3} Credits)</span></td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-semibold" onclick="openEditSubjectModal('${sub.subject_code}')" title="Edit Subject Details">
+                        <i class="fa-solid fa-pen-to-square me-1"></i> Edit Subject
+                    </button>
+                </td>
+                <td><div class="fs-8">${sub.staff_name || '<span class="text-muted fst-italic">Unassigned</span>'}</div></td>
+                <td class="text-center">
+                    <button class="btn btn-sm btn-outline-danger" onclick="promptDelete('subject', '${sub.subject_code}', '${escapeHtml(sub.subject_name)}', 'Code: ${sub.subject_code}')" title="Delete Subject">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+
+        countText.innerText = `Showing ${list.length} subjects`;
+    }
+
+    function openAddSubjectModal() {
+        document.getElementById('subjectForm').reset();
+        document.getElementById('subjectEditCode').value = '';
+        document.getElementById('subjectModalTitle').innerHTML = '<i class="fa-solid fa-book-medical text-warning me-2"></i> Add New Subject';
+        document.getElementById('formSubjectCode').removeAttribute('readonly');
+        subjectModal.show();
+    }
+
+    function openEditSubjectModal(code) {
+        const sub = allSubjects.find(item => item.subject_code === code);
+        if (!sub) return;
+        document.getElementById('subjectEditCode').value = sub.subject_code;
+        document.getElementById('formSubjectCode').value = sub.subject_code;
+        document.getElementById('formSubjectCode').setAttribute('readonly', 'readonly');
+        document.getElementById('formSubjectName').value = sub.subject_name || '';
+        document.getElementById('formSubjectDept').value = sub.department || 'Information Technology';
+        document.getElementById('formSubjectSem').value = sub.semester || 5;
+        document.getElementById('formSubjectCredits').value = sub.credits || 3;
+        document.getElementById('formSubjectStaff').value = sub.staff_id || '';
+        document.getElementById('subjectModalTitle').innerHTML = '<i class="fa-solid fa-book-pen text-warning me-2"></i> Edit Subject Details';
+        subjectModal.show();
+    }
+
+    async function handleSaveSubject(e) {
+        e.preventDefault();
+        const btn = document.getElementById('saveSubjectBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
+
+        const editCode = document.getElementById('subjectEditCode').value;
+        const payload = {
+            subject_code: document.getElementById('formSubjectCode').value.trim(),
+            subject_name: document.getElementById('formSubjectName').value.trim(),
+            department: document.getElementById('formSubjectDept').value,
+            semester: document.getElementById('formSubjectSem').value,
+            credits: document.getElementById('formSubjectCredits').value,
+            staff_id: document.getElementById('formSubjectStaff').value || null
+        };
+
+        try {
+            const url = editCode ? `/hod/api/subject/${editCode}` : '/hod/api/subjects';
+            const method = editCode ? 'PUT' : 'POST';
+            const res = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (res.ok && (data.success || data.subject_code)) {
+                subjectModal.hide();
+                showAlert(`Subject "${payload.subject_name}" details saved successfully!`);
+                await loadSubjects();
+                await loadCatalogs();
+            } else {
+                alert(`Error: ${data.error || 'Failed to save subject.'}`);
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Network error while saving subject.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Save Subject Details';
+        }
+    }
+
+    // =========================================================================
+    // 4. INTERNAL MARKS
+    // =========================================================================
+    let marksDebounce;
+    function handleMarksSearchDebounced() {
+        clearTimeout(marksDebounce);
+        marksDebounce = setTimeout(loadMarks, 350);
+    }
+
+    async function loadMarks(forceRefresh = false) {
+        const search = document.getElementById('marksSearchInput').value.trim();
+        const sub = document.getElementById('marksSubjectFilter').value;
+        const test = document.getElementById('marksTestFilter').value;
+
+        try {
+            let url = `/hod/api/marks?page=${marksPage}&per_page=15${forceRefresh ? '&refresh=1' : ''}`;
+            if (search) url += `&search=${encodeURIComponent(search)}`;
+            if (sub) url += `&subject_id=${encodeURIComponent(sub)}`;
+            if (test) url += `&test_number=${encodeURIComponent(test)}`;
+
+            const res = await fetch(url);
+            const data = await res.json();
+            allMarks = data.marks || [];
+            document.getElementById('statMarksCount').innerText = data.total_records || allMarks.length;
+            renderMarks(allMarks, data.total_records || allMarks.length);
+        } catch (e) {
+            console.error('Failed to load marks:', e);
+            document.getElementById('marksTableBody').innerHTML = `<tr><td colspan="8" class="text-center text-danger py-4">Failed to load marks.</td></tr>`;
+        }
+    }
+
+    function renderMarks(list, totalCount) {
+        const tbody = document.getElementById('marksTableBody');
+        const countText = document.getElementById('marksCountText');
+
+        if (!list.length) {
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted">No internal marks found matching filters.</td></tr>`;
+            countText.innerText = '0 records';
+            document.getElementById('marksPagination').innerHTML = '';
+            return;
+        }
+
+        tbody.innerHTML = list.map(m => {
+            const pct = Math.round((m.marks_obtained / (m.max_marks || 100)) * 100);
+            const isPass = pct >= 50;
+            return `
+                <tr>
+                    <td class="font-monospace fw-bold text-navy">${m.regno || '--'}</td>
+                    <td><div class="fw-semibold text-dark">${escapeHtml(m.student_name || '--')}</div></td>
+                    <td><span class="badge bg-light text-dark border">${m.subject_code} - ${escapeHtml(m.subject_name || '')}</span></td>
+                    <td><span class="badge bg-secondary-subtle text-secondary">${m.test_number}</span></td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-semibold" onclick="openEditMarkModal(${m.id}, ${m.marks_obtained}, ${m.max_marks || 100})" title="Edit Mark Details">
+                            <i class="fa-solid fa-pen-to-square me-1"></i> Edit Mark
+                        </button>
+                    </td>
+                    <td class="fw-bold fs-7">${m.marks_obtained} / ${m.max_marks || 100}</td>
+                    <td>
+                        <div class="progress" style="height: 6px; width: 70px;">
+                            <div class="progress-bar ${isPass ? 'bg-success' : 'bg-danger'}" style="width: ${pct}%;"></div>
+                        </div>
+                        <span class="fs-8 text-muted">${pct}%</span>
+                    </td>
+                    <td><span class="badge ${isPass ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'}">${isPass ? 'Pass' : 'Fail'}</span></td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-outline-danger" onclick="promptDelete('mark', ${m.id}, 'Mark for ${escapeHtml(m.student_name || '')}', '${m.subject_code} - ${m.test_number}: ${m.marks_obtained}')" title="Delete Mark">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+        countText.innerText = `Showing ${list.length} of ${totalCount} marks records`;
+        renderPagination('marksPagination', totalCount, marksPage, 15, async (p) => {
+            marksPage = p;
+            await loadMarks();
+        });
+    }
+
+    function openAddMarkModal() {
+        document.getElementById('markForm').reset();
+        document.getElementById('markEditId').value = '';
+        document.getElementById('markModalTitle').innerHTML = '<i class="fa-solid fa-plus text-warning me-2"></i> Add Internal Mark Entry';
+        document.getElementById('markStudentSelectorWrap').style.display = 'block';
+        document.getElementById('markSubjectSelectorWrap').style.display = 'block';
+        document.getElementById('markTestSelectorWrap').style.display = 'block';
+        markModal.show();
+    }
+
+    function openEditMarkModal(id, currentScore, maxMarks) {
+        document.getElementById('markEditId').value = id;
+        document.getElementById('formMarkScore').value = currentScore;
+        document.getElementById('formMarkMax').value = maxMarks || 100;
+        document.getElementById('markModalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square text-warning me-2"></i> Edit Internal Mark';
+        document.getElementById('markStudentSelectorWrap').style.display = 'none';
+        document.getElementById('markSubjectSelectorWrap').style.display = 'none';
+        document.getElementById('markTestSelectorWrap').style.display = 'none';
+        markModal.show();
+    }
+
+    async function handleSaveMark(e) {
+        e.preventDefault();
+        const btn = document.getElementById('saveMarkBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
+
+        const editId = document.getElementById('markEditId').value;
+        const payload = {
+            marks_obtained: parseFloat(document.getElementById('formMarkScore').value),
+            max_marks: parseFloat(document.getElementById('formMarkMax').value)
+        };
+
+        if (!editId) {
+            payload.student_id = document.getElementById('formMarkStudent').value;
+            payload.subject_code = document.getElementById('formMarkSubject').value;
+            payload.test_number = document.getElementById('formMarkTest').value;
+        }
+
+        try {
+            const url = editId ? `/hod/api/marks/${editId}` : '/hod/api/marks';
+            const method = editId ? 'PUT' : 'POST';
+            const res = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                markModal.hide();
+                showAlert(`Internal mark details updated successfully!`);
+                await loadMarks();
+            } else {
+                alert(`Error: ${data.error || 'Failed to save marks.'}`);
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Network error while saving marks.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Save Marks';
+        }
+    }
+
+    // =========================================================================
+    // 5. ATTENDANCE
+    // =========================================================================
+    let attDebounce;
+    function handleAttSearchDebounced() {
+        clearTimeout(attDebounce);
+        attDebounce = setTimeout(loadAttendance, 350);
+    }
+
+    async function loadAttendance(forceRefresh = false) {
+        const search = document.getElementById('attSearchInput').value.trim();
+        const date = document.getElementById('attDateFilter').value;
+        const sub = document.getElementById('attSubjectFilter').value;
+        const status = document.getElementById('attStatusFilter').value;
+
+        try {
+            let url = `/hod/api/attendance?page=${attPage}&per_page=15${forceRefresh ? '&refresh=1' : ''}`;
+            if (search) url += `&search=${encodeURIComponent(search)}`;
+            if (date) url += `&date=${encodeURIComponent(date)}`;
+            if (sub) url += `&subject_id=${encodeURIComponent(sub)}`;
+            if (status) url += `&status=${encodeURIComponent(status)}`;
+
+            const res = await fetch(url);
+            const data = await res.json();
+            allAttendance = data.attendance || [];
+            document.getElementById('statAttCount').innerText = data.total_records || allAttendance.length;
+            renderAttendance(allAttendance, data.total_records || allAttendance.length);
+        } catch (e) {
+            console.error('Failed to load attendance:', e);
+            document.getElementById('attendanceTableBody').innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">Failed to load attendance records.</td></tr>`;
+        }
+    }
+
+    function renderAttendance(list, totalCount) {
+        const tbody = document.getElementById('attendanceTableBody');
+        const countText = document.getElementById('attCountText');
+
+        if (!list.length) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted">No attendance logs found matching filters.</td></tr>`;
+            countText.innerText = '0 records';
+            document.getElementById('attPagination').innerHTML = '';
+            return;
+        }
+
+        tbody.innerHTML = list.map(a => {
+            const st = (a.status || 'Present').toLowerCase();
+            let badgeClass = 'bg-success-subtle text-success';
+            if (st === 'absent') badgeClass = 'bg-danger-subtle text-danger';
+            else if (st === 'od') badgeClass = 'bg-purple-subtle text-purple';
+
+            return `
+                <tr>
+                    <td class="font-monospace">${a.date || '--'}</td>
+                    <td class="font-monospace fw-bold text-navy">${a.regno || '--'}</td>
+                    <td><div class="fw-semibold text-dark">${escapeHtml(a.student_name || '--')}</div></td>
+                    <td><span class="badge bg-light text-dark border">${a.subject_code} - ${escapeHtml(a.subject_name || '')}</span></td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-semibold" onclick="openEditAttModal(${a.id}, '${a.status}', '${a.hours || 1}', '${a.date}')" title="Edit Attendance Details">
+                            <i class="fa-solid fa-pen-to-square me-1"></i> Edit Entry
+                        </button>
+                    </td>
+                    <td><span class="badge ${badgeClass} text-capitalize">${a.status}</span></td>
+                    <td>${a.hours || 1} hr(s)</td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-outline-danger" onclick="promptDelete('attendance', ${a.id}, 'Attendance log for ${escapeHtml(a.student_name || '')}', 'Date: ${a.date}, Status: ${a.status}')" title="Delete Attendance">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+        countText.innerText = `Showing ${list.length} of ${totalCount} attendance records`;
+        renderPagination('attPagination', totalCount, attPage, 15, async (p) => {
+            attPage = p;
+            await loadAttendance();
+        });
+    }
+
+    function openAddAttModal() {
+        document.getElementById('attForm').reset();
+        document.getElementById('attEditId').value = '';
+        document.getElementById('formAttDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('attModalTitle').innerHTML = '<i class="fa-solid fa-plus text-warning me-2"></i> Add Attendance Record';
+        document.getElementById('attStudentSelectorWrap').style.display = 'block';
+        document.getElementById('attSubjectSelectorWrap').style.display = 'block';
+        attModal.show();
+    }
+
+    function openEditAttModal(id, currentStatus, hours, date) {
+        document.getElementById('attEditId').value = id;
+        document.getElementById('formAttStatus').value = currentStatus;
+        document.getElementById('formAttHours').value = hours || 1;
+        document.getElementById('formAttDate').value = date || '';
+        document.getElementById('attModalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square text-warning me-2"></i> Edit Attendance Details';
+        document.getElementById('attStudentSelectorWrap').style.display = 'none';
+        document.getElementById('attSubjectSelectorWrap').style.display = 'none';
+        attModal.show();
+    }
+
+    async function handleSaveAttendance(e) {
+        e.preventDefault();
+        const btn = document.getElementById('saveAttBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
+
+        const editId = document.getElementById('attEditId').value;
+        const payload = {
+            date: document.getElementById('formAttDate').value,
+            status: document.getElementById('formAttStatus').value,
+            hours: parseInt(document.getElementById('formAttHours').value || 1)
+        };
+
+        if (!editId) {
+            payload.student_id = document.getElementById('formAttStudent').value;
+            payload.subject_code = document.getElementById('formAttSubject').value;
+        }
+
+        try {
+            const url = editId ? `/hod/api/attendance/${editId}` : '/hod/api/attendance';
+            const method = editId ? 'PUT' : 'POST';
+            const res = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                attModal.hide();
+                showAlert(`Attendance details saved successfully!`);
+                await loadAttendance();
+            } else {
+                alert(`Error: ${data.error || 'Failed to save attendance.'}`);
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Network error while saving attendance.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Save Attendance';
+        }
+    }
+
+    // =========================================================================
+    // 6. TIMETABLE
+    // =========================================================================
+    async function loadTimetable(forceRefresh = false) {
+        const year = document.getElementById('ttYearFilter').value;
+        const section = document.getElementById('ttSectionFilter').value;
+        const day = document.getElementById('ttDayFilter').value;
+
+        try {
+            let url = `/hod/api/timetable?year=${encodeURIComponent(year)}&section=${encodeURIComponent(section)}${forceRefresh ? '&refresh=1' : ''}`;
+            if (day) url += `&day=${encodeURIComponent(day)}`;
+
+            const res = await fetch(url);
+            const data = await res.json();
+            allTimetable = data.timetable || [];
+            document.getElementById('statTtCount').innerText = allTimetable.length;
+            renderTimetable(allTimetable);
+        } catch (e) {
+            console.error('Failed to load timetable:', e);
+            document.getElementById('timetableTableBody').innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">Failed to load timetable.</td></tr>`;
+        }
+    }
+
+    function renderTimetable(list) {
+        const tbody = document.getElementById('timetableTableBody');
+        const countText = document.getElementById('timetableCountText');
+
+        if (!list.length) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">No timetable slots found for selected criteria.</td></tr>`;
+            countText.innerText = '0 slots';
+            return;
+        }
+
+        tbody.innerHTML = list.map(t => `
+            <tr>
+                <td><span class="badge bg-navy text-white fw-bold">${t.day}</span></td>
+                <td class="font-monospace fw-semibold">${t.period}</td>
+                <td>
+                    <div class="fw-semibold text-dark">${escapeHtml(t.subject_name || t.subject_code)}</div>
+                    <div class="fs-8 text-muted font-monospace">${t.subject_code}</div>
+                </td>
+                <td><div class="fs-8"><i class="fa-solid fa-chalkboard-user me-1 text-muted"></i> ${t.staff_name || 'Unassigned'}</div></td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-semibold" onclick="openEditTimetableModal(${t.id})" title="Edit Slot Details">
+                        <i class="fa-solid fa-pen-to-square me-1"></i> Edit Slot
+                    </button>
+                </td>
+                <td><span class="badge bg-light text-dark border">${t.room || 'General Classroom'}</span></td>
+                <td class="text-center">
+                    <button class="btn btn-sm btn-outline-danger" onclick="promptDelete('timetable', ${t.id}, 'Timetable Slot for ${t.day}', '${t.period} - ${t.subject_code}')" title="Delete Slot">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+
+        countText.innerText = `Showing ${list.length} slots`;
+    }
+
+    function openAddTimetableModal() {
+        document.getElementById('ttForm').reset();
+        document.getElementById('ttEditId').value = '';
+        document.getElementById('formTtYear').value = document.getElementById('ttYearFilter').value;
+        document.getElementById('formTtSection').value = document.getElementById('ttSectionFilter').value;
+        document.getElementById('ttModalTitle').innerHTML = '<i class="fa-solid fa-plus text-warning me-2"></i> Add Timetable Slot';
+        ttModal.show();
+    }
+
+    function openEditTimetableModal(id) {
+        const slot = allTimetable.find(item => item.id == id);
+        if (!slot) return;
+        document.getElementById('ttEditId').value = slot.id;
+        document.getElementById('formTtYear').value = slot.year || 'Third year';
+        document.getElementById('formTtSection').value = slot.section || 'A';
+        document.getElementById('formTtDay').value = slot.day;
+        document.getElementById('formTtPeriod').value = slot.period;
+        document.getElementById('formTtSubject').value = slot.subject_code;
+        document.getElementById('formTtStaff').value = slot.staff_id || '';
+        document.getElementById('formTtRoom').value = slot.room || '';
+        document.getElementById('ttModalTitle').innerHTML = '<i class="fa-solid fa-calendar-pen text-warning me-2"></i> Edit Timetable Slot Details';
+        ttModal.show();
+    }
+
+    async function handleSaveTimetable(e) {
+        e.preventDefault();
+        const btn = document.getElementById('saveTtBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
+
+        const editId = document.getElementById('ttEditId').value;
+        const payload = {
+            year: document.getElementById('formTtYear').value,
+            section: document.getElementById('formTtSection').value,
+            day: document.getElementById('formTtDay').value,
+            period: document.getElementById('formTtPeriod').value,
+            subject_code: document.getElementById('formTtSubject').value,
+            staff_id: document.getElementById('formTtStaff').value || null,
+            room: document.getElementById('formTtRoom').value.trim()
+        };
+
+        try {
+            const url = editId ? `/hod/api/timetable/${editId}` : '/hod/api/timetable';
+            const method = editId ? 'PUT' : 'POST';
+            const res = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                ttModal.hide();
+                showAlert(`Timetable slot details saved successfully!`);
+                await loadTimetable();
+            } else {
+                alert(`Error: ${data.error || 'Failed to save timetable slot.'}`);
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Network error while saving timetable slot.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Save Timetable Slot';
+        }
+    }
+
+    // =========================================================================
+    // UNIVERSAL DELETE LOGIC
+    // =========================================================================
+    function promptDelete(type, id, title, subtitle) {
+        pendingDeleteType = type;
+        pendingDeleteId = id;
+        document.getElementById('deleteTargetTitle').innerText = title;
+        document.getElementById('deleteTargetSubtitle').innerText = subtitle;
+        deleteModal.show();
+    }
+
+    async function executeDeleteRecord() {
+        if (!pendingDeleteId || !pendingDeleteType) return;
+        const btn = document.getElementById('confirmDeleteBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Deleting...';
+
+        let url = '';
+        if (pendingDeleteType === 'student') url = `/hod/api/student/${pendingDeleteId}`;
+        else if (pendingDeleteType === 'staff') url = `/hod/api/staff/${pendingDeleteId}`;
+        else if (pendingDeleteType === 'subject') url = `/hod/api/subject/${pendingDeleteId}`;
+        else if (pendingDeleteType === 'mark') url = `/hod/api/marks/${pendingDeleteId}`;
+        else if (pendingDeleteType === 'attendance') url = `/hod/api/attendance/${pendingDeleteId}`;
+        else if (pendingDeleteType === 'timetable') url = `/hod/api/timetable/${pendingDeleteId}`;
+
+        try {
+            const res = await fetch(url, { method: 'DELETE' });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                deleteModal.hide();
+                showAlert(`Record deleted permanently from database.`, 'warning');
+                if (pendingDeleteType === 'student') { await loadStudents(); await loadCatalogs(); }
+                else if (pendingDeleteType === 'staff') { await loadStaff(); await loadCatalogs(); }
+                else if (pendingDeleteType === 'subject') { await loadSubjects(); await loadCatalogs(); }
+                else if (pendingDeleteType === 'mark') await loadMarks();
+                else if (pendingDeleteType === 'attendance') await loadAttendance();
+                else if (pendingDeleteType === 'timetable') await loadTimetable();
+            } else {
+                alert(`Error: ${data.error || 'Failed to delete record.'}`);
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Network error while deleting record.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-trash-can me-1"></i> Delete Permanently';
+            pendingDeleteId = null;
+            pendingDeleteType = null;
+        }
+    }
+
+    // =========================================================================
+    // UTILITIES
+    // =========================================================================
+    function renderPagination(containerId, total, current, per, onPageClick) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        const totalPages = Math.ceil(total / per);
+        if (totalPages <= 1) {
+            container.innerHTML = '';
+            return;
+        }
+
+        let html = `
+            <button class="btn btn-sm btn-outline-secondary ${current === 1 ? 'disabled' : ''}" onclick="window['${containerId}_page'](${current - 1})">
+                <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <span class="btn btn-sm btn-light disabled text-dark fw-bold">Page ${current} / ${totalPages}</span>
+            <button class="btn btn-sm btn-outline-secondary ${current === totalPages ? 'disabled' : ''}" onclick="window['${containerId}_page'](${current + 1})">
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        `;
+        window[`${containerId}_page`] = (p) => {
+            if (p >= 1 && p <= totalPages) onPageClick(p);
+        };
+        container.innerHTML = html;
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+</script>
+{% endblock %}

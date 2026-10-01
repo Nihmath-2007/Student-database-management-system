@@ -1,0 +1,436 @@
+{% extends "base.html" %}
+{% block title %}Subject Management - ERP Panel{% endblock %}
+{% block breadcrumb %}Subject Management{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+        <h1 class="page-title"><i class="fa-solid fa-book-open me-2 text-warning"></i> Curriculum &amp; Subject Management</h1>
+        <div class="page-subtitle">Manage curriculum courses, semester mappings, faculty assignments, and live database subjects</div>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-warning text-dark fw-bold px-3 shadow-sm" onclick="openAddSubjectModal()">
+            <i class="fa-solid fa-plus me-1"></i> Add Subject
+        </button>
+        <button class="btn btn-outline-secondary fs-7" onclick="loadSubjects(true)">
+            <i class="fa-solid fa-rotate me-1"></i> Refresh
+        </button>
+    </div>
+</div>
+
+<!-- ALERT BANNER -->
+<div id="alertContainer"></div>
+
+<!-- FILTERS CARD -->
+<div class="analytics-card mb-4">
+    <div class="row g-3 align-items-center">
+        <div class="col-md-5">
+            <label class="form-label fw-semibold fs-7 text-secondary">Search Subjects</label>
+            <div class="input-group">
+                <span class="input-group-text bg-light"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                <input type="text" id="subjectSearchInput" class="form-control" placeholder="Search by Code, Subject Name, Faculty..." oninput="filterSubjects()">
+            </div>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label fw-semibold fs-7 text-secondary">Filter by Semester</label>
+            <select id="semesterFilter" class="form-select" onchange="filterSubjects()">
+                <option value="All">All Semesters</option>
+                <option value="1">Semester 1</option>
+                <option value="2">Semester 2</option>
+                <option value="3">Semester 3</option>
+                <option value="4">Semester 4</option>
+                <option value="5" selected>Semester 5</option>
+                <option value="6">Semester 6</option>
+                <option value="7">Semester 7</option>
+                <option value="8">Semester 8</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label fw-semibold fs-7 text-secondary">Department</label>
+            <select id="subjectDeptFilter" class="form-select" onchange="filterSubjects()">
+                <option value="All">All Depts</option>
+                <option value="Information Technology" selected>Information Technology</option>
+                <option value="Computer Science">Computer Science</option>
+            </select>
+        </div>
+        <div class="col-md-2 text-end">
+            <button class="btn btn-outline-secondary w-100 mt-4 fs-7" onclick="resetSubjectFilters()">
+                <i class="fa-solid fa-rotate-left me-1"></i> Reset
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- SUBJECTS TABLE -->
+<div class="custom-table-card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-custom align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Subject Code</th>
+                    <th>Course Title</th>
+                    <th>Semester</th>
+                    <th>Department</th>
+                    <th>Assigned Faculty</th>
+                    <th>Enrolled Students</th>
+                    <th>Avg Performance</th>
+                    <th class="text-center" style="min-width: 140px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="subjectsTableBody">
+                <tr><td colspan="8" class="text-center py-5 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading curriculum from MySQL...</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="p-3 d-flex justify-content-between align-items-center bg-light border-top">
+        <span class="fs-7 text-muted" id="subjectsCountText">Showing subjects</span>
+    </div>
+</div>
+
+<!-- ADD / EDIT SUBJECT MODAL -->
+<div class="modal fade" id="subjectFormModal" tabindex="-1" aria-labelledby="subjectModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-navy text-white">
+                <h5 class="modal-title fw-bold" id="subjectModalTitle">
+                    <i class="fa-solid fa-book-medical text-warning me-2"></i> Add New Subject
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="subjectForm" onsubmit="handleSaveSubject(event)">
+                <div class="modal-body p-4">
+                    <input type="hidden" id="subjectOriginalCode" value="">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Subject Code <span class="text-danger">*</span></label>
+                            <input type="text" id="subjectFormCode" class="form-control font-monospace" placeholder="e.g. 24IT3502" required uppercase>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Course Title / Name <span class="text-danger">*</span></label>
+                            <input type="text" id="subjectFormName" class="form-control" placeholder="e.g. Network Security &amp; Cryptography" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Semester Mapping <span class="text-danger">*</span></label>
+                            <select id="subjectFormSemester" class="form-select" required>
+                                <option value="1">Semester 1</option>
+                                <option value="2">Semester 2</option>
+                                <option value="3">Semester 3</option>
+                                <option value="4">Semester 4</option>
+                                <option value="5" selected>Semester 5</option>
+                                <option value="6">Semester 6</option>
+                                <option value="7">Semester 7</option>
+                                <option value="8">Semester 8</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Department <span class="text-danger">*</span></label>
+                            <select id="subjectFormDept" class="form-select" required>
+                                <option value="Information Technology" selected>Information Technology</option>
+                                <option value="Computer Science">Computer Science</option>
+                                <option value="Artificial Intelligence">Artificial Intelligence</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Assign Faculty Member</label>
+                            <select id="subjectFormStaff" class="form-select">
+                                <option value="">-- Unassigned --</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="saveSubjectBtn" class="btn btn-warning text-dark fw-bold px-4">
+                        <i class="fa-solid fa-check me-1"></i> Save Subject
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- DELETE CONFIRMATION MODAL -->
+<div class="modal fade" id="deleteSubjectModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-triangle-exclamation me-2"></i> Confirm Subject Deletion</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="mb-2">Are you sure you want to permanently delete subject:</p>
+                <div class="p-3 bg-light rounded border mb-3">
+                    <div class="fw-bold text-navy fs-6" id="deleteSubjectName">---</div>
+                    <div class="text-muted font-monospace fs-7" id="deleteSubjectCode">---</div>
+                </div>
+                <div class="text-danger fs-8">
+                    <i class="fa-solid fa-circle-exclamation me-1"></i> Deleting this subject will also remove its associated timetable schedules and lecture notes from the live database.
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="confirmDeleteSubjectBtn" class="btn btn-danger fw-bold" onclick="executeDeleteSubject()">
+                    <i class="fa-solid fa-trash-can me-1"></i> Delete Subject
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let allSubjectsData = [];
+    let facultyOptions = [];
+    let subjectModalInstance = null;
+    let deleteSubjectModalInstance = null;
+    let pendingDeleteSubjectCode = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        subjectModalInstance = new bootstrap.Modal(document.getElementById('subjectFormModal'));
+        deleteSubjectModalInstance = new bootstrap.Modal(document.getElementById('deleteSubjectModal'));
+        await loadFacultyDropdown();
+        await loadSubjects();
+    });
+
+    function showSubjectAlert(message, type = 'success') {
+        const container = document.getElementById('alertContainer');
+        container.innerHTML = `
+            <div class="alert alert-${type} alert-dismissible fade show shadow-sm mb-4" role="alert">
+                <i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+        setTimeout(() => {
+            const el = container.querySelector('.alert');
+            if (el) bootstrap.Alert.getOrCreateInstance(el).close();
+        }, 5000);
+    }
+
+    async function loadFacultyDropdown() {
+        try {
+            const res = await fetch('/hod/api/staff');
+            if (res.ok) {
+                const data = await res.json();
+                facultyOptions = data.staff || [];
+                const select = document.getElementById('subjectFormStaff');
+                select.innerHTML = '<option value="">-- Unassigned --</option>' + 
+                    facultyOptions.map(f => `<option value="${f.staffid}">${f.name} (${f.designation || 'Staff'})</option>`).join('');
+            }
+        } catch (e) {
+            console.error('Error loading faculty for dropdown:', e);
+        }
+    }
+
+    async function loadSubjects(forceRefresh = false) {
+        const tbody = document.getElementById('subjectsTableBody');
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-5 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Fetching subjects from MySQL...</td></tr>`;
+
+        try {
+            const res = await fetch('/hod/api/subjects?detailed=1');
+            if (res.ok) {
+                const data = await res.json();
+                allSubjectsData = data.subjects || [];
+                filterSubjects();
+            } else {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-danger"><i class="fa-solid fa-triangle-exclamation me-1"></i> Failed to load curriculum.</td></tr>`;
+            }
+        } catch (e) {
+            console.error('Error loading subjects:', e);
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-danger"><i class="fa-solid fa-triangle-exclamation me-1"></i> Network error loading curriculum subjects.</td></tr>`;
+        }
+    }
+
+    function filterSubjects() {
+        const search = document.getElementById('subjectSearchInput').value.toLowerCase().trim();
+        const sem = document.getElementById('semesterFilter').value;
+        const dept = document.getElementById('subjectDeptFilter').value;
+
+        const filtered = allSubjectsData.filter(s => {
+            const matchesSearch = !search ||
+                (s.subject_code && s.subject_code.toLowerCase().includes(search)) ||
+                (s.subject_name && s.subject_name.toLowerCase().includes(search)) ||
+                (s.faculty_name && s.faculty_name.toLowerCase().includes(search));
+
+            const matchesSem = sem === 'All' || String(s.semester) === String(sem);
+            const matchesDept = dept === 'All' || (s.department || 'Information Technology') === dept;
+
+            return matchesSearch && matchesSem && matchesDept;
+        });
+
+        renderSubjectsTable(filtered);
+    }
+
+    function resetSubjectFilters() {
+        document.getElementById('subjectSearchInput').value = '';
+        document.getElementById('semesterFilter').value = 'All';
+        document.getElementById('subjectDeptFilter').value = 'All';
+        filterSubjects();
+    }
+
+    function renderSubjectsTable(subjects) {
+        const tbody = document.getElementById('subjectsTableBody');
+        document.getElementById('subjectsCountText').innerText = `Showing ${subjects.length} subjects`;
+
+        if (!subjects || subjects.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center py-5 text-muted">No subjects found matching the filter.</td></tr>`;
+            return;
+        }
+
+        let html = '';
+        subjects.forEach(s => {
+            const facultyDisplay = s.faculty_name 
+                ? `<span class="fw-semibold text-navy"><i class="fa-solid fa-chalkboard-user text-warning me-1"></i> ${s.faculty_name}</span>`
+                : `<span class="badge bg-light text-muted">Unassigned</span>`;
+
+            html += `
+                <tr>
+                    <td class="font-monospace fw-bold text-navy">${s.subject_code}</td>
+                    <td>
+                        <div class="fw-bold text-dark">${s.subject_name}</div>
+                    </td>
+                    <td>
+                        <span class="badge bg-primary-subtle text-primary fw-bold">Semester ${s.semester}</span>
+                    </td>
+                    <td>
+                        <span class="badge bg-light text-dark border font-monospace fs-8">${s.department || 'Information Technology'}</span>
+                    </td>
+                    <td>${facultyDisplay}</td>
+                    <td>
+                        <span class="badge bg-secondary-subtle text-dark">${s.enrolled_students_count || 0} Students</span>
+                    </td>
+                    <td>
+                        <span class="fw-bold fs-7 ${s.avg_score && s.avg_score >= 50 ? 'text-success' : 'text-secondary'}">
+                            ${s.avg_score ? s.avg_score + '%' : '<span class="text-muted">N/A</span>'}
+                        </span>
+                    </td>
+                    <td class="text-center">
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-warning text-dark" title="Edit Subject" onclick="openEditSubjectModal('${s.subject_code}')">
+                                <i class="fa-solid fa-pen-to-square"></i> Edit
+                            </button>
+                            <button type="button" class="btn btn-outline-danger" title="Delete Subject" onclick="promptDeleteSubject('${s.subject_code}', '${escapeHtml(s.subject_name)}')">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = html;
+    }
+
+    function openAddSubjectModal() {
+        document.getElementById('subjectForm').reset();
+        document.getElementById('subjectOriginalCode').value = '';
+        document.getElementById('subjectFormCode').removeAttribute('readonly');
+        document.getElementById('subjectModalTitle').innerHTML = '<i class="fa-solid fa-book-medical text-warning me-2"></i> Add New Subject';
+        subjectModalInstance.show();
+    }
+
+    function openEditSubjectModal(code) {
+        const sub = allSubjectsData.find(s => s.subject_code === code);
+        if (!sub) return;
+
+        document.getElementById('subjectOriginalCode').value = sub.subject_code;
+        document.getElementById('subjectFormCode').value = sub.subject_code;
+        document.getElementById('subjectFormName').value = sub.subject_name;
+        document.getElementById('subjectFormSemester').value = sub.semester;
+        document.getElementById('subjectFormDept').value = sub.department || 'Information Technology';
+        document.getElementById('subjectFormStaff').value = sub.staff_id || '';
+
+        document.getElementById('subjectModalTitle').innerHTML = '<i class="fa-solid fa-book-open-reader text-warning me-2"></i> Edit Subject Details';
+        subjectModalInstance.show();
+    }
+
+    async function handleSaveSubject(event) {
+        event.preventDefault();
+        const btn = document.getElementById('saveSubjectBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
+
+        const originalCode = document.getElementById('subjectOriginalCode').value;
+        const payload = {
+            subject_code: document.getElementById('subjectFormCode').value.trim().toUpperCase(),
+            subject_name: document.getElementById('subjectFormName').value.trim(),
+            semester: document.getElementById('subjectFormSemester').value,
+            department: document.getElementById('subjectFormDept').value,
+            staff_id: document.getElementById('subjectFormStaff').value || null
+        };
+
+        try {
+            let res;
+            if (originalCode) {
+                res = await fetch(`/hod/api/subject/${encodeURIComponent(originalCode)}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            } else {
+                res = await fetch('/hod/api/subjects', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            }
+
+            const data = await res.json();
+            if (res.ok && (data.success || res.status === 201)) {
+                subjectModalInstance.hide();
+                showSubjectAlert(originalCode ? `Subject "${payload.subject_name}" updated successfully!` : `Subject "${payload.subject_name}" added to curriculum!`);
+                await loadSubjects(true);
+            } else {
+                alert(`Error: ${data.error || 'Failed to save subject.'}`);
+            }
+        } catch (e) {
+            console.error('Error saving subject:', e);
+            alert('A network error occurred while updating the database.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Save Subject';
+        }
+    }
+
+    function promptDeleteSubject(code, name) {
+        pendingDeleteSubjectCode = code;
+        document.getElementById('deleteSubjectCode').innerText = `Course Code: ${code}`;
+        document.getElementById('deleteSubjectName').innerText = name;
+        deleteSubjectModalInstance.show();
+    }
+
+    async function executeDeleteSubject() {
+        if (!pendingDeleteSubjectCode) return;
+        const btn = document.getElementById('confirmDeleteSubjectBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Deleting...';
+
+        try {
+            const res = await fetch(`/hod/api/subject/${encodeURIComponent(pendingDeleteSubjectCode)}`, {
+                method: 'DELETE'
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                deleteSubjectModalInstance.hide();
+                showSubjectAlert('Subject removed from curriculum and live database.', 'warning');
+                await loadSubjects(true);
+            } else {
+                alert(`Error: ${data.error || 'Failed to delete subject.'}`);
+            }
+        } catch (e) {
+            console.error('Error deleting subject:', e);
+            alert('Network error while deleting subject.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-trash-can me-1"></i> Delete Subject';
+            pendingDeleteSubjectCode = null;
+        }
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    }
+</script>
+{% endblock %}

@@ -1,61 +1,287 @@
 {% extends "base.html" %}
-{% block title %}Department Attendance Analytics{% endblock %}
+{% block title %}Attendance Management &amp; Analytics - ERP Panel{% endblock %}
+{% block breadcrumb %}Attendance Management{% endblock %}
 
 {% block content %}
-<div class="page-header">
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3">
     <div>
-        <h1 class="page-title"><i class="fa-solid fa-calendar-check me-2 text-gold"></i> Attendance Analytics</h1>
-        <div class="page-subtitle">Department-wide attendance trends, category distributions, and low attendance lists</div>
+        <h1 class="page-title"><i class="fa-solid fa-calendar-check me-2 text-warning"></i> Attendance Management &amp; Analytics</h1>
+        <div class="page-subtitle">Track, mark, edit, inspect, and export live attendance records and cut-off benchmarks</div>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-warning text-dark fw-bold px-3 shadow-sm" onclick="openMarkAttendanceModal()">
+            <i class="fa-solid fa-clipboard-user me-1"></i> Mark Attendance
+        </button>
+        <button class="btn btn-outline-success fw-semibold px-3 shadow-sm" onclick="exportAttendanceCSV()">
+            <i class="fa-solid fa-file-csv me-1"></i> Export Attendance
+        </button>
+        <button class="btn btn-outline-secondary fs-7" onclick="refreshAllAttendance()">
+            <i class="fa-solid fa-rotate me-1"></i> Refresh
+        </button>
     </div>
 </div>
 
+<!-- ALERT BANNER -->
+<div id="alertContainer"></div>
+
+<!-- ANALYTICS CARDS (PRESERVED) -->
 <div class="row g-4 mb-4">
-    <div class="col-lg-12">
-        <div class="analytics-card">
+    <div class="col-lg-7">
+        <div class="analytics-card h-100">
             <div class="card-title-bar">
                 <h3><i class="fa-solid fa-chart-column me-2 text-teal"></i> Attendance Distribution Categories</h3>
             </div>
-            <div style="height: 320px;">
+            <div style="height: 240px;">
                 <canvas id="attCategoryBarChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="custom-table-card p-3 h-100">
+            <h3 class="h6 fw-bold mb-3 text-navy"><i class="fa-solid fa-user-slash me-2 text-danger"></i> Low Attendance (&lt; 75% Cutoff)</h3>
+            <div class="table-responsive" style="max-height: 230px;">
+                <table class="table table-sm table-custom align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Att %</th>
+                            <th>Present/Total</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lowAttTable">
+                        <tr><td colspan="4" class="text-center py-3 text-muted">Loading low attendance records...</td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 </div>
 
-<div class="custom-table-card p-4">
-    <h3 class="h5 fw-bold mb-3 text-navy"><i class="fa-solid fa-user-slash me-2 text-coral"></i> Students with Attendance Below 75% Cutoff</h3>
+<!-- ATTENDANCE LOGS MANAGEMENT SECTION -->
+<div class="custom-table-card p-4 shadow-sm mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <h3 class="h5 fw-bold text-navy mb-0">
+            <i class="fa-solid fa-list-check me-2 text-warning"></i> Live Attendance Records Directory
+        </h3>
+        <span class="fs-7 text-muted" id="attCountBadge">Showing attendance records</span>
+    </div>
+
+    <!-- FILTERS ROW -->
+    <div class="row g-3 align-items-center mb-4 p-3 bg-light rounded border">
+        <div class="col-md-3">
+            <label class="form-label fw-semibold fs-8 text-secondary">Filter by Date</label>
+            <input type="date" id="attDateFilter" class="form-control form-control-sm" onchange="loadAttendanceRecords(1)">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label fw-semibold fs-8 text-secondary">Filter by Subject</label>
+            <select id="attSubjectFilter" class="form-select form-select-sm" onchange="loadAttendanceRecords(1)">
+                <option value="All">All Subjects / General</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label fw-semibold fs-8 text-secondary">Search Student</label>
+            <input type="text" id="attSearchInput" class="form-control form-control-sm" placeholder="Reg No or Name..." oninput="debounceAttSearch()">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label fw-semibold fs-8 text-secondary">Status</label>
+            <select id="attStatusFilter" class="form-select form-select-sm" onchange="loadAttendanceRecords(1)">
+                <option value="All">All Statuses</option>
+                <option value="Present">Present Only</option>
+                <option value="Absent">Absent Only</option>
+            </select>
+        </div>
+        <div class="col-md-1 text-end">
+            <button class="btn btn-sm btn-outline-secondary w-100 mt-4" onclick="resetAttFilters()" title="Reset Filters">
+                <i class="fa-solid fa-rotate-left"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- TABLE -->
     <div class="table-responsive">
-        <table class="table table-custom align-middle">
+        <table class="table table-custom align-middle mb-0">
             <thead>
                 <tr>
+                    <th>Log ID</th>
+                    <th>Date</th>
                     <th>Register No</th>
                     <th>Student Name</th>
-                    <th>Attendance %</th>
-                    <th>Present Days</th>
-                    <th>Total Days</th>
+                    <th>Department &amp; Year</th>
+                    <th>Subject</th>
                     <th>Status</th>
-                    <th>Action</th>
+                    <th class="text-center" style="min-width: 130px;">Actions</th>
                 </tr>
             </thead>
-            <tbody id="lowAttTable">
-                <tr><td colspan="7" class="text-center py-3 text-muted">Loading low attendance records...</td></tr>
+            <tbody id="attendanceRecordsTableBody">
+                <tr><td colspan="8" class="text-center py-5 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading live attendance records...</td></tr>
             </tbody>
         </table>
     </div>
+
+    <!-- PAGINATION -->
+    <div class="p-3 d-flex justify-content-between align-items-center bg-light border-top mt-3 flex-wrap gap-2">
+        <span class="fs-7 text-muted" id="attPaginationText">Showing page 1</span>
+        <div id="attPaginationControls" class="d-flex align-items-center gap-1"></div>
+    </div>
 </div>
+
+<!-- MARK ATTENDANCE MODAL -->
+<div class="modal fade" id="markAttendanceModal" tabindex="-1" aria-labelledby="markModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-navy text-white">
+                <h5 class="modal-title fw-bold" id="markModalTitle">
+                    <i class="fa-solid fa-clipboard-user text-warning me-2"></i> Mark Attendance Record
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="markAttendanceForm" onsubmit="handleSaveAttendance(event)">
+                <div class="modal-body p-4">
+                    <input type="hidden" id="editAttendanceId" value="">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Student <span class="text-danger">*</span></label>
+                            <select id="formAttStudent" class="form-select" required>
+                                <option value="">-- Choose Student --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Subject (Optional)</label>
+                            <select id="formAttSubject" class="form-select">
+                                <option value="">General Attendance (No Subject)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Date <span class="text-danger">*</span></label>
+                            <input type="date" id="formAttDate" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Status <span class="text-danger">*</span></label>
+                            <select id="formAttStatus" class="form-select" required>
+                                <option value="Present" selected>Present</option>
+                                <option value="Absent">Absent</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="saveAttBtn" class="btn btn-warning text-dark fw-bold px-4">
+                        <i class="fa-solid fa-check me-1"></i> Save Attendance
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- DELETE CONFIRMATION MODAL -->
+<div class="modal fade" id="deleteAttModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-triangle-exclamation me-2"></i> Confirm Attendance Removal</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="mb-2">Are you sure you want to delete attendance record:</p>
+                <div class="p-3 bg-light rounded border mb-2">
+                    <div class="fw-bold text-navy" id="delAttStudentName">---</div>
+                    <div class="text-muted fs-8" id="delAttDateInfo">---</div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="confirmDeleteAttBtn" class="btn btn-danger fw-bold" onclick="executeDeleteAttendance()">
+                    <i class="fa-solid fa-trash-can me-1"></i> Delete Record
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
 <script>
+    let allSubjectsList = [];
+    let allStudentsList = [];
+    let currentAttPage = 1;
+    let attSearchDebounce = null;
+    let markModalInstance = null;
+    let deleteAttModalInstance = null;
+    let pendingDeleteAttId = null;
+    let attChartInstance = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        markModalInstance = new bootstrap.Modal(document.getElementById('markAttendanceModal'));
+        deleteAttModalInstance = new bootstrap.Modal(document.getElementById('deleteAttModal'));
+
+        // Set default date to today
+        document.getElementById('formAttDate').value = new Date().toISOString().split('T')[0];
+
+        await Promise.all([loadSubjectsDropdown(), loadStudentsDropdown()]);
+        loadAttendanceAnalytics();
+        loadAttendanceRecords(1);
+    });
+
+    function showAttAlert(message, type = 'success') {
+        const container = document.getElementById('alertContainer');
+        container.innerHTML = `
+            <div class="alert alert-${type} alert-dismissible fade show shadow-sm mb-4" role="alert">
+                <i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+        setTimeout(() => {
+            const el = container.querySelector('.alert');
+            if (el) bootstrap.Alert.getOrCreateInstance(el).close();
+        }, 5000);
+    }
+
+    async function loadSubjectsDropdown() {
+        try {
+            const res = await fetch('/hod/api/subjects');
+            if (res.ok) {
+                allSubjectsList = await res.json();
+                const filterSelect = document.getElementById('attSubjectFilter');
+                const formSelect = document.getElementById('formAttSubject');
+
+                const opts = allSubjectsList.map(s => `<option value="${s.subjectid}">${s.subject_code} - ${s.subject_name}</option>`).join('');
+                filterSelect.innerHTML = '<option value="All">All Subjects / General</option>' + opts;
+                formSelect.innerHTML = '<option value="">General Attendance (No Subject)</option>' + opts;
+            }
+        } catch (e) {
+            console.error('Error loading subjects for dropdown:', e);
+        }
+    }
+
+    async function loadStudentsDropdown() {
+        try {
+            const res = await fetch('/hod/api/students?simple=1');
+            if (res.ok) {
+                allStudentsList = await res.json();
+                const formSelect = document.getElementById('formAttStudent');
+                formSelect.innerHTML = '<option value="">-- Choose Student --</option>' +
+                    allStudentsList.map(s => `<option value="${s.studentid}">${s.regno} - ${s.name} (${s.year || 'IT'})</option>`).join('');
+            }
+        } catch (e) {
+            console.error('Error loading students for dropdown:', e);
+        }
+    }
+
     async function loadAttendanceAnalytics() {
         try {
             const res = await fetch('/hod/api/analytics');
             const data = await res.json();
-            
             const dist = data.attendance_distribution || { below_75: 0, between_75_85: 0, above_85: 0 };
 
-            // Bar chart (slim width, horizontal straight labels, custom palette)
-            new Chart(document.getElementById('attCategoryBarChart').getContext('2d'), {
+            if (attChartInstance) attChartInstance.destroy();
+
+            const ctx = document.getElementById('attCategoryBarChart').getContext('2d');
+            attChartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: ['Below 75%', '75% – 85%', 'Above 85%'],
@@ -64,9 +290,8 @@
                         data: [dist.below_75, dist.between_75_85, dist.above_85],
                         backgroundColor: ['#f43f5e', '#f59e0b', '#047857'],
                         borderRadius: 6,
-                        barPercentage: 0.4,
-                        categoryPercentage: 0.6,
-                        maxBarThickness: 32
+                        barPercentage: 0.45,
+                        categoryPercentage: 0.6
                     }]
                 },
                 options: {
@@ -74,44 +299,305 @@
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        x: {
-                            ticks: {
-                                maxRotation: 0,
-                                minRotation: 0,
-                                font: { weight: '600', size: 11 }
-                            }
-                        },
+                        x: { ticks: { font: { weight: '600', size: 11 } } },
                         y: { precision: 0 }
                     }
                 }
             });
 
-            // Load low attendance students
-            const stuRes = await fetch('/hod/api/students');
-            const students = await stuRes.json();
-            const lowAtt = students.filter(s => s.attendance_percentage < 75.0);
+            // Load low attendance students directly from analytics payload or fallback
+            const lowAtt = (data.at_risk_list || []).filter(s => parseFloat(s.attendance_pct || s.attendance_percentage || 0) < 75.0);
 
             const tbody = document.getElementById('lowAttTable');
             if (lowAtt.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-3 text-teal"><i class="fa-solid fa-circle-check me-1"></i> Excellent! No students currently below 75% attendance.</td></tr>`;
-                return;
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-3 text-success fs-8"><i class="fa-solid fa-circle-check me-1"></i> No students below 75% attendance.</td></tr>`;
+            } else {
+                tbody.innerHTML = lowAtt.slice(0, 10).map(s => {
+                    const pct = s.attendance_pct || s.attendance_percentage || 0;
+                    return `
+                    <tr>
+                        <td>
+                            <div class="fw-bold fs-8 text-navy">${s.name}</div>
+                            <div class="fs-8 text-muted font-monospace">${s.regno}</div>
+                        </td>
+                        <td><span class="badge bg-danger-subtle text-danger fw-bold fs-8">${pct}%</span></td>
+                        <td class="fs-8">${s.present_days || 0} / ${s.total_days || 0}</td>
+                        <td>
+                            <a href="/hod/student/${s.studentid}" class="btn btn-xs btn-outline-primary fs-8 py-0 px-2" title="Inspect">View</a>
+                        </td>
+                    </tr>
+                `;
+                }).join('');
             }
-
-            tbody.innerHTML = lowAtt.map(s => `
-                <tr>
-                    <td class="font-monospace fw-bold">${s.regno}</td>
-                    <td class="fw-semibold">${s.name}</td>
-                    <td class="fw-bold text-coral">${s.attendance_percentage}%</td>
-                    <td>${s.present_days}</td>
-                    <td>${s.total_days}</td>
-                    <td><span class="badge-status badge-at-risk">Below Cutoff</span></td>
-                    <td><a href="/hod/student/${s.studentid}" class="btn btn-sm btn-msec-navy fs-7">Inspect</a></td>
-                </tr>
-            `).join('');
         } catch (e) {
             console.error('Error loading attendance analytics:', e);
         }
     }
-    document.addEventListener('DOMContentLoaded', loadAttendanceAnalytics);
+
+    function debounceAttSearch() {
+        clearTimeout(attSearchDebounce);
+        attSearchDebounce = setTimeout(() => loadAttendanceRecords(1), 300);
+    }
+
+    async function loadAttendanceRecords(page = 1) {
+        currentAttPage = page;
+        const tbody = document.getElementById('attendanceRecordsTableBody');
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-5 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading records from live database...</td></tr>`;
+
+        const date = document.getElementById('attDateFilter').value;
+        const sub = document.getElementById('attSubjectFilter').value;
+        const search = document.getElementById('attSearchInput').value.trim();
+        const status = document.getElementById('attStatusFilter').value;
+
+        let url = `/hod/api/attendance?page=${page}&per_page=25`;
+        if (date) url += `&date=${encodeURIComponent(date)}`;
+        if (sub && sub !== 'All') url += `&subject_id=${encodeURIComponent(sub)}`;
+        if (search) url += `&search=${encodeURIComponent(search)}`;
+        if (status && status !== 'All') url += `&status=${encodeURIComponent(status)}`;
+
+        try {
+            const res = await fetch(url);
+            if (res.ok) {
+                const data = await res.json();
+                renderAttendanceTable(data.records || [], data.total || 0, data.page || 1, data.total_pages || 1);
+            } else {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-danger">Failed to fetch attendance logs.</td></tr>`;
+            }
+        } catch (e) {
+            console.error('Error fetching attendance:', e);
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-danger">Network error loading attendance logs.</td></tr>`;
+        }
+    }
+
+    function renderAttendanceTable(records, total, page, totalPages) {
+        const tbody = document.getElementById('attendanceRecordsTableBody');
+        document.getElementById('attCountBadge').innerText = `Showing ${records.length} of ${total} records`;
+        document.getElementById('attPaginationText').innerText = `Page ${page} of ${totalPages} (${total} total records)`;
+
+        if (!records || records.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center py-5 text-muted">No attendance logs matching your filters.</td></tr>`;
+            document.getElementById('attPaginationControls').innerHTML = '';
+            return;
+        }
+
+        let html = '';
+        records.forEach(r => {
+            const isPresent = String(r.status).toLowerCase() === 'present';
+            const statusBadge = isPresent
+                ? `<span class="badge-status badge-pass"><i class="fa-solid fa-circle-check me-1"></i> Present</span>`
+                : `<span class="badge-status badge-fail"><i class="fa-solid fa-circle-xmark me-1"></i> Absent</span>`;
+
+            const subTitle = (r.subject_code && r.subject_name) 
+                ? `${r.subject_code} - ${r.subject_name}` 
+                : '<span class="text-muted">General Session</span>';
+
+            html += `
+                <tr>
+                    <td class="font-monospace text-muted fs-8">#${r.id}</td>
+                    <td class="font-monospace fw-bold text-navy">${r.date_str || r.date}</td>
+                    <td class="font-monospace fw-bold">${r.regno}</td>
+                    <td>
+                        <div class="fw-bold text-dark">${r.student_name}</div>
+                    </td>
+                    <td>
+                        <span class="badge bg-light text-dark font-monospace fs-8">${r.department || 'IT'} (${r.year || '3rd'})</span>
+                    </td>
+                    <td><div class="fs-8 text-secondary">${subTitle}</div></td>
+                    <td>${statusBadge}</td>
+                    <td class="text-center">
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-warning text-dark" title="Edit Log" onclick="openEditAttendanceModal(${r.id}, ${r.student_id}, '${r.date_str || r.date}', '${r.status}', ${r.subject_id || 'null'})">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-danger" title="Delete Log" onclick="promptDeleteAttendance(${r.id}, '${escapeHtml(r.student_name)}', '${r.date_str || r.date}', '${r.status}')">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+
+        tbody.innerHTML = html;
+        renderAttPagination(page, totalPages);
+    }
+
+    function renderAttPagination(page, totalPages) {
+        const container = document.getElementById('attPaginationControls');
+        if (totalPages <= 1) {
+            container.innerHTML = '';
+            return;
+        }
+
+        let html = `
+            <button class="btn btn-sm btn-outline-secondary ${page === 1 ? 'disabled' : ''}" onclick="loadAttendanceRecords(${page - 1})">
+                <i class="fa-solid fa-chevron-left"></i>
+            </button>
+        `;
+
+        for (let i = 1; i <= totalPages; i++) {
+            if (i === 1 || i === totalPages || (i >= page - 2 && i <= page + 2)) {
+                html += `
+                    <button class="btn btn-sm ${i === page ? 'btn-navy text-white fw-bold' : 'btn-outline-secondary'}" onclick="loadAttendanceRecords(${i})">
+                        ${i}
+                    </button>
+                `;
+            } else if (i === page - 3 || i === page + 3) {
+                html += `<span class="px-1 text-muted">...</span>`;
+            }
+        }
+
+        html += `
+            <button class="btn btn-sm btn-outline-secondary ${page === totalPages ? 'disabled' : ''}" onclick="loadAttendanceRecords(${page + 1})">
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        `;
+
+        container.innerHTML = html;
+    }
+
+    function resetAttFilters() {
+        document.getElementById('attDateFilter').value = '';
+        document.getElementById('attSubjectFilter').value = 'All';
+        document.getElementById('attSearchInput').value = '';
+        document.getElementById('attStatusFilter').value = 'All';
+        loadAttendanceRecords(1);
+    }
+
+    function openMarkAttendanceModal() {
+        document.getElementById('markAttendanceForm').reset();
+        document.getElementById('editAttendanceId').value = '';
+        document.getElementById('formAttDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('markModalTitle').innerHTML = '<i class="fa-solid fa-clipboard-user text-warning me-2"></i> Mark Attendance Record';
+        document.getElementById('formAttStudent').removeAttribute('disabled');
+        markModalInstance.show();
+    }
+
+    function openEditAttendanceModal(id, studentId, dateStr, status, subjectId) {
+        document.getElementById('editAttendanceId').value = id;
+        document.getElementById('formAttStudent').value = studentId;
+        document.getElementById('formAttStudent').setAttribute('disabled', 'disabled');
+        document.getElementById('formAttDate').value = dateStr;
+        document.getElementById('formAttStatus').value = status;
+        document.getElementById('formAttSubject').value = subjectId || '';
+
+        document.getElementById('markModalTitle').innerHTML = `<i class="fa-solid fa-pen-to-square text-warning me-2"></i> Edit Attendance Log #${id}`;
+        markModalInstance.show();
+    }
+
+    async function handleSaveAttendance(event) {
+        event.preventDefault();
+        const btn = document.getElementById('saveAttBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving to MySQL...';
+
+        const editId = document.getElementById('editAttendanceId').value;
+        const studentSelect = document.getElementById('formAttStudent');
+        const studentId = studentSelect.value;
+        const subId = document.getElementById('formAttSubject').value || null;
+        const attDate = document.getElementById('formAttDate').value;
+        const status = document.getElementById('formAttStatus').value;
+
+        try {
+            let res;
+            if (editId) {
+                res = await fetch(`/hod/api/attendance/${editId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        date: attDate,
+                        status: status,
+                        subject_id: subId
+                    })
+                });
+            } else {
+                res = await fetch('/hod/api/attendance', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        student_id: studentId,
+                        date: attDate,
+                        status: status,
+                        subject_id: subId
+                    })
+                });
+            }
+
+            const data = await res.json();
+            if (res.ok && (data.success || res.status === 201)) {
+                markModalInstance.hide();
+                showAttAlert(editId ? `Attendance record #${editId} updated successfully!` : `Attendance marked successfully for ${attDate}!`);
+                loadAttendanceRecords(currentAttPage);
+                loadAttendanceAnalytics();
+            } else {
+                alert(`Error: ${data.error || 'Failed to save attendance.'}`);
+            }
+        } catch (e) {
+            console.error('Error saving attendance:', e);
+            alert('A network error occurred while updating the database.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Save Attendance';
+        }
+    }
+
+    function promptDeleteAttendance(id, studentName, dateStr, status) {
+        pendingDeleteAttId = id;
+        document.getElementById('delAttStudentName').innerText = `${studentName} (${status})`;
+        document.getElementById('delAttDateInfo').innerText = `Date: ${dateStr} | Log ID: #${id}`;
+        deleteAttModalInstance.show();
+    }
+
+    async function executeDeleteAttendance() {
+        if (!pendingDeleteAttId) return;
+        const btn = document.getElementById('confirmDeleteAttBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Deleting...';
+
+        try {
+            const res = await fetch(`/hod/api/attendance/${pendingDeleteAttId}`, {
+                method: 'DELETE'
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                deleteAttModalInstance.hide();
+                showAttAlert('Attendance record deleted from live database.', 'warning');
+                loadAttendanceRecords(currentAttPage);
+                loadAttendanceAnalytics();
+            } else {
+                alert(`Error: ${data.error || 'Failed to delete attendance.'}`);
+            }
+        } catch (e) {
+            console.error('Error deleting attendance:', e);
+            alert('Network error while deleting attendance record.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-trash-can me-1"></i> Delete Record';
+            pendingDeleteAttId = null;
+        }
+    }
+
+    function exportAttendanceCSV() {
+        const date = document.getElementById('attDateFilter').value;
+        const sub = document.getElementById('attSubjectFilter').value;
+        const search = document.getElementById('attSearchInput').value.trim();
+
+        let url = `/hod/api/attendance/export?`;
+        if (date) url += `date=${encodeURIComponent(date)}&`;
+        if (sub && sub !== 'All') url += `subject_id=${encodeURIComponent(sub)}&`;
+        if (search) url += `search=${encodeURIComponent(search)}&`;
+
+        window.location.href = url;
+    }
+
+    function refreshAllAttendance() {
+        loadAttendanceAnalytics();
+        loadAttendanceRecords(1);
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    }
 </script>
 {% endblock %}

@@ -1,77 +1,208 @@
 {% extends "base.html" %}
-{% block title %}Academic Analytics Reports - HOD Panel{% endblock %}
+{% block title %}Academic ERP Reports - HOD Panel{% endblock %}
+{% block breadcrumb %}Academic Reports{% endblock %}
 
 {% block content %}
-<div class="page-header">
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3">
     <div>
-        <h1 class="page-title"><i class="fa-solid fa-file-contract me-2 text-warning"></i> Academic Analytics Reports</h1>
-        <div class="page-subtitle">Generate and export comprehensive IT Department analytics summaries</div>
+        <h1 class="page-title"><i class="fa-solid fa-file-contract me-2 text-warning"></i> Academic Analytics &amp; ERP Reports</h1>
+        <div class="page-subtitle">Generate official departmental performance summaries, subject evaluations, and academic audits</div>
     </div>
-    <div>
-        <button class="btn btn-msec" onclick="window.print()"><i class="fa-solid fa-print me-2"></i> Print / Save PDF</button>
+    <div class="d-flex gap-2">
+        <button class="btn btn-warning text-dark fw-bold px-3 shadow-sm" onclick="window.print()">
+            <i class="fa-solid fa-print me-1"></i> Print / Save PDF
+        </button>
+        <button class="btn btn-outline-secondary fs-7" onclick="loadReport()">
+            <i class="fa-solid fa-rotate me-1"></i> Refresh Data
+        </button>
     </div>
 </div>
 
-<div class="analytics-card mb-4">
+<!-- REPORT HEADER CARD -->
+<div class="analytics-card mb-4 border-top border-4 border-warning shadow-sm">
+    <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+        <div>
+            <h2 class="h5 fw-bold text-navy mb-1">MOHAMED SATHAK ENGINEERING COLLEGE</h2>
+            <div class="text-secondary fw-semibold fs-7">DEPARTMENT OF INFORMATION TECHNOLOGY (NBA &amp; NAAC A+ ACCREDITED)</div>
+        </div>
+        <div>
+            <span class="badge bg-navy text-white px-3 py-2 font-monospace fs-8" id="reportDateBadge">Generated: Live Database</span>
+        </div>
+    </div>
+    <p class="text-muted fs-7 mb-0">Official Continuous Internal Assessment (CIA) &amp; Department Attendance Progression Evaluation Report.</p>
+</div>
+
+<!-- REPORT KPIS -->
+<div class="row g-3 mb-4" id="reportKpis">
+    <div class="col-md-3"><div class="kpi-card text-center"><span class="kpi-title">Enrolled Students</span><div class="kpi-value text-navy">--</div></div></div>
+    <div class="col-md-3"><div class="kpi-card text-center"><span class="kpi-title">Average Attendance</span><div class="kpi-value text-success">--%</div></div></div>
+    <div class="col-md-3"><div class="kpi-card text-center"><span class="kpi-title">Average Marks</span><div class="kpi-value text-warning">--%</div></div></div>
+    <div class="col-md-3"><div class="kpi-card text-center"><span class="kpi-title">At-Risk Students</span><div class="kpi-value text-danger">--</div></div></div>
+</div>
+
+<!-- SUBJECT-WISE ACADEMIC PERFORMANCE -->
+<div class="custom-table-card p-4 mb-4 shadow-sm">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="h5 fw-bold text-navy mb-0">MOHAMED SATHAK ENGINEERING COLLEGE - IT DEPARTMENT REPORT</h2>
-        <span class="badge bg-navy text-white px-3 py-2">Generated: August 2026</span>
+        <h3 class="h6 fw-bold text-navy mb-0">
+            <i class="fa-solid fa-book-open me-2 text-warning"></i> Department Subject-Wise Academic Performance Summary
+        </h3>
+        <span class="badge bg-light text-dark border">Semester 5 Curriculum</span>
     </div>
-    <p class="text-muted fs-7">Official Academic Performance and Department Attendance Evaluation Summary Report.</p>
-</div>
-
-<div class="row g-4 mb-4" id="reportKpis">
-    <!-- Populated via JS -->
-</div>
-
-<div class="custom-table-card p-4 mb-4">
-    <h3 class="h6 fw-bold mb-3 text-navy">Department Subject Performance Summary</h3>
     <div class="table-responsive">
-        <table class="table table-custom align-middle">
+        <table class="table table-custom align-middle mb-0">
             <thead>
                 <tr>
-                    <th>Code</th>
-                    <th>Subject Title</th>
+                    <th>Subject Code</th>
+                    <th>Course Title</th>
                     <th>Semester</th>
                     <th>Average Mark</th>
                     <th>Pass Rate</th>
+                    <th>Evaluation Status</th>
                 </tr>
             </thead>
-            <tbody id="reportSubjectTable"></tbody>
+            <tbody id="reportSubjectTable">
+                <tr><td colspan="6" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Compiling subject data...</td></tr>
+            </tbody>
         </table>
     </div>
 </div>
+
+<!-- TWO COLUMN SUMMARY: TOP ACADEMIC PERFORMERS & AT-RISK STUDENTS -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="custom-table-card p-4 shadow-sm h-100">
+            <h3 class="h6 fw-bold text-navy mb-3">
+                <i class="fa-solid fa-trophy me-2 text-warning"></i> Top Academic Rankers
+            </h3>
+            <div class="table-responsive">
+                <table class="table table-sm table-custom align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Student</th>
+                            <th>Avg Mark</th>
+                            <th>Att %</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportTopRankersTable">
+                        <tr><td colspan="4" class="text-center py-3 text-muted">Calculating top ranks...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="custom-table-card p-4 shadow-sm h-100">
+            <h3 class="h6 fw-bold text-navy mb-3">
+                <i class="fa-solid fa-triangle-exclamation me-2 text-danger"></i> At-Risk Students Action List
+            </h3>
+            <div class="table-responsive">
+                <table class="table table-sm table-custom align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Att %</th>
+                            <th>Avg Mark</th>
+                            <th>Action Required</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportAtRiskTable">
+                        <tr><td colspan="4" class="text-center py-3 text-muted">Analyzing at-risk students...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
 <script>
     async function loadReport() {
+        document.getElementById('reportDateBadge').innerText = 'Generated: ' + new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric', day: 'numeric' });
+
         try {
             const res = await fetch('/hod/api/analytics');
             const data = await res.json();
+            const k = data.kpis || {};
 
-            const k = data.kpis;
             document.getElementById('reportKpis').innerHTML = `
-                <div class="col-md-3"><div class="kpi-card text-center"><span class="kpi-title">Enrolled Students</span><div class="kpi-value">${k.total_students}</div></div></div>
-                <div class="col-md-3"><div class="kpi-card accent-orange text-center"><span class="kpi-title">Average Attendance</span><div class="kpi-value">${k.avg_attendance}%</div></div></div>
-                <div class="col-md-3"><div class="kpi-card accent-success text-center"><span class="kpi-title">Average Marks</span><div class="kpi-value">${k.avg_marks}%</div></div></div>
-                <div class="col-md-3"><div class="kpi-card accent-danger text-center"><span class="kpi-title">At-Risk Students</span><div class="kpi-value text-danger">${k.at_risk_students}</div></div></div>
+                <div class="col-md-3"><div class="kpi-card text-center"><span class="kpi-title">Enrolled Students</span><div class="kpi-value text-navy">${k.total_students || 0}</div></div></div>
+                <div class="col-md-3"><div class="kpi-card text-center"><span class="kpi-title">Average Attendance</span><div class="kpi-value text-success">${k.avg_attendance || 0}%</div></div></div>
+                <div class="col-md-3"><div class="kpi-card text-center"><span class="kpi-title">Average Marks</span><div class="kpi-value text-warning">${k.avg_marks || 0}%</div></div></div>
+                <div class="col-md-3"><div class="kpi-card text-center"><span class="kpi-title">At-Risk Students</span><div class="kpi-value text-danger">${k.at_risk_students || 0}</div></div></div>
             `;
 
+            // Subject performance table
             const tbody = document.getElementById('reportSubjectTable');
-            tbody.innerHTML = (data.subject_analytics || []).map(s => `
-                <tr>
-                    <td class="font-monospace fw-bold">${s.subject_code}</td>
-                    <td class="fw-semibold">${s.subject_name}</td>
-                    <td>Semester ${s.semester}</td>
-                    <td class="fw-bold">${s.avg_marks}%</td>
-                    <td><span class="badge-status ${s.pass_percentage >= 75 ? 'badge-pass' : 'badge-fail'}">${s.pass_percentage}%</span></td>
-                </tr>
-            `).join('');
+            tbody.innerHTML = (data.subject_analytics || []).map(s => {
+                const passRate = parseFloat(s.pass_percentage || 0);
+                return `
+                    <tr>
+                        <td class="font-monospace fw-bold text-navy">${s.subject_code}</td>
+                        <td class="fw-semibold text-dark">${s.subject_name}</td>
+                        <td>Semester ${s.semester}</td>
+                        <td class="fw-bold">${s.avg_marks}%</td>
+                        <td>
+                            <span class="badge-status ${passRate >= 70 ? 'badge-pass' : 'badge-fail'}">${passRate}%</span>
+                        </td>
+                        <td>
+                            <span class="fs-8 fw-semibold ${passRate >= 75 ? 'text-success' : 'text-danger'}">
+                                ${passRate >= 75 ? '<i class="fa-solid fa-check me-1"></i> Satisfactory' : '<i class="fa-solid fa-triangle-exclamation me-1"></i> Needs Remedial'}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            // Top rankers from analytics data or fallback
+            const topRankers = data.top_students || [];
+            if (topRankers.length > 0) {
+                document.getElementById('reportTopRankersTable').innerHTML = topRankers.slice(0, 5).map((s, idx) => `
+                    <tr>
+                        <td><span class="badge bg-warning text-dark fw-bold">#${idx + 1}</span></td>
+                        <td>
+                            <div class="fw-bold text-navy fs-8">${s.name}</div>
+                            <div class="fs-8 text-muted font-monospace">${s.regno}</div>
+                        </td>
+                        <td class="fw-bold text-success fs-8">${s.avg_marks}%</td>
+                        <td class="fs-8">${s.attendance_pct || s.attendance_percentage}%</td>
+                    </tr>
+                `).join('');
+            }
+
+            // At risk students from analytics data
+            const atRisk = data.at_risk_list || [];
+            if (atRisk.length === 0) {
+                document.getElementById('reportAtRiskTable').innerHTML = `<tr><td colspan="4" class="text-center py-3 text-success fs-8">No at-risk students currently identified.</td></tr>`;
+            } else {
+                document.getElementById('reportAtRiskTable').innerHTML = atRisk.slice(0, 5).map(s => {
+                    const att = parseFloat(s.attendance_pct || s.attendance_percentage || 0);
+                    const avgM = parseFloat(s.avg_marks || 0);
+                    return `
+                        <tr>
+                            <td>
+                                <div class="fw-bold text-dark fs-8">${s.name}</div>
+                                <div class="fs-8 text-muted font-monospace">${s.regno}</div>
+                            </td>
+                            <td><span class="badge ${att < 75 ? 'bg-danger' : 'bg-success'} fs-8">${att}%</span></td>
+                            <td class="fs-8 fw-bold ${avgM < 50 ? 'text-danger' : 'text-dark'}">${avgM}%</td>
+                            <td>
+                                <span class="badge bg-danger-subtle text-danger fs-8">
+                                    ${att < 75 ? 'Attendance Warning' : 'Remedial Classes'}
+                                </span>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
         } catch (e) {
             console.error('Error loading report:', e);
         }
     }
+
     document.addEventListener('DOMContentLoaded', loadReport);
 </script>
 {% endblock %}
