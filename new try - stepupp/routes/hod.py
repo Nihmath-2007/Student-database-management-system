@@ -5,7 +5,7 @@ from werkzeug.utils import secure_filename
 from flask import Blueprint, render_template, jsonify, request, session, redirect, url_for, flash, current_app, Response
 from routes.auth import role_required, login_required
 from db import fetch_all, fetch_one, execute
-from services.analytics import calculate_department_analytics
+from services.analytics import calculate_department_analytics, invalidate_analytics_cache
 from services.database_service import get_all_students, get_student_details, get_all_subjects
 from services.correction_service import get_hod_queries, get_hod_summary_stats, get_all_audit_logs, resolve_mark_correction_query, get_query_details
 from services.cache_service import api_cache
@@ -640,7 +640,11 @@ def queries_page():
 @hod_bp.route('/api/queries/summary')
 @role_required('hod')
 def api_hod_queries_summary():
+    cached = api_cache.get('hod_queries_summary')
+    if cached is not None:
+        return jsonify(cached)
     stats = get_hod_summary_stats()
+    api_cache.set('hod_queries_summary', stats, ttl=30)
     return jsonify(stats)
 
 
@@ -652,6 +656,13 @@ def api_hod_queries():
     subject_id = request.args.get('subject_id', 'all')
     overdue_only = request.args.get('overdue') in ('1', 'true', 'yes')
     search = request.args.get('search')
+    refresh = request.args.get('refresh') in ('1', 'true', 'yes')
+
+    cache_key = f"hod_queries_{status_filter}_{staff_id}_{subject_id}_{overdue_only}_{search}"
+    if not refresh:
+        cached = api_cache.get(cache_key)
+        if cached is not None:
+            return jsonify({'queries': cached})
 
     queries = get_hod_queries(
         status_filter=status_filter,
@@ -660,6 +671,7 @@ def api_hod_queries():
         overdue_only=overdue_only,
         search=search
     )
+    api_cache.set(cache_key, queries, ttl=30)
     return jsonify({'queries': queries})
 
 
@@ -700,6 +712,13 @@ def api_hod_query_resolve(query_id):
             remarks=remarks,
             new_mark=new_mark
         )
+        api_cache.invalidate('hod_queries')
+        api_cache.invalidate('staff_queries')
+        api_cache.invalidate('marks')
+        api_cache.invalidate('all_stud')
+        api_cache.invalidate('student_details')
+        api_cache.invalidate('subject_details')
+        invalidate_analytics_cache()
         return jsonify({
             'success': True,
             'result': result,

@@ -13,9 +13,12 @@ DB_PASSWORD = os.getenv('DB_PASSWORD', 'KnFpfXxCggQUXxaDvDpSfuWsDUqgMMDw')
 DB_NAME = os.getenv('DB_NAME', 'railway')
 DB_PORT = int(os.getenv('DB_PORT', 30160))
 SECRET_KEY = os.getenv('SECRET_KEY', 'msec_it_student_analytics_secret_key_2026')
+DB_POOL_SIZE = int(os.getenv('DB_POOL_SIZE', 4))
 
 SQLITE_DB_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'student_analytics.db')
 
+_pool_lock = threading.Lock()
+_mysql_pool = None
 _thread_local = threading.local()
 
 def _create_sqlite_connection():
@@ -34,39 +37,44 @@ def _create_sqlite_connection():
         pass
     return conn
 
-def _get_mysql_connection():
-    """Returns a thread-local cached MySQL connection with automatic keep-alive."""
-    conn = getattr(_thread_local, 'mysql_conn', None)
-    if conn is not None:
-        try:
-            if conn.is_connected():
-                return conn
-            conn.ping(reconnect=True, attempts=3, delay=1)
-            return conn
-        except Exception:
-            try:
-                conn.close()
-            except Exception:
-                pass
-            _thread_local.mysql_conn = None
+def _init_mysql_pool():
+    """Initializes a thread-safe MySQL connection pool for Railway cloud MySQL."""
+    global _mysql_pool
+    if _mysql_pool is None:
+        with _pool_lock:
+            if _mysql_pool is None:
+                import mysql.connector.pooling
+                _mysql_pool = mysql.connector.pooling.MySQLConnectionPool(
+                    pool_name="student_erp_pool",
+                    pool_size=DB_POOL_SIZE,
+                    pool_reset_session=False,
+                    host=DB_HOST,
+                    user=DB_USER,
+                    password=DB_PASSWORD,
+                    database=DB_NAME,
+                    port=DB_PORT,
+                    connect_timeout=10,
+                    autocommit=True
+                )
+    return _mysql_pool
 
-    import mysql.connector
-    new_conn = mysql.connector.connect(
-        host=DB_HOST,
-        user=DB_USER,
-        password=DB_PASSWORD,
-        database=DB_NAME,
-        port=DB_PORT,
-        connect_timeout=15,
-        autocommit=True
-    )
-    _thread_local.mysql_conn = new_conn
-    return new_conn
+def _get_mysql_connection():
+    """
+    Retrieves a healthy connection from the connection pool with automatic keep-alive ping.
+    Prevents expensive handshake overhead on every request.
+    """
+    pool = _init_mysql_pool()
+    conn = pool.get_connection()
+    try:
+        if not conn.is_connected():
+            conn.ping(reconnect=True, attempts=3, delay=1)
+    except Exception:
+        pass
+    return conn
 
 def get_db_connection():
     """
-    Connects to live Railway MySQL database.
-    Uses cached thread-local connection for low-latency queries.
+    Connects to live Railway MySQL database using connection pooling.
     Never falls back to SQLite unless DB_FALLBACK is explicitly set to true.
     """
     db_type = os.getenv('DB_TYPE', 'mysql').lower()
@@ -88,82 +96,97 @@ def get_db_connection():
 
 def execute_query(query, params=(), fetchall=True, fetchone=False, commit=False):
     """
-    Executes a query safely handling both MySQL and SQLite parameter placeholders (%s vs ?).
-    Reuses thread-local connection for maximum performance.
+    Executes a query safely using pooled MySQL connections.
+    Always cleans up cursor and returns pooled connection back to the pool.
     """
     conn, db_engine = get_db_connection()
+    cursor = None
     try:
         if db_engine == 'sqlite':
-            # Convert MySQL %s placeholder to SQLite ? placeholder if needed
             sqlite_query = query.replace('%s', '?')
             cursor = conn.cursor()
             cursor.execute(sqlite_query, params)
             if commit:
                 conn.commit()
-                lastrowid = cursor.lastrowid
-                cursor.close()
-                conn.close()
-                return lastrowid
+                return cursor.lastrowid
             if fetchone:
                 row = cursor.fetchone()
-                result = dict(row) if row else None
-                cursor.close()
-                conn.close()
-                return result
+                return dict(row) if row else None
             if fetchall:
                 rows = cursor.fetchall()
-                result = [dict(r) for r in rows]
-                cursor.close()
-                conn.close()
-                return result
-            cursor.close()
-            conn.close()
+                return [dict(r) for r in rows]
             return None
         else:
             cursor = conn.cursor(dictionary=True)
             cursor.execute(query, params)
             if commit:
                 conn.commit()
-                lastid = cursor.lastrowid
-                cursor.close()
-                return lastid
+                return cursor.lastrowid
             if fetchone:
-                row = cursor.fetchone()
-                cursor.close()
-                return row
+                return cursor.fetchone()
             if fetchall:
-                rows = cursor.fetchall()
-                cursor.close()
-                return rows
-            cursor.close()
+                return cursor.fetchall()
             return None
     except Exception as e:
-        if db_engine == 'mysql':
+        if db_engine == 'mysql' and conn:
             try:
-                if hasattr(_thread_local, 'mysql_conn') and _thread_local.mysql_conn:
-                    _thread_local.mysql_conn.close()
+                conn.rollback()
             except Exception:
                 pass
-            _thread_local.mysql_conn = None
+        raise e
+    finally:
+        if cursor:
+            try:
+                cursor.close()
+            except Exception:
+                pass
+        if conn:
+            try:
+                conn.close()  # For pooled connection, returns connection back to the pool
+            except Exception:
+                pass
+
+def execute_many(query, seq_of_params):
+    """
+    Executes a batch of queries in a single round-trip using cursor.executemany.
+    Dramatically accelerates bulk inserts and updates.
+    """
+    if not seq_of_params:
+        return 0
+    conn, db_engine = get_db_connection()
+    cursor = None
+    try:
+        if db_engine == 'sqlite':
+            sqlite_query = query.replace('%s', '?')
+            cursor = conn.cursor()
+            cursor.executemany(sqlite_query, seq_of_params)
+            conn.commit()
+            return cursor.rowcount
         else:
+            cursor = conn.cursor()
+            cursor.executemany(query, seq_of_params)
+            conn.commit()
+            return cursor.rowcount
+    finally:
+        if cursor:
+            try:
+                cursor.close()
+            except Exception:
+                pass
+        if conn:
             try:
                 conn.close()
             except Exception:
                 pass
-        raise e
-
 
 def fetch_all(query, params=()):
     """Executes a query and returns all matching records as a list of dictionaries."""
     return execute_query(query, params, fetchall=True)
 
-
 def fetch_one(query, params=()):
     """Executes a query and returns a single matching record as a dictionary or None."""
     return execute_query(query, params, fetchone=True)
 
-
 def execute(query, params=()):
     """Executes an INSERT/UPDATE/DELETE query with commit and returns lastrowid."""
     return execute_query(query, params, commit=True)
-

@@ -225,8 +225,18 @@ def process_csv_import(valid_data):
             except Exception as att_err:
                 print(f"Warning: Failed to update attendance for student {student_id}: {att_err}")
 
-    # Invalidate cached analytics so changes appear immediately
+    # Invalidate cached analytics and api caches so changes appear immediately
     invalidate_analytics_cache()
+    try:
+        from services.cache_service import api_cache
+        api_cache.invalidate('marks')
+        api_cache.invalidate('att')
+        api_cache.invalidate('all_stud')
+        api_cache.invalidate('student_details')
+        api_cache.invalidate('subject_details')
+        api_cache.delete('student_att_map')
+    except Exception:
+        pass
 
     return {
         'success': True,

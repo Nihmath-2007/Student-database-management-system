@@ -80,6 +80,37 @@ def run_migration():
     except Exception as e:
         print(f"Timetable table creation notice: {e}")
 
+    # 6. Performance indexes for live MySQL database
+    indexes_to_ensure = [
+        ('attendance', 'idx_att_date', 'date'),
+        ('attendance', 'idx_att_subject_id', 'subject_id'),
+        ('attendance', 'idx_att_status', 'status'),
+        ('attendance', 'idx_att_date_subj', 'date, subject_id'),
+        ('attendance', 'idx_att_subj_stud', 'subject_id, student_id'),
+        ('internal_marks', 'idx_marks_subj_test', 'subject_id, test_number'),
+        ('internal_marks', 'idx_marks_stud_subj', 'student_id, subject_id'),
+        ('students', 'idx_students_year', 'year'),
+        ('students', 'idx_students_dept_sec', 'department, section'),
+        ('notifications', 'idx_notif_active_exp', 'is_active, expires_at'),
+        ('notes', 'idx_notes_staff_up', 'staff_id, uploaded_at'),
+        ('notes', 'idx_notes_subj_up', 'subject_id, uploaded_at'),
+        ('gallery', 'idx_gallery_uploaded', 'uploaded_at'),
+        ('timetable', 'idx_tt_lookup', 'year, section, day_of_week, period_number'),
+        ('audit_log', 'idx_audit_tbl_time', 'table_name, changed_at'),
+        ('mark_correction_requests', 'idx_mcr_staff_stat', 'staff_id, status'),
+        ('mark_correction_requests', 'idx_mcr_stud_stat', 'student_id, status'),
+    ]
+
+    for table, idx_name, cols in indexes_to_ensure:
+        try:
+            cur_indexes = fetch_all(f"SHOW INDEX FROM {table}") or []
+            existing_names = {r['Key_name'] for r in cur_indexes}
+            if idx_name not in existing_names:
+                execute(f"CREATE INDEX {idx_name} ON {table} ({cols})")
+                print(f"Created index {idx_name} on {table}.")
+        except Exception as ie:
+            print(f"Index {idx_name} migration notice: {ie}")
+
     print("Migration finished successfully.")
 
 if __name__ == '__main__':
