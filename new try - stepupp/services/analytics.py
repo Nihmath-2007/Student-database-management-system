@@ -30,15 +30,16 @@ def calculate_department_analytics(force_refresh=False):
     if not force_refresh and _analytics_cache['data'] is not None and now < _analytics_cache['expires_at']:
         return _analytics_cache['data']
 
-    # 1. Total counts
-    student_count_row = execute_query("SELECT COUNT(*) as cnt FROM students", fetchone=True) or {}
-    total_students = student_count_row.get('cnt', 0)
-
-    staff_count_row = execute_query("SELECT COUNT(*) as cnt FROM staff", fetchone=True) or {}
-    total_staff = staff_count_row.get('cnt', 0)
-
-    subject_count_row = execute_query("SELECT COUNT(*) as cnt FROM subjects", fetchone=True) or {}
-    total_subjects = subject_count_row.get('cnt', 0)
+    # 1. Total counts in a single network round-trip
+    counts_row = execute_query("""
+        SELECT 
+            (SELECT COUNT(*) FROM students) as total_students,
+            (SELECT COUNT(*) FROM staff) as total_staff,
+            (SELECT COUNT(*) FROM subjects) as total_subjects
+    """, fetchone=True) or {}
+    total_students = counts_row.get('total_students', 0)
+    total_staff = counts_row.get('total_staff', 0)
+    total_subjects = counts_row.get('total_subjects', 0)
 
     if total_students == 0:
         return {}

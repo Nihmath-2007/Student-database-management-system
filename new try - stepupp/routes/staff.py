@@ -5,6 +5,7 @@ from flask import Blueprint, render_template, jsonify, request, session, redirec
 from routes.auth import role_required, login_required
 from services.database_service import get_staff_subjects, get_subject_details, get_student_details, get_all_students
 from services.correction_service import get_staff_queries, update_query_status_to_review, resolve_mark_correction_query, get_query_details
+from services.cache_service import api_cache
 from db import fetch_all, fetch_one, execute
 
 staff_bp = Blueprint('staff', __name__, url_prefix='/staff')
@@ -170,6 +171,13 @@ def api_staff_subjects():
 @role_required('staff')
 def api_staff_dashboard():
     staff_id = session.get('staff_id')
+    refresh = request.args.get('refresh') in ('1', 'true', 'yes')
+    cache_key = f"staff_dash_{staff_id}"
+    if not refresh:
+        cached = api_cache.get(cache_key)
+        if cached is not None:
+            return jsonify(cached)
+
     assigned_subjects = get_staff_subjects(staff_id)
     
     total_students_set = set()
@@ -189,7 +197,7 @@ def api_staff_dashboard():
     avg_pass = round(sum(s['pass_percentage'] for s in subject_analytics_list)/len(subject_analytics_list), 1) if subject_analytics_list else 0
     avg_fail = round(100.0 - avg_pass, 1)
 
-    return jsonify({
+    result = {
         'assigned_subjects_count': len(assigned_subjects),
         'total_students': total_students,
         'average_marks': avg_marks,
@@ -198,7 +206,9 @@ def api_staff_dashboard():
         'fail_percentage': avg_fail,
         'subjects': assigned_subjects,
         'subject_analytics': subject_analytics_list
-    })
+    }
+    api_cache.set(cache_key, result, ttl=30)
+    return jsonify(result)
 
 @staff_bp.route('/api/subject/<int:subject_id>')
 @role_required('staff')
@@ -255,16 +265,28 @@ def api_staff_queries():
         return jsonify({'error': 'Staff session not found.'}), 400
 
     status_filter = request.args.get('status', 'all')
-    queries = get_staff_queries(staff_id, status_filter=status_filter)
+    cache_key = f"staff_queries_{staff_id}_{status_filter}"
+    cached = api_cache.get(cache_key)
+    if cached is not None:
+        return jsonify(cached)
 
-    # Compute quick stats for staff
+    # Fetch once, compute stats and filter in memory to eliminate duplicate network query
     all_queries = get_staff_queries(staff_id, status_filter='all')
+    if status_filter == 'all':
+        queries = all_queries
+    elif status_filter == 'pending':
+        queries = [q for q in all_queries if q['status'] in ('Raised', 'Under Review')]
+    elif status_filter == 'overdue':
+        queries = [q for q in all_queries if q.get('is_overdue')]
+    else:
+        queries = [q for q in all_queries if q['status'] == status_filter]
+
     pending_count = sum(1 for q in all_queries if q['status'] in ('Raised', 'Under Review'))
     overdue_count = sum(1 for q in all_queries if q.get('is_overdue'))
     approved_count = sum(1 for q in all_queries if q['status'] == 'Approved')
     rejected_count = sum(1 for q in all_queries if q['status'] == 'Rejected')
 
-    return jsonify({
+    res = {
         'queries': queries,
         'stats': {
             'total': len(all_queries),
@@ -273,7 +295,9 @@ def api_staff_queries():
             'approved': approved_count,
             'rejected': rejected_count
         }
-    })
+    }
+    api_cache.set(cache_key, res, ttl=20)
+    return jsonify(res)
 
 
 @staff_bp.route('/api/query/<int:query_id>/review', methods=['POST'])
@@ -291,6 +315,8 @@ def api_staff_query_review(query_id):
             user_role='staff',
             staff_id=staff_id
         )
+        api_cache.invalidate('staff_queries')
+        api_cache.invalidate('hod_queries')
         return jsonify({
             'success': True,
             'message': f'Request #{query_id} is now Under Review. Answer script verification initiated.'
@@ -327,6 +353,13 @@ def api_staff_query_resolve(query_id):
             remarks=remarks,
             new_mark=new_mark
         )
+        api_cache.invalidate('staff_queries')
+        api_cache.invalidate('hod_queries')
+        api_cache.invalidate('marks')
+        api_cache.invalidate('all_stud')
+        api_cache.invalidate('student_details')
+        api_cache.invalidate('subject_details')
+        invalidate_analytics_cache()
         return jsonify({
             'success': True,
             'result': result,

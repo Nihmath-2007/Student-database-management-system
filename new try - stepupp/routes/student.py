@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, jsonify, session, request
 from routes.auth import role_required, login_required
 from services.database_service import get_student_details
 from services.correction_service import get_student_marks_with_query_status, get_student_queries, raise_mark_correction_query
+from services.cache_service import api_cache
 from db import fetch_all
 
 student_bp = Blueprint('student', __name__, url_prefix='/student')
@@ -9,16 +10,20 @@ student_bp = Blueprint('student', __name__, url_prefix='/student')
 @student_bp.route('/dashboard')
 @role_required('student')
 def dashboard():
-    # Fetch all notes grouped by subject
-    notes = fetch_all("""
-        SELECT n.id, n.subject_id, n.title, n.filename, n.uploaded_at,
-               sub.subject_name, sub.subject_code,
-               COALESCE(st.name, 'Faculty') as staff_name
-        FROM notes n
-        JOIN subjects sub ON n.subject_id = sub.subjectid
-        LEFT JOIN staff st ON n.staff_id = st.staffid
-        ORDER BY sub.subject_name ASC, n.uploaded_at DESC
-    """)
+    # Fetch all notes grouped by subject with caching
+    notes = api_cache.get('all_notes')
+    if notes is None:
+        notes = fetch_all("""
+            SELECT n.id, n.subject_id, n.title, n.filename, n.uploaded_at,
+                   sub.subject_name, sub.subject_code,
+                   COALESCE(st.name, 'Faculty') as staff_name
+            FROM notes n
+            JOIN subjects sub ON n.subject_id = sub.subjectid
+            LEFT JOIN staff st ON n.staff_id = st.staffid
+            ORDER BY sub.subject_name ASC, n.uploaded_at DESC
+        """) or []
+        api_cache.set('all_notes', notes, ttl=60)
+
     grouped_notes = {}
     for note in (notes or []):
         s_name = note['subject_name']
@@ -94,7 +99,12 @@ def api_student_marks_with_queries():
     student_id = session.get('student_id')
     if not student_id:
         return jsonify({'error': 'Student session not found.'}), 400
+    cache_key = f"stud_mq_{student_id}"
+    cached = api_cache.get(cache_key)
+    if cached is not None:
+        return jsonify({'marks': cached})
     marks = get_student_marks_with_query_status(student_id)
+    api_cache.set(cache_key, marks, ttl=30)
     return jsonify({'marks': marks})
 
 
@@ -104,7 +114,12 @@ def api_student_queries():
     student_id = session.get('student_id')
     if not student_id:
         return jsonify({'error': 'Student session not found.'}), 400
+    cache_key = f"stud_queries_{student_id}"
+    cached = api_cache.get(cache_key)
+    if cached is not None:
+        return jsonify({'queries': cached})
     queries = get_student_queries(student_id)
+    api_cache.set(cache_key, queries, ttl=30)
     return jsonify({'queries': queries})
 
 
@@ -138,6 +153,10 @@ def api_student_raise_query():
             user_id=user_id,
             user_name=user_name
         )
+        api_cache.delete(f"stud_mq_{student_id}")
+        api_cache.delete(f"stud_queries_{student_id}")
+        api_cache.invalidate('staff_queries')
+        api_cache.invalidate('hod_queries')
         return jsonify({
             'success': True,
             'message': 'Mark correction query submitted successfully. Assigned faculty will review.',

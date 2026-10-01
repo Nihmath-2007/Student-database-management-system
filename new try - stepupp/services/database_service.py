@@ -6,6 +6,26 @@ if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
 from config.database import execute_query
+from services.cache_service import api_cache
+
+def get_student_attendance_map():
+    """
+    Returns a cached dictionary mapping student_id -> attendance_percentage.
+    Cached for 60s in memory, eliminating redundant full-table grouping queries.
+    """
+    cached = api_cache.get('student_att_map')
+    if cached is not None:
+        return cached
+
+    query = """
+    SELECT student_id, ROUND((SUM(CASE WHEN LOWER(status) = 'present' THEN 1.0 ELSE 0.0 END) / NULLIF(COUNT(*), 0)) * 100.0, 1) as att_pct
+    FROM attendance
+    GROUP BY student_id
+    """
+    rows = execute_query(query, fetchall=True) or []
+    att_map = {r['student_id']: float(r['att_pct'] or 85.0) for r in rows}
+    api_cache.set('student_att_map', att_map, ttl=60)
+    return att_map
 
 def get_user_by_username(username):
     query = """
@@ -20,8 +40,14 @@ def get_user_by_username(username):
 def get_all_students(year_filter=None, semester_filter=None, subject_filter=None, search=None, subject_ids=None):
     """
     Fetches list of students with calculated attendance %, average marks %, and at-risk status.
-    Uses fast SQL aggregations matching the accurate attendance and internal_marks schemas.
+    Uses fast SQL aggregations, indexed lookups, and short-lived caching for high responsiveness.
     """
+    subj_key = '_'.join(str(s) for s in (subject_ids or []))
+    cache_key = f"all_stud_{year_filter}_{semester_filter}_{subject_filter}_{search}_{subj_key}"
+    cached = api_cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     query = """
     SELECT 
         s.studentid, s.regno, s.name, s.department, s.year, s.email,
@@ -87,14 +113,21 @@ def get_all_students(year_filter=None, semester_filter=None, subject_filter=None
         else:
             student['at_risk'] = False
             student['status'] = 'Normal'
-            
+
+    api_cache.set(cache_key, students, ttl=45)
     return students
 
 def get_student_details(student_id):
     """
     Returns full profile and subject-wise metrics for a single student.
+    Cached per student for 45s to avoid redundant remote round-trips.
     """
-    student_query = "SELECT * FROM students WHERE studentid = %s"
+    cache_key = f"student_details_{student_id}"
+    cached = api_cache.get(cache_key)
+    if cached is not None:
+        return cached
+
+    student_query = "SELECT studentid, regno, name, department, year, section, email, phone FROM students WHERE studentid = %s"
     student = execute_query(student_query, (student_id,), fetchone=True)
     if not student:
         return None
@@ -169,7 +202,7 @@ def get_student_details(student_id):
     
     test_trend_avg = {k: round(sum(v)/len(v), 1) for k, v in test_trend.items() if len(v) > 0}
 
-    return {
+    result = {
         'profile': student,
         'attendance': att,
         'subjects': subject_list,
@@ -180,26 +213,53 @@ def get_student_details(student_id):
         'lowest_mark': min(marks_list) if marks_list else 0.0,
         'test_trend': test_trend_avg
     }
+    api_cache.set(cache_key, result, ttl=45)
+    return result
 
 def get_all_subjects():
+    """Fetches all subjects with assigned faculty names. Cached for 120s."""
+    cached = api_cache.get('all_subjects')
+    if cached is not None:
+        return cached
+
     query = """
     SELECT sub.*, st.name as staff_name 
     FROM subjects sub
     LEFT JOIN staff st ON sub.staff_id = st.staffid
     ORDER BY sub.semester, sub.subject_name
     """
-    return execute_query(query, fetchall=True) or []
+    subjects = execute_query(query, fetchall=True) or []
+    api_cache.set('all_subjects', subjects, ttl=120)
+    return subjects
 
 def get_staff_subjects(staff_id):
+    """Fetches subjects assigned to a staff member. Cached for 120s."""
+    cache_key = f"staff_subjects_{staff_id}"
+    cached = api_cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     query = """
     SELECT sub.*, st.name as staff_name
     FROM subjects sub
     JOIN staff st ON sub.staff_id = st.staffid
     WHERE sub.staff_id = %s
     """
-    return execute_query(query, (staff_id,), fetchall=True) or []
+    subjects = execute_query(query, (staff_id,), fetchall=True) or []
+    api_cache.set(cache_key, subjects, ttl=120)
+    return subjects
 
 def get_subject_details(subject_id):
+    """
+    Fetches details and student mark metrics for a subject.
+    Eliminates cross-table group by on full attendance table by using cached attendance mapping.
+    Cached for 45s.
+    """
+    cache_key = f"subject_details_{subject_id}"
+    cached = api_cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     query = """
     SELECT sub.*, st.name as staff_name
     FROM subjects sub
@@ -214,20 +274,19 @@ def get_subject_details(subject_id):
     SELECT 
         s.studentid, s.regno, s.name,
         m.marks_obtained, m.max_marks, m.test_number,
-        ROUND((m.marks_obtained / NULLIF(m.max_marks, 0)) * 100.0, 1) as percentage,
-        COALESCE(att.att_pct, 85.0) as attendance_pct
+        ROUND((m.marks_obtained / NULLIF(m.max_marks, 0)) * 100.0, 1) as percentage
     FROM internal_marks m
     JOIN students s ON m.student_id = s.studentid
-    LEFT JOIN (
-        SELECT student_id, ROUND((SUM(CASE WHEN LOWER(status) = 'present' THEN 1.0 ELSE 0.0 END) / NULLIF(COUNT(*), 0)) * 100.0, 1) as att_pct
-        FROM attendance
-        GROUP BY student_id
-    ) att ON s.studentid = att.student_id
     WHERE m.subject_id = %s
     ORDER BY s.regno
     """
     students_marks = execute_query(marks_query, (subject_id,), fetchall=True) or []
     
+    # Attach attendance percentages using high-speed cached attendance map
+    att_map = get_student_attendance_map()
+    for sm in students_marks:
+        sm['attendance_pct'] = att_map.get(sm['studentid'], 85.0)
+
     total_students = len(students_marks)
     marks_list = [float(s['percentage'] or 0.0) for s in students_marks]
     att_list = [float(s['attendance_pct'] or 0.0) for s in students_marks]
@@ -240,7 +299,7 @@ def get_subject_details(subject_id):
     pass_pct = round((passed_count / total_students) * 100.0, 1) if total_students > 0 else 0.0
     fail_pct = round(100.0 - pass_pct, 1)
 
-    return {
+    result = {
         'subject': subject,
         'total_students': total_students,
         'average_marks': avg_marks,
@@ -251,3 +310,5 @@ def get_subject_details(subject_id):
         'failed_count': failed_count,
         'student_marks': students_marks
     }
+    api_cache.set(cache_key, result, ttl=45)
+    return result

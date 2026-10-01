@@ -9,6 +9,10 @@ import json
 from datetime import datetime, date
 from werkzeug.security import generate_password_hash
 from db import fetch_all, fetch_one, execute
+from services.cache_service import api_cache
+from services.analytics import invalidate_analytics_cache
+
+_timetable_seeded = False
 
 def log_erp_audit(table_name, record_id, action, field_name=None, old_val=None, new_val=None, user_meta=None, notes=None):
     """Logs action into audit_log table for accountability."""
@@ -37,6 +41,11 @@ def erp_get_students(search=None, department=None, year=None, status=None, page=
     """
     Fetches students with KPI aggregations, filtering, search, and pagination.
     """
+    cache_key = f"erp_stud_{search}_{department}_{year}_{status}_{page}_{per_page}"
+    cached = api_cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     query = """
     SELECT 
         s.studentid, s.regno, s.name, s.department, s.year, s.section, s.email, s.phone,
@@ -124,13 +133,15 @@ def erp_get_students(search=None, department=None, year=None, status=None, page=
 
     total_pages = (total_records + per_page - 1) // per_page if per_page else 1
 
-    return {
+    res = {
         'students': paginated_students,
         'total': total_records,
         'page': page,
         'per_page': per_page,
         'total_pages': total_pages
     }
+    api_cache.set(cache_key, res, ttl=45)
+    return res
 
 def erp_get_student_by_id(student_id):
     """Fetches full profile, attendance, and internal marks for a single student."""
@@ -216,6 +227,11 @@ def erp_create_student(data, user_meta=None):
         notes=f"Added new student {name} ({regno})"
     )
 
+    api_cache.invalidate('students')
+    api_cache.invalidate('all_stud')
+    api_cache.invalidate('student_details')
+    invalidate_analytics_cache()
+
     return {'studentid': next_id, 'regno': regno, 'name': name, 'message': 'Student created successfully.'}
 
 def erp_update_student(student_id, data, user_meta=None):
@@ -266,6 +282,11 @@ def erp_update_student(student_id, data, user_meta=None):
         notes=f"Updated student profile for {name} ({regno})"
     )
 
+    api_cache.invalidate('students')
+    api_cache.invalidate('all_stud')
+    api_cache.invalidate('student_details')
+    invalidate_analytics_cache()
+
     return {'studentid': student_id, 'message': 'Student updated successfully.'}
 
 def erp_delete_student(student_id, user_meta=None):
@@ -306,6 +327,11 @@ def erp_delete_student(student_id, user_meta=None):
         user_meta=user_meta,
         notes=f"Deleted student {curr.get('name')} ({curr.get('regno')})"
     )
+
+    api_cache.invalidate('students')
+    api_cache.invalidate('all_stud')
+    api_cache.invalidate('student_details')
+    invalidate_analytics_cache()
 
     return {'message': f"Student {curr.get('name')} deleted successfully."}
 
@@ -623,6 +649,11 @@ def erp_delete_subject(subject_code, user_meta=None):
 
 def erp_get_attendance(date_filter=None, subject_id=None, student_id=None, status_filter=None, search=None, page=1, per_page=30):
     """Fetches attendance records with rich filters, student details, and pagination."""
+    cache_key = f"erp_att_{date_filter}_{subject_id}_{student_id}_{status_filter}_{search}_{page}_{per_page}"
+    cached = api_cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     query = """
     SELECT 
         att.id, att.student_id, att.date, att.status, att.subject_id,
@@ -658,9 +689,32 @@ def erp_get_attendance(date_filter=None, subject_id=None, student_id=None, statu
 
     query += " ORDER BY att.date DESC, s.regno ASC"
 
-    # Count total
-    count_query = f"SELECT COUNT(*) as cnt FROM ({query}) as t"
-    total_row = fetch_one(count_query, tuple(params))
+    # Fast direct count using indexes on attendance without ORDER BY and extra joins
+    count_query = """
+    SELECT COUNT(*) as cnt
+    FROM attendance att
+    JOIN students s ON att.student_id = s.studentid
+    WHERE 1=1
+    """
+    count_params = []
+    if date_filter:
+        count_query += " AND att.date = %s"
+        count_params.append(date_filter)
+    if subject_id and subject_id != 'All':
+        count_query += " AND att.subject_id = %s"
+        count_params.append(int(subject_id))
+    if student_id:
+        count_query += " AND att.student_id = %s"
+        count_params.append(int(student_id))
+    if status_filter and status_filter != 'All':
+        count_query += " AND LOWER(att.status) = LOWER(%s)"
+        count_params.append(status_filter)
+    if search:
+        s_term = f"%{search.strip()}%"
+        count_query += " AND (s.name LIKE %s OR s.regno LIKE %s)"
+        count_params.extend([s_term, s_term])
+
+    total_row = fetch_one(count_query, tuple(count_params))
     total_records = total_row['cnt'] if total_row else 0
 
     # Limit / Offset
@@ -679,13 +733,15 @@ def erp_get_attendance(date_filter=None, subject_id=None, student_id=None, statu
 
     total_pages = (total_records + per_page - 1) // per_page if per_page else 1
 
-    return {
+    res = {
         'records': records,
         'total': total_records,
         'page': page,
         'per_page': per_page,
         'total_pages': total_pages
     }
+    api_cache.set(cache_key, res, ttl=45)
+    return res
 
 def erp_add_attendance(data, user_meta=None):
     """
@@ -742,6 +798,13 @@ def erp_add_attendance(data, user_meta=None):
                 notes=f"Marked attendance for student ID {student_id} on {att_date}: {status}"
             )
 
+    api_cache.invalidate('att')
+    api_cache.invalidate('all_stud')
+    api_cache.invalidate('student_details')
+    api_cache.invalidate('subject_details')
+    api_cache.delete('student_att_map')
+    invalidate_analytics_cache()
+
     return {'added': added_count, 'updated': updated_count, 'message': f"Saved {added_count + updated_count} attendance records."}
 
 def erp_update_attendance(att_id, data, user_meta=None):
@@ -774,6 +837,13 @@ def erp_update_attendance(att_id, data, user_meta=None):
         notes=f"Updated attendance record #{att_id}"
     )
 
+    api_cache.invalidate('att')
+    api_cache.invalidate('all_stud')
+    api_cache.invalidate('student_details')
+    api_cache.invalidate('subject_details')
+    api_cache.delete('student_att_map')
+    invalidate_analytics_cache()
+
     return {'id': att_id, 'message': 'Attendance updated successfully.'}
 
 def erp_delete_attendance(att_id, user_meta=None):
@@ -792,6 +862,13 @@ def erp_delete_attendance(att_id, user_meta=None):
         user_meta=user_meta,
         notes=f"Deleted attendance record #{att_id}"
     )
+
+    api_cache.invalidate('att')
+    api_cache.invalidate('all_stud')
+    api_cache.invalidate('student_details')
+    api_cache.invalidate('subject_details')
+    api_cache.delete('student_att_map')
+    invalidate_analytics_cache()
 
     return {'message': 'Attendance record deleted successfully.'}
 
@@ -827,6 +904,11 @@ def erp_export_attendance_csv(date_filter=None, subject_id=None, search=None):
 
 def erp_get_marks(student_id=None, subject_id=None, test_number=None, search=None, page=1, per_page=30):
     """Fetches internal marks with student and subject details, filters, and pagination."""
+    cache_key = f"erp_marks_{student_id}_{subject_id}_{test_number}_{search}_{page}_{per_page}"
+    cached = api_cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     query = """
     SELECT 
         m.id, m.student_id, m.subject_id, m.test_number, m.marks_obtained, m.max_marks,
@@ -857,10 +939,30 @@ def erp_get_marks(student_id=None, subject_id=None, test_number=None, search=Non
         query += " AND (s.name LIKE %s OR s.regno LIKE %s OR sub.subject_name LIKE %s)"
         params.extend([s_term, s_term, s_term])
 
-    query += " ORDER BY s.regno ASC, sub.subject_code ASC, m.test_number ASC"
+    # Fast direct count using indexes on internal_marks without ORDER BY
+    count_query = """
+    SELECT COUNT(*) as cnt
+    FROM internal_marks m
+    JOIN students s ON m.student_id = s.studentid
+    LEFT JOIN subjects sub ON m.subject_id = sub.subjectid
+    WHERE 1=1
+    """
+    count_params = []
+    if student_id:
+        count_query += " AND m.student_id = %s"
+        count_params.append(int(student_id))
+    if subject_id and subject_id != 'All':
+        count_query += " AND m.subject_id = %s"
+        count_params.append(int(subject_id))
+    if test_number and test_number != 'All':
+        count_query += " AND m.test_number = %s"
+        count_params.append(int(test_number))
+    if search:
+        s_term = f"%{search.strip()}%"
+        count_query += " AND (s.name LIKE %s OR s.regno LIKE %s OR sub.subject_name LIKE %s)"
+        count_params.extend([s_term, s_term, s_term])
 
-    count_query = f"SELECT COUNT(*) as cnt FROM ({query}) as t"
-    total_row = fetch_one(count_query, tuple(params))
+    total_row = fetch_one(count_query, tuple(count_params))
     total_records = total_row['cnt'] if total_row else 0
 
     if per_page and per_page > 0:
@@ -875,13 +977,15 @@ def erp_get_marks(student_id=None, subject_id=None, test_number=None, search=Non
 
     total_pages = (total_records + per_page - 1) // per_page if per_page else 1
 
-    return {
+    res = {
         'marks': records,
         'total': total_records,
         'page': page,
         'per_page': per_page,
         'total_pages': total_pages
     }
+    api_cache.set(cache_key, res, ttl=45)
+    return res
 
 def erp_add_mark(data, user_meta=None):
     """Adds a new internal mark entry with validation and audit logging."""
@@ -924,6 +1028,13 @@ def erp_add_mark(data, user_meta=None):
         notes=f"Internal Mark recorded for student {student_id}, Subject {subject_id}, Test {test_number}: {marks_obtained}/{max_marks}"
     )
 
+    api_cache.invalidate('marks')
+    api_cache.invalidate('all_stud')
+    api_cache.invalidate('student_details')
+    api_cache.invalidate('subject_details')
+    api_cache.invalidate('mreports')
+    invalidate_analytics_cache()
+
     return {'id': mark_id, 'message': 'Internal mark recorded successfully.'}
 
 def erp_update_mark(mark_id, data, user_meta=None):
@@ -955,6 +1066,13 @@ def erp_update_mark(mark_id, data, user_meta=None):
         notes=f"Updated mark ID #{mark_id} to {marks_obtained}/{max_marks}"
     )
 
+    api_cache.invalidate('marks')
+    api_cache.invalidate('all_stud')
+    api_cache.invalidate('student_details')
+    api_cache.invalidate('subject_details')
+    api_cache.invalidate('mreports')
+    invalidate_analytics_cache()
+
     return {'id': mark_id, 'message': 'Internal mark updated successfully.'}
 
 def erp_delete_mark(mark_id, user_meta=None):
@@ -974,16 +1092,28 @@ def erp_delete_mark(mark_id, user_meta=None):
         notes=f"Deleted internal mark ID #{mark_id}"
     )
 
+    api_cache.invalidate('marks')
+    api_cache.invalidate('all_stud')
+    api_cache.invalidate('student_details')
+    api_cache.invalidate('subject_details')
+    api_cache.invalidate('mreports')
+    invalidate_analytics_cache()
+
     return {'message': 'Mark record deleted successfully.'}
 
 def erp_get_marks_reports(report_type='student', student_id=None, subject_id=None, semester=None):
     """
     Generates Student Report, Subject Report, or Semester Report data.
     """
+    cache_key = f"mreports_{report_type}_{student_id}_{subject_id}_{semester}"
+    cached = api_cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     if report_type == 'student':
         if not student_id:
             # All students summary
-            return fetch_all("""
+            res = fetch_all("""
                 SELECT 
                     s.studentid, s.regno, s.name, s.department, s.year,
                     ROUND(AVG(m.marks_obtained), 1) as avg_marks,
@@ -996,7 +1126,7 @@ def erp_get_marks_reports(report_type='student', student_id=None, subject_id=Non
                 ORDER BY avg_marks DESC
             """)
         else:
-            return erp_get_student_by_id(student_id)
+            res = erp_get_student_by_id(student_id)
 
     elif report_type == 'subject':
         query = """
@@ -1016,7 +1146,7 @@ def erp_get_marks_reports(report_type='student', student_id=None, subject_id=Non
             query += " AND sub.subjectid = %s"
             params.append(int(subject_id))
         query += " GROUP BY sub.subjectid, sub.subject_code, sub.subject_name, sub.semester ORDER BY sub.semester, sub.subject_code"
-        return fetch_all(query, tuple(params))
+        res = fetch_all(query, tuple(params))
 
     elif report_type == 'semester':
         query = """
@@ -1031,9 +1161,12 @@ def erp_get_marks_reports(report_type='student', student_id=None, subject_id=Non
             GROUP BY sub.semester
             ORDER BY sub.semester ASC
         """
-        return fetch_all(query)
+        res = fetch_all(query)
+    else:
+        res = []
 
-    return []
+    api_cache.set(cache_key, res, ttl=60)
+    return res
 
 
 # =========================================================================
@@ -1054,8 +1187,13 @@ DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturda
 
 def erp_seed_default_timetable():
     """Seeds a realistic default timetable for Third Year IT Department if empty."""
+    global _timetable_seeded
+    if _timetable_seeded:
+        return
+
     cnt = fetch_one("SELECT COUNT(*) as c FROM timetable")
     if cnt and cnt['c'] > 0:
+        _timetable_seeded = True
         return
 
     subjects = fetch_all("SELECT subject_code, staff_id FROM subjects ORDER BY subject_code")
@@ -1082,13 +1220,19 @@ def erp_seed_default_timetable():
             """, e)
         except Exception as ex:
             print(f"Notice: Timetable seed item warning: {ex}")
+    _timetable_seeded = True
 
 def erp_get_timetable(year='Third year', section='A', day=None):
     """
     Fetches timetable grouped by day or for a specific day.
-    Auto-seeds if table is completely empty.
+    Auto-seeds if table is completely empty. Cached for 120s.
     """
     erp_seed_default_timetable()
+
+    cache_key = f"tt_erp_{year}_{section}_{day}"
+    cached = api_cache.get(cache_key)
+    if cached is not None:
+        return cached
 
     query = """
     SELECT 
@@ -1125,12 +1269,14 @@ def erp_get_timetable(year='Third year', section='A', day=None):
         if d in grouped:
             grouped[d].append(r)
 
-    return {
+    result = {
         'all_slots': rows,
         'grouped_by_day': grouped,
         'days': DAYS_OF_WEEK,
         'periods': DEFAULT_PERIOD_SLOTS
     }
+    api_cache.set(cache_key, result, ttl=120)
+    return result
 
 def erp_add_timetable_slot(data, user_meta=None):
     """Adds a new timetable slot."""
@@ -1176,6 +1322,7 @@ def erp_add_timetable_slot(data, user_meta=None):
         notes=f"Added timetable slot for {day} Period {period_number}: {subject_code} in {classroom}"
     )
 
+    api_cache.invalidate('tt')
     return {'id': slot_id, 'message': 'Timetable slot created successfully.'}
 
 def erp_update_timetable_slot(slot_id, data, user_meta=None):
@@ -1211,6 +1358,7 @@ def erp_update_timetable_slot(slot_id, data, user_meta=None):
         notes=f"Updated timetable slot #{slot_id}"
     )
 
+    api_cache.invalidate('tt')
     return {'id': slot_id, 'message': 'Timetable slot updated successfully.'}
 
 def erp_delete_timetable_slot(slot_id, user_meta=None):
@@ -1230,4 +1378,5 @@ def erp_delete_timetable_slot(slot_id, user_meta=None):
         notes=f"Deleted timetable slot #{slot_id}"
     )
 
+    api_cache.invalidate('tt')
     return {'message': 'Timetable slot deleted successfully.'}

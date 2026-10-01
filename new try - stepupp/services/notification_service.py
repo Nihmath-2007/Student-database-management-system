@@ -7,6 +7,9 @@ if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
 from config.database import execute_query
+from services.cache_service import api_cache
+
+# ... Priority configuration ...
 
 PRIORITY_MAP = {
     'urgent': {'weight': 1, 'label': 'URGENT', 'icon': 'fa-solid fa-triangle-exclamation', 'class': 'priority-urgent'},
@@ -66,6 +69,11 @@ def get_active_notifications_for_user(user_id, role, student_id=None):
     if not user_id:
         return []
 
+    cache_key = f"notif_{user_id}_{role}_{student_id}"
+    cached = api_cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     today_str = datetime.now().strftime('%Y-%m-%d')
 
     # Query active, non-expired notices not dismissed by this user
@@ -83,6 +91,7 @@ def get_active_notifications_for_user(user_id, role, student_id=None):
     """
     rows = execute_query(query, (today_str, user_id), fetchall=True) or []
     if not rows:
+        api_cache.set(cache_key, [], ttl=30)
         return []
 
     # Get student year and section if student
@@ -131,6 +140,7 @@ def get_active_notifications_for_user(user_id, role, student_id=None):
     # Sort primarily by priority weight (1 urgent, 2 high, 3 medium, 4 low), then created_at DESC
     filtered_notices.sort(key=lambda x: (x['priority_weight'], str(x.get('created_at', ''))), reverse=False)
 
+    api_cache.set(cache_key, filtered_notices, ttl=30)
     return filtered_notices
 
 def dismiss_notification_for_user(notification_id, user_id):
@@ -146,6 +156,8 @@ def dismiss_notification_for_user(notification_id, user_id):
         """
         now_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         execute_query(insert_query, (notification_id, user_id, now_str), commit=True)
+    api_cache.invalidate('notif_')
+    api_cache.invalidate('admin_notifs')
     return True
 
 def create_notification(title, message, audience, priority, expires_at, created_by=None):
@@ -156,12 +168,19 @@ def create_notification(title, message, audience, priority, expires_at, created_
     INSERT INTO notifications (title, message, audience, priority, expires_at, created_by, is_active)
     VALUES (%s, %s, %s, %s, %s, %s, 1)
     """
-    return execute_query(query, (title, message, audience, priority, expires_at, created_by), commit=True)
+    res = execute_query(query, (title, message, audience, priority, expires_at, created_by), commit=True)
+    api_cache.invalidate('notif_')
+    api_cache.invalidate('admin_notifs')
+    return res
 
 def get_all_notifications_admin():
     """
     Retrieves all notifications (active, inactive, expired) with dismiss count for HOD management.
     """
+    cached = api_cache.get('admin_notifs')
+    if cached is not None:
+        return cached
+
     query = """
     SELECT n.*,
            COUNT(nd.id) as dismiss_count
@@ -203,6 +222,7 @@ def get_all_notifications_admin():
 
         results.append(item)
 
+    api_cache.set('admin_notifs', results, ttl=30)
     return results
 
 def delete_notification(notification_id):
@@ -211,6 +231,8 @@ def delete_notification(notification_id):
     """
     execute_query("DELETE FROM notification_dismissals WHERE notification_id = %s", (notification_id,), commit=True)
     execute_query("DELETE FROM notifications WHERE id = %s", (notification_id,), commit=True)
+    api_cache.invalidate('notif_')
+    api_cache.invalidate('admin_notifs')
     return True
 
 def toggle_notification_active(notification_id):
@@ -222,4 +244,6 @@ def toggle_notification_active(notification_id):
         return False
     new_state = 0 if row['is_active'] == 1 else 1
     execute_query("UPDATE notifications SET is_active = %s WHERE id = %s", (new_state, notification_id), commit=True)
+    api_cache.invalidate('notif_')
+    api_cache.invalidate('admin_notifs')
     return new_state
