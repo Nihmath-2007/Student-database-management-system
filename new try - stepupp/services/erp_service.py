@@ -345,8 +345,13 @@ def erp_delete_student(student_id, user_meta=None):
 
 def erp_get_all_staff(search=None, department=None):
     """
-    Returns full staff directory including assigned subjects and contact info.
+    Returns full staff directory including assigned subjects and contact info. Cached for 60s.
     """
+    cache_key = f"erp_staff_{search}_{department}"
+    cached = api_cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     query = """
     SELECT 
         st.staffid, st.name, st.subjects, st.department, st.email, st.phone, st.designation,
@@ -369,7 +374,9 @@ def erp_get_all_staff(search=None, department=None):
 
     query += " GROUP BY st.staffid, st.name, st.subjects, st.department, st.email, st.phone, st.designation ORDER BY st.staffid ASC"
 
-    return fetch_all(query, tuple(params)) or []
+    result = fetch_all(query, tuple(params)) or []
+    api_cache.set(cache_key, result, ttl=60)
+    return result
 
 def erp_create_staff(data, user_meta=None):
     """
@@ -415,6 +422,10 @@ def erp_create_staff(data, user_meta=None):
         notes=f"Added faculty member {name} (Staff ID: {next_id})"
     )
 
+    api_cache.invalidate('erp_staff')
+    api_cache.invalidate('all_subjects')
+    api_cache.invalidate('erp_subjects')
+
     return {'staffid': next_id, 'name': name, 'username': username, 'message': 'Faculty created successfully.'}
 
 def erp_update_staff(staff_id, data, user_meta=None):
@@ -448,6 +459,10 @@ def erp_update_staff(staff_id, data, user_meta=None):
         user_meta=user_meta,
         notes=f"Updated faculty member {name}"
     )
+
+    api_cache.invalidate('erp_staff')
+    api_cache.invalidate('all_subjects')
+    api_cache.invalidate('erp_subjects')
 
     return {'staffid': staff_id, 'message': 'Faculty member updated successfully.'}
 
@@ -487,6 +502,10 @@ def erp_delete_staff(staff_id, user_meta=None):
         notes=f"Deleted faculty member {curr.get('name')}"
     )
 
+    api_cache.invalidate('erp_staff')
+    api_cache.invalidate('all_subjects')
+    api_cache.invalidate('erp_subjects')
+
     return {'message': f"Faculty member {curr.get('name')} deleted successfully."}
 
 
@@ -495,7 +514,12 @@ def erp_delete_staff(staff_id, user_meta=None):
 # =========================================================================
 
 def erp_get_all_subjects(department=None, semester=None, search=None):
-    """Returns all subjects mapped with faculty information and student enrollment count."""
+    """Returns all subjects mapped with faculty information and student enrollment count. Cached for 60s."""
+    cache_key = f"erp_subjects_{department}_{semester}_{search}"
+    cached = api_cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     query = """
     SELECT 
         sub.subject_code, sub.subject_name, sub.semester, sub.staff_id, sub.subjectid, sub.department,
@@ -524,7 +548,9 @@ def erp_get_all_subjects(department=None, semester=None, search=None):
 
     query += " GROUP BY sub.subject_code, sub.subject_name, sub.semester, sub.staff_id, sub.subjectid, sub.department, st.name ORDER BY sub.semester ASC, sub.subject_code ASC"
 
-    return fetch_all(query, tuple(params)) or []
+    result = fetch_all(query, tuple(params)) or []
+    api_cache.set(cache_key, result, ttl=60)
+    return result
 
 def erp_create_subject(data, user_meta=None):
     """Creates a new subject, associates faculty, and logs audit."""
@@ -561,6 +587,9 @@ def erp_create_subject(data, user_meta=None):
         user_meta=user_meta,
         notes=f"Created subject {code} - {name}"
     )
+
+    api_cache.invalidate('erp_subjects')
+    api_cache.invalidate('all_subjects')
 
     return {'subject_code': code, 'subjectid': next_id, 'message': 'Subject added successfully.'}
 
@@ -602,6 +631,9 @@ def erp_update_subject(subject_code, data, user_meta=None):
         notes=f"Updated subject {new_code} - {name}"
     )
 
+    api_cache.invalidate('erp_subjects')
+    api_cache.invalidate('all_subjects')
+
     return {'subject_code': new_code, 'message': 'Subject updated successfully.'}
 
 def erp_delete_subject(subject_code, user_meta=None):
@@ -642,6 +674,9 @@ def erp_delete_subject(subject_code, user_meta=None):
         user_meta=user_meta,
         notes=f"Deleted subject {curr.get('subject_code')} - {curr.get('subject_name')}"
     )
+
+    api_cache.invalidate('erp_subjects')
+    api_cache.invalidate('all_subjects')
 
     return {'message': f"Subject {subject_code} deleted successfully."}
 

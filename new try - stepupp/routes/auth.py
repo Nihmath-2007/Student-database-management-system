@@ -86,8 +86,11 @@ def login():
         timeout_msg = None
         if request.args.get('timeout'):
             timeout_msg = "Your session has expired due to 15 minutes of inactivity. Please log in again."
+        initial_role = request.args.get('role', 'student').lower()
+        if initial_role not in ('student', 'staff', 'hod'):
+            initial_role = 'student'
             
-        return render_template('login.html', error=timeout_msg)
+        return render_template('login.html', error=timeout_msg, initial_role=initial_role)
 
     # Handle POST
     data = request.get_json() if request.is_json else request.form

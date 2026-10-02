@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Portal Login - Student Database Management System</title>
+    <title>Secure Academic Portal Login - MSEC IT Department</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome Icons -->
@@ -27,6 +27,52 @@
             border-radius: 6px;
             padding: 10px 12px;
             font-size: 0.8rem;
+            transition: all 0.25s ease;
+        }
+        .role-nav-pill-group {
+            background: #eef2f6;
+            border-radius: 10px;
+            padding: 4px;
+            display: flex;
+            gap: 4px;
+            border: 1px solid #e2e8f0;
+        }
+        .role-nav-pill {
+            flex: 1;
+            border: none;
+            background: transparent;
+            color: #475569;
+            font-weight: 700;
+            font-size: 0.82rem;
+            padding: 8px 6px;
+            border-radius: 7px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+        .role-nav-pill:hover {
+            color: var(--msec-navy);
+            background: rgba(255, 255, 255, 0.6);
+        }
+        .role-nav-pill.active {
+            background: #ffffff;
+            color: var(--msec-navy);
+            box-shadow: 0 2px 8px rgba(11, 26, 48, 0.12);
+        }
+        .role-nav-pill.active i {
+            color: var(--msec-orange) !important;
+        }
+        .role-badge-chip {
+            display: inline-block;
+            font-size: 0.72rem;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 20px;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
         }
     </style>
 </head>
@@ -55,8 +101,8 @@
         </div>
         <div class="login-card-header text-center">
             <h2 class="h6 fw-bold text-uppercase mb-1 text-white" style="letter-spacing: 0.5px;">DEPARTMENT OF INFORMATION TECHNOLOGY</h2>
-            <div class="badge" style="background-color: var(--msec-orange); color: #fff; font-weight: 800; font-size: 0.75rem;">SECURE ACADEMIC PORTAL</div>
-            <p class="small text-light opacity-75 mb-0 mt-2">Student Database & Academic Performance Management</p>
+            <div class="badge" id="portalHeaderBadge" style="background-color: var(--msec-orange); color: #fff; font-weight: 800; font-size: 0.75rem;">SECURE ACADEMIC PORTAL</div>
+            <p class="small text-light opacity-75 mb-0 mt-2" id="portalHeaderSubtext">Student Database & Academic Performance Management</p>
         </div>
 
         <div class="login-card-body">
@@ -79,20 +125,45 @@
                 {% endif %}
             {% endif %}
 
+            <!-- 1. MULTI-ROLE PORTAL SELECTOR: HOD, STAFF, STUDENT -->
+            <div class="mb-3">
+                <label class="form-label fw-bold text-muted fs-8 text-uppercase mb-1" style="letter-spacing: 0.5px;">Select Portal Access:</label>
+                <div class="role-nav-pill-group" role="tablist">
+                    <button type="button" class="role-nav-pill" id="btnRoleStudent" onclick="switchLoginRole('student')">
+                        <i class="fa-solid fa-user-graduate text-muted"></i>
+                        <span>Student</span>
+                    </button>
+                    <button type="button" class="role-nav-pill" id="btnRoleStaff" onclick="switchLoginRole('staff')">
+                        <i class="fa-solid fa-chalkboard-user text-muted"></i>
+                        <span>Staff / Faculty</span>
+                    </button>
+                    <button type="button" class="role-nav-pill" id="btnRoleHod" onclick="switchLoginRole('hod')">
+                        <i class="fa-solid fa-user-shield text-muted"></i>
+                        <span>HOD / Admin</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- LOGIN FORM -->
             <form action="{{ url_for('auth.login') }}" method="POST" id="loginForm" autocomplete="off">
+                <input type="hidden" name="role" id="formRoleInput" value="student">
+
+                <!-- USERNAME / IDENTIFIER FIELD -->
                 <div class="mb-3">
-                    <label for="username" class="form-label fw-semibold text-secondary fs-7">
-                        <i class="fa-solid fa-id-card-clip text-orange me-1"></i> Roll Number / Student Name
+                    <label for="username" class="form-label fw-semibold text-secondary fs-7 d-flex justify-content-between align-items-center" id="usernameLabel">
+                        <span><i class="fa-solid fa-id-card-clip text-orange me-1" id="usernameIcon"></i> Roll Number / Student Name</span>
+                        <span class="role-badge-chip bg-primary-subtle text-primary border border-primary-subtle" id="roleBadge">Student Portal</span>
                     </label>
                     <div class="input-group">
-                        <span class="input-group-text bg-light"><i class="fa-solid fa-user text-muted"></i></span>
-                        <input type="text" class="form-control" id="username" name="username" placeholder="e.g. 911524205030, MOHAMED NIHMATHULLAH S, or admin" required autofocus>
+                        <span class="input-group-text bg-light" id="inputGroupUserIcon"><i class="fa-solid fa-user text-muted"></i></span>
+                        <input type="text" class="form-control" id="username" name="username" placeholder="e.g. 911524205030, MOHAMED NIHMATHULLAH S" required autofocus>
                     </div>
                 </div>
 
+                <!-- PASSWORD FIELD -->
                 <div class="mb-3">
-                    <label for="password" class="form-label fw-semibold text-secondary fs-7">
-                        <i class="fa-solid fa-key text-orange me-1"></i> Password (Date of Birth: DDMMYYYY)
+                    <label for="password" class="form-label fw-semibold text-secondary fs-7" id="passwordLabel">
+                        <i class="fa-solid fa-key text-orange me-1" id="passwordIcon"></i> Password (Date of Birth: DDMMYYYY)
                     </label>
                     <div class="input-group">
                         <span class="input-group-text bg-light"><i class="fa-solid fa-lock text-muted"></i></span>
@@ -103,29 +174,23 @@
                     </div>
                 </div>
 
-                <div class="login-info-box mb-4 text-muted">
+                <!-- DYNAMIC INFO BOX -->
+                <div class="login-info-box mb-4 text-muted" id="loginInfoBox">
                     <i class="fa-solid fa-shield-halved text-primary me-1"></i>
                     <strong>Student Password:</strong> Your Date of Birth in <code>DDMMYYYY</code> format.<br>
                     <span class="text-secondary small">Example: If DOB is 03-03-2007, password is <code>03032007</code>.</span>
                 </div>
 
-                <button type="submit" class="btn btn-msec w-100 py-2 fs-6 mb-3 fw-bold">
-                    <i class="fa-solid fa-right-to-bracket me-2"></i> Log In to Portal
+                <button type="submit" class="btn btn-msec w-100 py-2 fs-6 mb-3 fw-bold" id="submitBtn">
+                    <i class="fa-solid fa-right-to-bracket me-2"></i> Log In to Student Portal
                 </button>
             </form>
 
+            <!-- ROLE-SPECIFIC QUICK DEMO CREDENTIALS -->
             <div class="border-top pt-3 text-center">
-                <p class="small text-muted mb-2 fw-semibold">Quick One-Click Demo Credentials:</p>
-                <div class="d-flex flex-wrap justify-content-center gap-2">
-                    <button type="button" class="btn btn-sm btn-outline-dark fs-7" onclick="setDemo('911524205030', '03032007')">
-                        <i class="fa-solid fa-user-graduate text-orange me-1"></i> Mohamed Nihmathullah
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-dark fs-7" onclick="setDemo('911524205001', '07082007')">
-                        <i class="fa-solid fa-user-graduate text-orange me-1"></i> Abichethra P
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-primary fs-7" onclick="setDemo('admin', 'admin123')">
-                        <i class="fa-solid fa-user-shield me-1"></i> Admin Portal
-                    </button>
+                <p class="small text-muted mb-2 fw-semibold" id="demoSectionTitle">Quick Demo Credentials:</p>
+                <div class="d-flex flex-wrap justify-content-center gap-2" id="demoButtonsContainer">
+                    <!-- Populated dynamically based on selected role -->
                 </div>
             </div>
         </div>
@@ -133,9 +198,133 @@
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script>
+        const ROLE_CONFIGS = {
+            student: {
+                name: 'Student',
+                badgeText: 'Student Portal',
+                badgeClass: 'bg-primary-subtle text-primary border border-primary-subtle',
+                headerBadge: 'STUDENT ACADEMIC PORTAL',
+                headerSubtext: 'Student Database & Academic Performance Management',
+                userLabel: 'Roll Number / Student Name',
+                userIcon: 'fa-solid fa-id-card-clip',
+                userPlaceholder: 'e.g. 911524205030, MOHAMED NIHMATHULLAH S',
+                passLabel: 'Password (Date of Birth: DDMMYYYY)',
+                passIcon: 'fa-solid fa-key',
+                passPlaceholder: 'e.g. 03032007 (DDMMYYYY)',
+                btnText: 'Log In to Student Portal',
+                infoBoxHTML: `
+                    <i class="fa-solid fa-shield-halved text-primary me-1"></i>
+                    <strong>Student Password:</strong> Your Date of Birth in <code>DDMMYYYY</code> format.<br>
+                    <span class="text-secondary small">Example: If DOB is 03-03-2007, password is <code>03032007</code>.</span>
+                `,
+                demos: [
+                    { label: 'Mohamed Nihmathullah', user: '911524205030', pass: '03032007', icon: 'fa-user-graduate', btnClass: 'btn-outline-dark' },
+                    { label: 'Abichethra P', user: '911524205001', pass: '07082007', icon: 'fa-user-graduate', btnClass: 'btn-outline-dark' }
+                ]
+            },
+            staff: {
+                name: 'Staff / Faculty',
+                badgeText: 'Faculty Portal',
+                badgeClass: 'bg-success-subtle text-success border border-success-subtle',
+                headerBadge: 'FACULTY ACADEMIC PORTAL',
+                headerSubtext: 'Internal Marks Entry, Attendance & Subject Notes Management',
+                userLabel: 'Faculty Staff ID / Username',
+                userIcon: 'fa-solid fa-chalkboard-user',
+                userPlaceholder: 'e.g. staff1, staff2, staff3',
+                passLabel: 'Faculty Password',
+                passIcon: 'fa-solid fa-lock',
+                passPlaceholder: 'Enter faculty password',
+                btnText: 'Log In to Faculty Portal',
+                infoBoxHTML: `
+                    <i class="fa-solid fa-chalkboard-user text-success me-1"></i>
+                    <strong>Faculty Access:</strong> Record internal test marks, upload class study notes, and track subject attendance.<br>
+                    <span class="text-secondary small">Default demonstration password: <code>staff123</code></span>
+                `,
+                demos: [
+                    { label: 'Staff 1 (UI&UX)', user: 'staff1', pass: 'staff123', icon: 'fa-chalkboard-user', btnClass: 'btn-outline-success' },
+                    { label: 'Staff 2 (Data Science)', user: 'staff2', pass: 'staff123', icon: 'fa-chalkboard-user', btnClass: 'btn-outline-success' },
+                    { label: 'Staff 3 (Distributed)', user: 'staff3', pass: 'staff123', icon: 'fa-chalkboard-user', btnClass: 'btn-outline-success' }
+                ]
+            },
+            hod: {
+                name: 'HOD / Admin',
+                badgeText: 'HOD & Admin Portal',
+                badgeClass: 'bg-danger-subtle text-danger border border-danger-subtle',
+                headerBadge: 'HOD GOVERNANCE PORTAL',
+                headerSubtext: 'Department Curriculum, Faculty Assignments & Analytics Oversight',
+                userLabel: 'HOD / Administrator Username',
+                userIcon: 'fa-solid fa-user-shield',
+                userPlaceholder: 'e.g. hod or admin',
+                passLabel: 'Administrative Password',
+                passIcon: 'fa-solid fa-shield-halved',
+                passPlaceholder: 'Enter administrative password',
+                btnText: 'Log In as HOD / Admin',
+                infoBoxHTML: `
+                    <i class="fa-solid fa-building-columns text-danger me-1"></i>
+                    <strong>HOD Oversight:</strong> Master student directory, subject curricula, audit logs, and performance dashboards.<br>
+                    <span class="text-secondary small">Demo accounts: <code>hod</code> (pass: <code>hod123</code>) or <code>admin</code> (pass: <code>admin123</code>)</span>
+                `,
+                demos: [
+                    { label: 'HOD IT Portal', user: 'hod', pass: 'hod123', icon: 'fa-user-tie', btnClass: 'btn-outline-danger' },
+                    { label: 'System Admin', user: 'admin', pass: 'admin123', icon: 'fa-user-shield', btnClass: 'btn-outline-primary' }
+                ]
+            }
+        };
+
+        function switchLoginRole(roleKey) {
+            const cfg = ROLE_CONFIGS[roleKey] || ROLE_CONFIGS.student;
+
+            // 1. Update Tab Pill Buttons
+            document.querySelectorAll('.role-nav-pill').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.getElementById(roleKey === 'staff' ? 'btnRoleStaff' : (roleKey === 'hod' ? 'btnRoleHod' : 'btnRoleStudent'));
+            if (activeBtn) activeBtn.classList.add('active');
+
+            // 2. Update Form Hidden Input
+            document.getElementById('formRoleInput').value = roleKey;
+
+            // 3. Update Header Badges
+            document.getElementById('portalHeaderBadge').textContent = cfg.headerBadge;
+            document.getElementById('portalHeaderSubtext').textContent = cfg.headerSubtext;
+
+            // 4. Update Inputs and Labels
+            document.getElementById('usernameLabel').innerHTML = `<span><i class="${cfg.userIcon} text-orange me-1" id="usernameIcon"></i> ${cfg.userLabel}</span><span class="role-badge-chip ${cfg.badgeClass}" id="roleBadge">${cfg.badgeText}</span>`;
+            document.getElementById('username').placeholder = cfg.userPlaceholder;
+
+            document.getElementById('passwordLabel').innerHTML = `<i class="${cfg.passIcon} text-orange me-1" id="passwordIcon"></i> ${cfg.passLabel}`;
+            document.getElementById('password').placeholder = cfg.passPlaceholder;
+
+            // 5. Update Info Box
+            document.getElementById('loginInfoBox').innerHTML = cfg.infoBoxHTML;
+
+            // 6. Update Submit Button
+            document.getElementById('submitBtn').innerHTML = `<i class="fa-solid fa-right-to-bracket me-2"></i> ${cfg.btnText}`;
+
+            // 7. Update Demo Buttons
+            const demoContainer = document.getElementById('demoButtonsContainer');
+            demoContainer.innerHTML = cfg.demos.map(d => `
+                <button type="button" class="btn btn-sm ${d.btnClass} fs-7" onclick="setDemo('${d.user}', '${d.pass}')">
+                    <i class="fa-solid ${d.icon} text-orange me-1"></i> ${d.label}
+                </button>
+            `).join('');
+
+            // Focus username field
+            const usernameInput = document.getElementById('username');
+            if (usernameInput && document.activeElement !== usernameInput) {
+                usernameInput.focus();
+            }
+        }
+
         function setDemo(user, pass) {
-            document.getElementById('username').value = user;
-            document.getElementById('password').value = pass;
+            const userEl = document.getElementById('username');
+            const passEl = document.getElementById('password');
+            userEl.value = user;
+            passEl.value = pass;
+            userEl.classList.add('is-valid');
+            passEl.classList.add('is-valid');
+            setTimeout(() => {
+                userEl.classList.remove('is-valid');
+                passEl.classList.remove('is-valid');
+            }, 1000);
         }
 
         function togglePasswordVisibility() {
@@ -151,6 +340,12 @@
                 icon.classList.add('fa-eye');
             }
         }
+
+        // Initialize with default or query param role
+        document.addEventListener('DOMContentLoaded', () => {
+            const initialRole = "{{ initial_role|default('student') }}";
+            switchLoginRole(initialRole);
+        });
     </script>
 </body>
 </html>

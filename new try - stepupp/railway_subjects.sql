@@ -1,58 +1,60 @@
--- MySQL dump 10.13  Distrib 8.0.46, for Win64 (x86_64)
---
--- Host: altaria.proxy.rlwy.net    Database: railway
--- ------------------------------------------------------
--- Server version	9.4.0
+-- MySQL dump for table `subjects`
 USE railway;
-SELECT DATABASE();
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!50503 SET NAMES utf8 */;
-/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
-/*!40103 SET TIME_ZONE='+00:00' */;
-/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
-
---
--- Table structure for table `subjects`
---
-
 DROP TABLE IF EXISTS `subjects`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `subjects` (
   `subject_code` varchar(20) NOT NULL,
   `subject_name` varchar(100) NOT NULL,
   `semester` int NOT NULL,
   `staff_id` int DEFAULT NULL,
   `subjectid` int DEFAULT NULL,
+  `department` varchar(50) DEFAULT 'Information Technology',
+  `credit` int DEFAULT NULL,
   PRIMARY KEY (`subject_code`),
   UNIQUE KEY `subjectid` (`subjectid`),
-  KEY `staff_id` (`staff_id`),
-  CONSTRAINT `subjects_ibfk_1` FOREIGN KEY (`staff_id`) REFERENCES `staff` (`staffid`)
+  KEY `staff_id` (`staff_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `subjects`
---
 
 LOCK TABLES `subjects` WRITE;
-/*!40000 ALTER TABLE `subjects` DISABLE KEYS */;
-INSERT INTO `subjects` VALUES ('24CC3501','Distributed Computing',5,3,3),('24CSCC01','Foundations of Data Science',5,2,2),('24CSVC05','Cloud computing',5,5,5),('24CSVC08','UI&UX designing',5,1,1),('24IT3501','Full Stack Web Development',5,4,4),('24IT3C01','Embedded System and IOT',5,6,6);
-/*!40000 ALTER TABLE `subjects` ENABLE KEYS */;
+INSERT INTO `subjects` VALUES 
+('24BS1111', 'Chemistry and Physics Lab', 1, NULL, 14, 'Information Technology', 2),
+('24CR1101', 'Engineering Chemistry', 1, NULL, 10, 'Information Technology', 3),
+('24GE1101', 'Problem solving and Python Programming', 1, NULL, 12, 'Information Technology', 3),
+('24GE1111', 'Problem solving and Python Programming Laboratory', 1, NULL, 13, 'Information Technology', 2),
+('24HS1101', 'Professional English I', 1, NULL, 8, 'Information Technology', 3),
+('24HS1103', 'Heritage of Tamil', 1, NULL, 7, 'Information Technology', 1),
+('24HS1111', 'Professional English I Laboratory', 1, NULL, 15, 'Information Technology', 1),
+('24MA1101', 'Matrices and Calculus', 1, NULL, 9, 'Information Technology', 4),
+('24PH1101', 'Engineering Physics', 1, NULL, 11, 'Information Technology', 3),
+('24BE1201', 'Basic Electrical and Electronics Engineering', 2, NULL, 20, 'Information Technology', 3),
+('24CC1201', 'Programming in C', 2, NULL, 22, 'Information Technology', 3),
+('24CC1211', 'Programming in C Laboratory', 2, NULL, 23, 'Information Technology', 2),
+('24GE1201', 'Engineering Graphics', 2, NULL, 21, 'Information Technology', 4),
+('24GE1211', 'Engineering Practice Laboratory', 2, NULL, 24, 'Information Technology', 2),
+('24HS1201', 'Professional English II', 2, NULL, 17, 'Information Technology', 2),
+('24HS1203', 'Tamils and Technology', 2, NULL, 16, 'Information Technology', 1),
+('24HS1211', 'Communication Laboratory', 2, NULL, 25, 'Information Technology', 2),
+('24MA1201', 'Statistics and Numerical Methods', 2, NULL, 19, 'Information Technology', 4),
+('24PH1202', 'Physics for Information Science', 2, NULL, 18, 'Information Technology', 3),
+('24CC2302', 'Operating System', 3, NULL, 30, 'Information Technology', 3),
+('CD3281', 'Data Structure and Algorithm Laboratory', 3, NULL, 31, 'Information Technology', 2),
+('CD3291', 'Data Structure and Algorithm', 3, NULL, 29, 'Information Technology', 3),
+('CS3351', 'Digital Principles of Computer Organisation', 3, NULL, 27, 'Information Technology', 4),
+('CS3381', 'Object Oriented Software Programming Laboratory', 3, NULL, 32, 'Information Technology', 2),
+('CS3391', 'Object Oriented Software Programming', 3, NULL, 28, 'Information Technology', 3),
+('GE3361', 'Professional Development', 3, NULL, 33, 'Information Technology', 1),
+('MA3354', 'Discrete Mathematics', 3, NULL, 26, 'Information Technology', 4),
+('24CC2401', 'Database Management System', 4, NULL, 39, 'Information Technology', 3),
+('24CC2403', 'Computer Networks', 4, NULL, 37, 'Information Technology', 4),
+('24CC2404', 'Object Oriented Software Engineering', 4, NULL, 38, 'Information Technology', 4),
+('24CC2412', 'Database Management Systems Laboratory', 4, NULL, 40, 'Information Technology', 2),
+('24CC3601', 'Artificial Intelligence and Machine Learning', 4, NULL, 36, 'Information Technology', 4),
+('24GE2401', 'Environment science and Sustainability', 4, NULL, 34, 'Information Technology', 2),
+('24IT2401', 'Web programming', 4, NULL, 35, 'Information Technology', 4),
+('24CC3501', 'Distributed Computing', 5, 3, 3, 'Information Technology', 3),
+('24CSCC01', 'Foundations of Data Science', 5, 2, 2, 'Information Technology', 4),
+('24CSVC05', 'Cloud computing', 5, 5, 5, 'Information Technology', 3),
+('24CSVC08', 'UI&UX designing', 5, 1, 1, 'Information Technology', 3),
+('24IT3501', 'Full Stack Web Development', 5, 4, 4, 'Information Technology', 3),
+('24IT3511', 'Full Stack Web Development Laboratory', 5, NULL, 41, 'Information Technology', 2),
+('24IT3C01', 'Embedded System and IOT', 5, 6, 6, 'Information Technology', 4);
 UNLOCK TABLES;
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
-
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
-
--- Dump completed on 2026-08-30 13:00:54
