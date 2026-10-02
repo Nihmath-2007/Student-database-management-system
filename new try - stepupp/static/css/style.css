@@ -2118,3 +2118,22 @@ body {
     border-left: 3px solid #cbd5e1;
     margin-top: 6px;
 }
+
+/* Fast Edit Details Highlights */
+@keyframes rowUpdatedHighlight {
+    0% { background-color: rgba(242, 88, 34, 0.22); }
+    50% { background-color: rgba(22, 163, 74, 0.18); }
+    100% { background-color: transparent; }
+}
+
+.row-updated-flash {
+    animation: rowUpdatedHighlight 1.6s ease-out !important;
+}
+
+.edit-details-badge {
+    background-color: rgba(242, 88, 34, 0.12);
+    color: #f25822;
+    font-weight: 600;
+    border: 1px solid rgba(242, 88, 34, 0.25);
+}
+
