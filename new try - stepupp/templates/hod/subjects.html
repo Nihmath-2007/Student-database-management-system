@@ -23,8 +23,9 @@
 
 <!-- FILTERS CARD -->
 <div class="analytics-card mb-4">
+    <input type="hidden" id="subjectDeptFilter" value="All">
     <div class="row g-3 align-items-center">
-        <div class="col-md-5">
+        <div class="col-md-6">
             <label class="form-label fw-semibold fs-7 text-secondary">Search Subjects</label>
             <div class="input-group">
                 <span class="input-group-text bg-light"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
@@ -45,15 +46,7 @@
                 <option value="8">Semester 8</option>
             </select>
         </div>
-        <div class="col-md-2">
-            <label class="form-label fw-semibold fs-7 text-secondary">Department</label>
-            <select id="subjectDeptFilter" class="form-select" onchange="filterSubjects()">
-                <option value="All">All Depts</option>
-                <option value="Information Technology" selected>Information Technology</option>
-                <option value="Computer Science">Computer Science</option>
-            </select>
-        </div>
-        <div class="col-md-2 text-end">
+        <div class="col-md-3 text-end">
             <button class="btn btn-outline-secondary w-100 mt-4 fs-7" onclick="resetSubjectFilters()">
                 <i class="fa-solid fa-rotate-left me-1"></i> Reset
             </button>
@@ -70,7 +63,6 @@
                     <th>Subject Code</th>
                     <th>Course Title</th>
                     <th>Semester</th>
-                    <th>Department</th>
                     <th>Assigned Faculty</th>
                     <th>Enrolled Students</th>
                     <th>Avg Performance</th>
@@ -78,7 +70,7 @@
                 </tr>
             </thead>
             <tbody id="subjectsTableBody">
-                <tr><td colspan="8" class="text-center py-5 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading curriculum from MySQL...</td></tr>
+                <tr><td colspan="7" class="text-center py-5 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading curriculum from MySQL...</td></tr>
             </tbody>
         </table>
     </div>
@@ -109,7 +101,7 @@
                             <label class="form-label fw-semibold fs-7 text-secondary">Course Title / Name <span class="text-danger">*</span></label>
                             <input type="text" id="subjectFormName" class="form-control" placeholder="e.g. Network Security &amp; Cryptography" required>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label class="form-label fw-semibold fs-7 text-secondary">Semester Mapping <span class="text-danger">*</span></label>
                             <select id="subjectFormSemester" class="form-select" required>
                                 <option value="1">Semester 1</option>
@@ -122,15 +114,8 @@
                                 <option value="8">Semester 8</option>
                             </select>
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold fs-7 text-secondary">Department <span class="text-danger">*</span></label>
-                            <select id="subjectFormDept" class="form-select" required>
-                                <option value="Information Technology" selected>Information Technology</option>
-                                <option value="Computer Science">Computer Science</option>
-                                <option value="Artificial Intelligence">Artificial Intelligence</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
+                        <input type="hidden" id="subjectFormDept" value="Information Technology">
+                        <div class="col-md-6">
                             <label class="form-label fw-semibold fs-7 text-secondary">Assign Faculty Member</label>
                             <select id="subjectFormStaff" class="form-select">
                                 <option value="">-- Unassigned --</option>
@@ -246,7 +231,7 @@
     function filterSubjects() {
         const search = document.getElementById('subjectSearchInput').value.toLowerCase().trim();
         const sem = document.getElementById('semesterFilter').value;
-        const dept = document.getElementById('subjectDeptFilter').value;
+        const dept = document.getElementById('subjectDeptFilter') ? document.getElementById('subjectDeptFilter').value : 'All';
 
         const filtered = allSubjectsData.filter(s => {
             const matchesSearch = !search ||
@@ -255,7 +240,7 @@
                 (s.faculty_name && s.faculty_name.toLowerCase().includes(search));
 
             const matchesSem = sem === 'All' || String(s.semester) === String(sem);
-            const matchesDept = dept === 'All' || (s.department || 'Information Technology') === dept;
+            const matchesDept = !dept || dept === 'All' || (s.department || 'Information Technology') === dept;
 
             return matchesSearch && matchesSem && matchesDept;
         });
@@ -266,7 +251,7 @@
     function resetSubjectFilters() {
         document.getElementById('subjectSearchInput').value = '';
         document.getElementById('semesterFilter').value = 'All';
-        document.getElementById('subjectDeptFilter').value = 'All';
+        if (document.getElementById('subjectDeptFilter')) document.getElementById('subjectDeptFilter').value = 'All';
         filterSubjects();
     }
 
@@ -275,7 +260,7 @@
         document.getElementById('subjectsCountText').innerText = `Showing ${subjects.length} subjects`;
 
         if (!subjects || subjects.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="8" class="text-center py-5 text-muted">No subjects found matching the filter.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-5 text-muted">No subjects found matching the filter.</td></tr>`;
             return;
         }
 
@@ -293,9 +278,6 @@
                     </td>
                     <td>
                         <span class="badge bg-primary-subtle text-primary fw-bold">Semester ${s.semester}</span>
-                    </td>
-                    <td>
-                        <span class="badge bg-light text-dark border font-monospace fs-8">${s.department || 'Information Technology'}</span>
                     </td>
                     <td>${facultyDisplay}</td>
                     <td>

@@ -23,22 +23,14 @@
 
 <!-- FILTERS CARD -->
 <div class="analytics-card mb-4">
+    <input type="hidden" id="staffDeptFilter" value="All">
     <div class="row g-3 align-items-center">
-        <div class="col-md-5">
+        <div class="col-md-9">
             <label class="form-label fw-semibold fs-7 text-secondary">Search Faculty</label>
             <div class="input-group">
                 <span class="input-group-text bg-light"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
                 <input type="text" id="staffSearchInput" class="form-control" placeholder="Search by Faculty Name, Subject, Email..." oninput="filterStaff()">
             </div>
-        </div>
-        <div class="col-md-4">
-            <label class="form-label fw-semibold fs-7 text-secondary">Filter by Department</label>
-            <select id="staffDeptFilter" class="form-select" onchange="filterStaff()">
-                <option value="All">All Departments</option>
-                <option value="Information Technology" selected>Information Technology</option>
-                <option value="Computer Science">Computer Science</option>
-                <option value="Artificial Intelligence">Artificial Intelligence</option>
-            </select>
         </div>
         <div class="col-md-3 text-end">
             <button class="btn btn-outline-secondary w-100 mt-4 fs-7" onclick="resetStaffFilters()">
@@ -56,7 +48,6 @@
                 <tr>
                     <th>Staff ID</th>
                     <th>Faculty Name &amp; Designation</th>
-                    <th>Department</th>
                     <th>Contact Info</th>
                     <th>Assigned Subject(s)</th>
                     <th>Status</th>
@@ -64,7 +55,7 @@
                 </tr>
             </thead>
             <tbody id="staffTableBody">
-                <tr><td colspan="7" class="text-center py-5 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Fetching faculty directory from MySQL...</td></tr>
+                <tr><td colspan="6" class="text-center py-5 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Fetching faculty directory from MySQL...</td></tr>
             </tbody>
         </table>
     </div>
@@ -101,15 +92,8 @@
                                 <option value="Lecturer">Lecturer</option>
                             </select>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold fs-7 text-secondary">Department <span class="text-danger">*</span></label>
-                            <select id="staffFormDept" class="form-select" required>
-                                <option value="Information Technology" selected>Information Technology</option>
-                                <option value="Computer Science">Computer Science</option>
-                                <option value="Artificial Intelligence">Artificial Intelligence</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
+                        <input type="hidden" id="staffFormDept" value="Information Technology">
+                        <div class="col-md-12">
                             <label class="form-label fw-semibold fs-7 text-secondary">Assigned Subject / Specialization</label>
                             <input type="text" id="staffFormSubjects" class="form-control" placeholder="e.g. Distributed Computing, Cloud">
                         </div>
@@ -216,7 +200,7 @@
 
     function filterStaff() {
         const search = document.getElementById('staffSearchInput').value.toLowerCase().trim();
-        const dept = document.getElementById('staffDeptFilter').value;
+        const dept = document.getElementById('staffDeptFilter') ? document.getElementById('staffDeptFilter').value : 'All';
 
         const filtered = allStaffData.filter(s => {
             const matchesSearch = !search ||
@@ -224,7 +208,7 @@
                 (s.subjects && s.subjects.toLowerCase().includes(search)) ||
                 (s.email && s.email.toLowerCase().includes(search));
 
-            const matchesDept = dept === 'All' || (s.department || 'Information Technology') === dept;
+            const matchesDept = !dept || dept === 'All' || (s.department || 'Information Technology') === dept;
             return matchesSearch && matchesDept;
         });
 
@@ -233,7 +217,7 @@
 
     function resetStaffFilters() {
         document.getElementById('staffSearchInput').value = '';
-        document.getElementById('staffDeptFilter').value = 'All';
+        if (document.getElementById('staffDeptFilter')) document.getElementById('staffDeptFilter').value = 'All';
         filterStaff();
     }
 
@@ -242,7 +226,7 @@
         document.getElementById('staffCountText').innerText = `Showing ${staffList.length} faculty members`;
 
         if (!staffList || staffList.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-5 text-muted">No faculty members found matching your search.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-muted">No faculty members found matching your search.</td></tr>`;
             return;
         }
 
@@ -258,9 +242,6 @@
                     <td>
                         <div class="fw-bold text-dark">${s.name}</div>
                         <div class="fs-8 text-secondary">${s.designation || 'Assistant Professor'}</div>
-                    </td>
-                    <td>
-                        <span class="badge bg-light text-dark border font-monospace fs-8">${s.department || 'Information Technology'}</span>
                     </td>
                     <td>
                         <div class="fs-8 text-secondary">${emailDisplay}${phoneDisplay}</div>
