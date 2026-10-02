@@ -34,104 +34,12 @@
         <div class="wave-loader-text" id="globalWaveLoaderText">Loading Academic Analytics Platform...</div>
     </div>
 
-    <!-- 1. OFFICIAL COLLEGE HEADER (PROFESSIONAL RESPONSIVE COMPONENT MATCHING REFERENCE) -->
-    <header class="msec-college-header" role="banner">
-        <!-- Top Orange Accreditations & Info Strip -->
-        <div class="msec-header-top-strip">
-            <div class="msec-header-top-strip-inner">
-                <div class="msec-top-links">
-                    <span>NAAC</span>
-                    <span class="sep">|</span>
-                    <span>NBA</span>
-                    <span class="sep">|</span>
-                    <span>IQAC</span>
-                    <span class="sep">|</span>
-                    <span>NIRF</span>
-                    <span class="sep">|</span>
-                    <span>ARIIA</span>
-                    <span class="sep">|</span>
-                    <span>IIC</span>
-                    <span class="sep">|</span>
-                    <span>NISP</span>
-                    <span class="sep">|</span>
-                    <span>AUDIT STATEMENTS</span>
-                    <span class="sep">|</span>
-                    <span>ONLINE APPLICATION FORM</span>
-                </div>
-                <div class="msec-top-contact">
-                    <span>CONTACT</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Main College Identity & Accreditation Header (Flexbox Layout) -->
-        <div class="msec-header-main">
-            <div class="msec-header-main-inner">
-                <!-- College Logo (120x120 px) -->
-                <div class="msec-header-logo-container">
-                    <img src="{{ url_for('static', filename='images/college_logo.png') }}" 
-                         alt="Mohamed Sathak Engineering College Logo" 
-                         class="msec-header-logo" 
-                         width="120" 
-                         height="120">
-                </div>
-
-                <!-- College Details (Large Navy Title, Orange Subtitle, Address & Affiliation) -->
-                <div class="msec-header-details">
-                    <h1 class="msec-header-college-name">
-                        MOHAMED SATHAK <span class="msec-name-break">ENGINEERING COLLEGE</span>
-                    </h1>
-                    <div class="msec-subtitle-container">
-                        <span class="msec-subtitle-badge">AN AUTONOMOUS INSTITUTION</span>
-                    </div>
-                    <div class="msec-header-address">
-                        <span class="address-main">KILAKARAI-623 806, RAMANATHAPURAM DIST.</span>
-                        <span class="address-ugc">( Recognized under section 2(f) &amp; 12B of UGC, NewDelhi )</span>
-                    </div>
-                    <div class="msec-header-affiliation">
-                        Approved by AICTE, COA, New Delhi, DGS Mumbai, Affiliated to Anna University, An ISO 9001:2015 Institution, Sponsored by Mohamed Sathak Trust, Chennai - 06.
-                    </div>
-                </div>
-
-                <!-- Accreditation Logos in One Horizontal Row (90x90 px each) -->
-                <div class="msec-header-accreditations" aria-label="Accreditation and Recognition Logos">
-                    <div class="msec-accred-box" title="NAAC A+ Accredited">
-                        <img src="{{ url_for('static', filename='images/logo_naac.png') }}" 
-                             alt="NAAC A+ Accredited" 
-                             class="msec-accred-logo" 
-                             width="90" 
-                             height="90">
-                    </div>
-                    <div class="msec-accred-box" title="NBA Accredited CSE | IT">
-                        <img src="{{ url_for('static', filename='images/logo_nba.png') }}" 
-                             alt="NBA Accredited CSE | IT" 
-                             class="msec-accred-logo" 
-                             width="90" 
-                             height="90">
-                    </div>
-                    <div class="msec-accred-box" title="Institution's Innovation Council (Ministry of HRD)">
-                        <img src="{{ url_for('static', filename='images/logo_iic.png') }}" 
-                             alt="Institution's Innovation Council" 
-                             class="msec-accred-logo" 
-                             width="90" 
-                             height="90">
-                    </div>
-                    <div class="msec-accred-box" title="TNEA Counselling Code 5907">
-                        <img src="{{ url_for('static', filename='images/logo_tnea.png') }}" 
-                             alt="TNEA Counselling Code 5907" 
-                             class="msec-accred-logo" 
-                             width="90" 
-                             height="90">
-                    </div>
-                    <div class="msec-accred-box" title="50 Years Mohamed Sathak Trust">
-                        <img src="{{ url_for('static', filename='images/logo_trust50.png') }}" 
-                             alt="50 Years Mohamed Sathak Trust" 
-                             class="msec-accred-logo" 
-                             width="90" 
-                             height="90">
-                    </div>
-                </div>
-            </div>
+    <!-- 1. OFFICIAL COLLEGE BANNER AT THE TOP (CENTERED & RESPONSIVE) -->
+    <header class="msec-banner-header" role="banner">
+        <div class="msec-banner-container">
+            <img src="{{ url_for('static', filename='images/msec_nav_banner.png') }}" 
+                 alt="Mohamed Sathak Engineering College - Autonomous Institution, Kilakarai" 
+                 class="msec-banner-image">
         </div>
     </header>
 

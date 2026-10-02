@@ -43,310 +43,82 @@ body {
 }
 
 /* ==========================================================================
-   1. OFFICIAL COLLEGE HEADER (PROFESSIONAL REFERENCE REPLICA)
+   1. OFFICIAL COLLEGE BANNER (CENTERED, APPROPRIATELY SIZED & RESPONSIVE)
    ========================================================================== */
 
-.msec-college-header {
-    width: 100%;
-    background-color: #ffffff;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-    position: relative;
-    z-index: 1015;
-    margin: 0;
-    padding: 0;
-    border-bottom: 1px solid #e2e8f0;
-}
-
-/* Backward compatibility for previous banner selector if needed */
 .msec-banner-header {
     width: 100%;
     background-color: #ffffff;
-}
-
-/* --- Top Orange Accreditations & Info Strip --- */
-.msec-header-top-strip {
-    background-color: #ee5116;
-    color: #ffffff;
-    padding: 3.5px 24px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.6px;
-    line-height: 1.4;
-    width: 100%;
-    user-select: none;
-}
-
-.msec-header-top-strip-inner {
-    max-width: 1650px;
-    margin: 0 auto;
+    box-shadow: 0 2px 8px rgba(11, 26, 48, 0.05);
+    position: relative;
+    z-index: 1015;
+    margin: 0;
+    padding: 8px 16px;
+    border-bottom: 1px solid #e2e8f0;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.msec-top-links {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 6px;
-    font-size: 10.5px;
-    text-transform: uppercase;
-}
-
-.msec-top-links span {
-    white-space: nowrap;
-}
-
-.msec-top-links .sep {
-    color: rgba(255, 255, 255, 0.65);
-    font-weight: 300;
-    padding: 0 1px;
-}
-
-.msec-top-contact {
-    font-weight: 800;
-    letter-spacing: 0.8px;
-    text-transform: uppercase;
-    font-size: 11px;
-    white-space: nowrap;
-}
-
-/* --- Main College Identity & Accreditation Header (Flexbox Layout) --- */
-.msec-header-main {
-    background-color: #ffffff;
-    padding: 10px 24px;
-    width: 100%;
-}
-
-.msec-header-main-inner {
-    max-width: 1650px;
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-}
-
-/* College Logo - Exactly 120x120 px */
-.msec-header-logo-container {
-    flex: 0 0 120px;
-    width: 120px;
-    height: 120px;
-    display: flex;
-    align-items: center;
     justify-content: center;
+    align-items: center;
 }
 
-.msec-header-logo {
-    width: 120px;
-    height: 120px;
-    object-fit: contain;
+.msec-banner-container,
+.banner-inner {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.msec-banner-image {
     display: block;
-}
-
-/* College Details Section */
-.msec-header-details {
-    flex: 1 1 auto;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    min-width: 0;
-}
-
-/* College Name: Large Bold Navy-Blue Text */
-.msec-header-college-name {
-    color: #0b2246;
-    font-size: clamp(1.28rem, 1.85vw, 1.85rem);
-    font-weight: 900;
-    letter-spacing: 0.6px;
-    line-height: 1.15;
-    margin: 0 0 4px 0;
-    text-transform: uppercase;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-}
-
-.msec-name-break {
-    display: inline-block;
-}
-
-/* Subtitle Below Name With Orange Background */
-.msec-subtitle-container {
-    margin-bottom: 5px;
-}
-
-.msec-subtitle-badge {
-    display: inline-block;
-    background-color: #ee5116;
-    color: #ffffff;
-    font-size: clamp(0.72rem, 0.85vw, 0.86rem);
-    font-weight: 800;
-    letter-spacing: 1.8px;
-    padding: 2.5px 14px;
-    border-radius: 2px;
-    text-transform: uppercase;
-    line-height: 1.4;
-}
-
-/* Address and Affiliation Below */
-.msec-header-address {
-    font-size: clamp(0.72rem, 0.82vw, 0.84rem);
-    margin-bottom: 3px;
-    line-height: 1.35;
-}
-
-.msec-header-address .address-main {
-    font-weight: 800;
-    color: #0f172a;
-}
-
-.msec-header-address .address-ugc {
-    font-weight: 800;
-    color: #b91c1c; /* Crimson / Red text matching official UGC badge */
-    margin-left: 4px;
-}
-
-.msec-header-affiliation {
-    font-size: clamp(0.66rem, 0.74vw, 0.75rem);
-    font-style: italic;
-    font-weight: 600;
-    color: #334155;
-    line-height: 1.35;
-}
-
-/* Accreditation Logos on the Right in One Horizontal Row (90x90 px each) */
-.msec-header-accreditations {
-    flex: 0 0 auto;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 6px;
-}
-
-.msec-accred-box {
-    width: 90px;
-    height: 90px;
-    flex: 0 0 90px;
-    background-color: #ffffff;
-    border: 1px solid #d1d5db;
-    border-radius: 4px;
-    padding: 3px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-}
-
-.msec-accred-box:hover {
-    transform: translateY(-2px);
-    border-color: #94a3b8;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-}
-
-.msec-accred-logo {
-    width: 90px;
-    height: 90px;
+    margin: 0 auto;
     max-width: 100%;
-    max-height: 100%;
+    height: auto;
+    max-height: 82px;
     object-fit: contain;
-    display: block;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.03));
+    transition: transform 0.2s ease;
 }
 
-/* Responsive Layout using Flexbox */
+.msec-banner-image:hover {
+    transform: scale(1.005);
+}
+
 @media (max-width: 1200px) {
-    .msec-header-main {
-        padding: 8px 16px;
+    .msec-banner-header {
+        padding: 7px 14px;
     }
-    .msec-header-main-inner {
-        gap: 14px;
-    }
-    .msec-header-accreditations {
-        gap: 4px;
-    }
-    .msec-accred-box {
-        width: 80px;
-        height: 80px;
-        flex: 0 0 80px;
-    }
-    .msec-accred-logo {
-        width: 80px;
-        height: 80px;
+    .msec-banner-image {
+        max-height: 75px;
     }
 }
 
 @media (max-width: 991px) {
-    .msec-header-main-inner {
-        flex-wrap: wrap;
-        justify-content: center;
-        text-align: center;
+    .msec-banner-header {
+        padding: 6px 12px;
     }
-    .msec-header-details {
-        text-align: center;
-        align-items: center;
-    }
-    .msec-header-accreditations {
-        justify-content: center;
-        flex-wrap: wrap;
-        margin-top: 8px;
+    .msec-banner-image {
+        max-height: 65px;
     }
 }
 
-@media (max-width: 767px) {
-    .msec-header-top-strip-inner {
-        justify-content: center;
-        text-align: center;
+@media (max-width: 768px) {
+    .msec-banner-header {
+        padding: 5px 10px;
     }
-    .msec-top-links {
-        justify-content: center;
-        font-size: 9.5px;
+    .msec-banner-image {
+        max-height: 54px;
     }
-    .msec-top-contact {
-        display: none;
+}
+
+@media (max-width: 576px) {
+    .msec-banner-header {
+        padding: 4px 6px;
     }
-    .msec-header-main {
-        padding: 10px 12px;
-    }
-    .msec-header-main-inner {
-        flex-direction: column;
-        gap: 10px;
-    }
-    .msec-header-logo-container {
-        width: 100px;
-        height: 100px;
-        flex: 0 0 100px;
-    }
-    .msec-header-logo {
-        width: 100px;
-        height: 100px;
-    }
-    .msec-header-college-name {
-        font-size: 1.15rem;
-    }
-    .msec-subtitle-badge {
-        font-size: 0.68rem;
-        letter-spacing: 1px;
-    }
-    .msec-header-address,
-    .msec-header-affiliation {
-        font-size: 0.68rem;
-    }
-    .msec-header-accreditations {
-        gap: 4px;
-        overflow-x: auto;
-        max-width: 100%;
-        padding-bottom: 4px;
-        justify-content: flex-start;
-    }
-    .msec-accred-box {
-        width: 72px;
-        height: 72px;
-        flex: 0 0 72px;
-    }
-    .msec-accred-logo {
-        width: 72px;
-        height: 72px;
+    .msec-banner-image {
+        max-height: 44px;
     }
 }
 
@@ -1018,12 +790,6 @@ body {
 }
 
 @media (max-width: 768px) {
-    .msec-banner-image {
-        width: 100%;
-        height: auto;
-        max-height: 80px;
-        object-fit: fill;
-    }
 
     .msec-top-utility-bar {
         flex-wrap: wrap;
@@ -1123,9 +889,6 @@ body {
 }
 
 @media (max-width: 576px) {
-    .msec-banner-image {
-        max-height: 60px;
-    }
 
     .dept-title-text {
         font-size: 0.74rem;
