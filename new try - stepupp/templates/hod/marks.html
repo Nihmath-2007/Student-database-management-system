@@ -309,11 +309,13 @@
     let subjectAvgChart = null;
     let passFailChart = null;
 
-    document.addEventListener('DOMContentLoaded', async () => {
+    document.addEventListener('DOMContentLoaded', () => {
         markModalInstance = new bootstrap.Modal(document.getElementById('markFormModal'));
         deleteMarkModalInstance = new bootstrap.Modal(document.getElementById('deleteMarkModal'));
 
-        await Promise.all([loadSubjectsDropdown(), loadStudentsDropdown()]);
+        // Load dropdowns, analytics charts, and records concurrently for maximum performance
+        loadSubjectsDropdown();
+        loadStudentsDropdown();
         loadMarksAnalytics();
         loadMarksRecords(1);
     });
@@ -398,7 +400,8 @@
             });
 
             if (passFailChart) passFailChart.destroy();
-            const passPct = data.kpis ? data.kpis.overall_pass_percentage : 80;
+            const passPct = data.kpis ? parseFloat(data.kpis.overall_pass_percentage || 80) : 80;
+            const failPct = Math.max(0, +(100 - passPct).toFixed(1));
             passFailChart = new Chart(document.getElementById('passFailDoughnutChart').getContext('2d'), {
                 type: 'doughnut',
                 data: {

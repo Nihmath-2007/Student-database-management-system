@@ -82,11 +82,11 @@
             <form action="{{ url_for('auth.login') }}" method="POST" id="loginForm" autocomplete="off">
                 <div class="mb-3">
                     <label for="username" class="form-label fw-semibold text-secondary fs-7">
-                        <i class="fa-solid fa-id-card-clip text-orange me-1"></i> Roll Number / Student Name
+                        <i class="fa-solid fa-id-card-clip text-orange me-1"></i> Roll Number / Username
                     </label>
                     <div class="input-group">
                         <span class="input-group-text bg-light"><i class="fa-solid fa-user text-muted"></i></span>
-                        <input type="text" class="form-control" id="username" name="username" placeholder="e.g. 911524205030, MOHAMED NIHMATHULLAH S, or admin" required autofocus>
+                        <input type="text" class="form-control" id="username" name="username" placeholder="e.g. 911524205030, staff, or hod" required autofocus>
                     </div>
                 </div>
 
@@ -118,13 +118,13 @@
                 <p class="small text-muted mb-2 fw-semibold">Quick One-Click Demo Credentials:</p>
                 <div class="d-flex flex-wrap justify-content-center gap-2">
                     <button type="button" class="btn btn-sm btn-outline-dark fs-7" onclick="setDemo('911524205030', '03032007')">
-                        <i class="fa-solid fa-user-graduate text-orange me-1"></i> Mohamed Nihmathullah
+                        <i class="fa-solid fa-user-graduate text-orange me-1"></i> Student
                     </button>
-                    <button type="button" class="btn btn-sm btn-outline-dark fs-7" onclick="setDemo('911524205001', '07082007')">
-                        <i class="fa-solid fa-user-graduate text-orange me-1"></i> Abichethra P
+                    <button type="button" class="btn btn-sm btn-outline-primary fs-7" onclick="setDemo('staff', 'staff123')">
+                        <i class="fa-solid fa-chalkboard-user me-1"></i> Staff
                     </button>
-                    <button type="button" class="btn btn-sm btn-outline-primary fs-7" onclick="setDemo('admin', 'admin123')">
-                        <i class="fa-solid fa-user-shield me-1"></i> Admin Portal
+                    <button type="button" class="btn btn-sm btn-outline-success fs-7" onclick="setDemo('hod', 'hod123')">
+                        <i class="fa-solid fa-user-tie me-1"></i> HOD
                     </button>
                 </div>
             </div>

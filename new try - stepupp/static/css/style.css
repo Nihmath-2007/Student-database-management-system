@@ -910,6 +910,27 @@ body {
 }
 
 /* ==========================================================================
+   SLEEK TOP NAVIGATION PROGRESS BAR (NON-BLOCKING)
+   ========================================================================== */
+#topProgressBar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0%;
+  background: linear-gradient(90deg, #f59e0b, #ef4444, #10b981);
+  z-index: 9999999;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.8);
+}
+
+#topProgressBar.active {
+  opacity: 1;
+}
+
+/* ==========================================================================
    WAVE MENU LOADER (From Uiverse.io by JkHuger) & GLOBAL OVERLAY
    ========================================================================== */
 .wave-loader-overlay {

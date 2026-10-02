@@ -91,7 +91,7 @@ def get_active_notifications_for_user(user_id, role, student_id=None):
     """
     rows = execute_query(query, (today_str, user_id), fetchall=True) or []
     if not rows:
-        api_cache.set(cache_key, [], ttl=30)
+        api_cache.set(cache_key, [], ttl=300)
         return []
 
     # Get student year and section if student
@@ -140,7 +140,7 @@ def get_active_notifications_for_user(user_id, role, student_id=None):
     # Sort primarily by priority weight (1 urgent, 2 high, 3 medium, 4 low), then created_at DESC
     filtered_notices.sort(key=lambda x: (x['priority_weight'], str(x.get('created_at', ''))), reverse=False)
 
-    api_cache.set(cache_key, filtered_notices, ttl=30)
+    api_cache.set(cache_key, filtered_notices, ttl=300)
     return filtered_notices
 
 def dismiss_notification_for_user(notification_id, user_id):
