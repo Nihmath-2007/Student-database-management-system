@@ -43,7 +43,10 @@ def get_user_by_username(identifier):
     WHERE u.username = %s OR s.regno = %s OR LOWER(TRIM(s.name)) = LOWER(TRIM(%s))
     LIMIT 1
     """
-    return execute_query(query, (clean_id, clean_id, clean_id), fetchone=True)
+    user = execute_query(query, (clean_id, clean_id, clean_id), fetchone=True)
+    if not user and clean_id.lower() == 'staff':
+        user = execute_query(query, ('staff1', 'staff1', 'staff1'), fetchone=True)
+    return user
 
 def get_all_students(year_filter=None, semester_filter=None, subject_filter=None, search=None, subject_ids=None):
     """

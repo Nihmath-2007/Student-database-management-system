@@ -161,8 +161,16 @@ def init_db(force=False):
                 print(f"Railway MySQL connected with {user_count} active user accounts.")
 
             cursor.close()
+            try:
+                conn.close()
+            except Exception:
+                pass
             return
         except Exception as e:
+            try:
+                conn.close()
+            except Exception:
+                pass
             print(f"Error initializing Railway MySQL database: {e}")
             raise e
 

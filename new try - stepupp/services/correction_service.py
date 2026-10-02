@@ -119,15 +119,15 @@ def init_correction_tables():
             conn.commit()
 
         cursor.close()
-        if engine == 'sqlite':
+        try:
             conn.close()
-        # Live database initialized without dummy demonstration data
+        except Exception:
+            pass
     except Exception as e:
-        if engine == 'sqlite':
-            try:
-                conn.close()
-            except Exception:
-                pass
+        try:
+            conn.close()
+        except Exception:
+            pass
         print(f"Notice: init_correction_tables: {e}")
 
 

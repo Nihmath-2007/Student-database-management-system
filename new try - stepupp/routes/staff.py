@@ -16,17 +16,25 @@ ALLOWED_EXTENSIONS = {'.pdf', '.doc', '.docx', '.ppt', '.pptx'}
 @login_required('staff')
 def dashboard():
     staff_id = session.get('staff_id')
-    # Fetch assigned subjects for the upload dropdown
-    subjects = fetch_all("SELECT * FROM subjects WHERE staff_id = %s ORDER BY subject_name ASC", (staff_id,))
-    # Fetch notes previously uploaded by this staff member
-    notes = fetch_all("""
-        SELECT n.id, n.subject_id, n.staff_id, n.title, n.filename, n.stored_path, n.uploaded_at,
-               sub.subject_name, sub.subject_code
-        FROM notes n
-        JOIN subjects sub ON n.subject_id = sub.subjectid
-        WHERE n.staff_id = %s
-        ORDER BY n.uploaded_at DESC
-    """, (staff_id,))
+    # Fetch assigned subjects for the upload dropdown with caching
+    subjects = api_cache.get_or_set(
+        f"staff_subjects_dropdown_{staff_id}",
+        lambda: fetch_all("SELECT * FROM subjects WHERE staff_id = %s ORDER BY subject_name ASC", (staff_id,)) or [],
+        ttl=300
+    )
+    # Fetch notes previously uploaded by this staff member with caching
+    notes = api_cache.get_or_set(
+        f"staff_notes_{staff_id}",
+        lambda: fetch_all("""
+            SELECT n.id, n.subject_id, n.staff_id, n.title, n.filename, n.stored_path, n.uploaded_at,
+                   sub.subject_name, sub.subject_code
+            FROM notes n
+            JOIN subjects sub ON n.subject_id = sub.subjectid
+            WHERE n.staff_id = %s
+            ORDER BY n.uploaded_at DESC
+        """, (staff_id,)) or [],
+        ttl=300
+    )
     return render_template('staff/dashboard.html', subjects=subjects, notes=notes)
 
 @staff_bp.route('/notes/upload', methods=['POST'])
@@ -85,6 +93,8 @@ def upload_note():
             INSERT INTO notes (subject_id, staff_id, title, filename, stored_path)
             VALUES (%s, %s, %s, %s, %s)
         """, (subject_id, staff_id, title, original_name, stored_filename))
+        api_cache.delete(f"staff_notes_{staff_id}")
+        api_cache.delete("all_notes")
         flash("Subject note uploaded successfully!", "success")
     except Exception as e:
         if os.path.exists(stored_path):
@@ -122,6 +132,8 @@ def delete_note(note_id):
     # Remove record from database
     try:
         execute("DELETE FROM notes WHERE id = %s AND staff_id = %s", (note_id, staff_id))
+        api_cache.delete(f"staff_notes_{staff_id}")
+        api_cache.delete("all_notes")
         flash("Subject note deleted successfully.", "success")
     except Exception as e:
         flash(f"Database error while deleting note: {str(e)}", "danger")
@@ -207,7 +219,7 @@ def api_staff_dashboard():
         'subjects': assigned_subjects,
         'subject_analytics': subject_analytics_list
     }
-    api_cache.set(cache_key, result, ttl=30)
+    api_cache.set(cache_key, result, ttl=300)
     return jsonify(result)
 
 @staff_bp.route('/api/subject/<int:subject_id>')
