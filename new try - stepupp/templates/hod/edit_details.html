@@ -1318,9 +1318,44 @@
             phone: document.getElementById('formStudentPhone').value.trim()
         };
 
+        const url = editId ? `/hod/api/student/${editId}` : '/hod/api/students';
+        const method = editId ? 'PUT' : 'POST';
+
+        if (editId) {
+            // Instant optimistic update in memory & DOM (0ms perceived lag)
+            const idx = allStudents.findIndex(s => s.studentid == editId);
+            let orig = null;
+            if (idx !== -1) {
+                orig = { ...allStudents[idx] };
+                Object.assign(allStudents[idx], payload);
+                filterStudents();
+            }
+            studentModal.hide();
+            showAlert(`Student "${payload.name}" details updated instantly!`);
+
+            fetch(url, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).then(res => res.json()).then(data => {
+                if (!data.success && !data.studentid) {
+                    alert(`Error: ${data.error || 'Failed to save student.'}`);
+                    if (orig && idx !== -1) {
+                        Object.assign(allStudents[idx], orig);
+                        filterStudents();
+                    }
+                }
+            }).catch(err => {
+                console.error(err);
+                alert('Network error while saving student.');
+            }).finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Save Student Details';
+            });
+            return;
+        }
+
         try {
-            const url = editId ? `/hod/api/student/${editId}` : '/hod/api/students';
-            const method = editId ? 'PUT' : 'POST';
             const res = await fetch(url, {
                 method: method,
                 headers: { 'Content-Type': 'application/json' },
@@ -1330,8 +1365,7 @@
             if (res.ok && (data.success || data.studentid)) {
                 studentModal.hide();
                 showAlert(`Student "${payload.name}" details saved successfully!`);
-                await loadStudents();
-                await loadCatalogs();
+                await loadStudents(true);
             } else {
                 alert(`Error: ${data.error || 'Failed to save student.'}`);
             }
@@ -1466,9 +1500,43 @@
             role: document.getElementById('formStaffRole').value
         };
 
+        const url = editId ? `/hod/api/staff/${editId}` : '/hod/api/staff';
+        const method = editId ? 'PUT' : 'POST';
+
+        if (editId) {
+            const idx = allStaff.findIndex(st => st.staff_id == editId);
+            let orig = null;
+            if (idx !== -1) {
+                orig = { ...allStaff[idx] };
+                Object.assign(allStaff[idx], payload);
+                filterStaff();
+            }
+            staffModal.hide();
+            showAlert(`Faculty "${payload.name}" details updated instantly!`);
+
+            fetch(url, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).then(res => res.json()).then(data => {
+                if (!data.success && !data.staffid) {
+                    alert(`Error: ${data.error || 'Failed to save faculty record.'}`);
+                    if (orig && idx !== -1) {
+                        Object.assign(allStaff[idx], orig);
+                        filterStaff();
+                    }
+                }
+            }).catch(err => {
+                console.error(err);
+                alert('Network error while saving faculty.');
+            }).finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Save Faculty Details';
+            });
+            return;
+        }
+
         try {
-            const url = editId ? `/hod/api/staff/${editId}` : '/hod/api/staff';
-            const method = editId ? 'PUT' : 'POST';
             const res = await fetch(url, {
                 method: method,
                 headers: { 'Content-Type': 'application/json' },
@@ -1478,8 +1546,7 @@
             if (res.ok && (data.success || data.staff_id)) {
                 staffModal.hide();
                 showAlert(`Faculty "${payload.name}" details saved successfully!`);
-                await loadStaff();
-                await loadCatalogs();
+                await loadStaff(true);
             } else {
                 alert(`Error: ${data.error || 'Failed to save faculty record.'}`);
             }
@@ -1604,9 +1671,45 @@
             staff_id: document.getElementById('formSubjectStaff').value || null
         };
 
+        const url = editCode ? `/hod/api/subject/${editCode}` : '/hod/api/subjects';
+        const method = editCode ? 'PUT' : 'POST';
+
+        if (editCode) {
+            const idx = allSubjects.findIndex(sub => sub.subject_code === editCode);
+            let orig = null;
+            if (idx !== -1) {
+                orig = { ...allSubjects[idx] };
+                const st = cachedStaff.find(s => s.staff_id == payload.staff_id);
+                payload.staff_name = st ? st.name : (allSubjects[idx].staff_name || 'Unassigned');
+                Object.assign(allSubjects[idx], payload);
+                filterSubjects();
+            }
+            subjectModal.hide();
+            showAlert(`Subject "${payload.subject_name}" details updated instantly!`);
+
+            fetch(url, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).then(res => res.json()).then(data => {
+                if (!data.success && !data.subject_code) {
+                    alert(`Error: ${data.error || 'Failed to save subject.'}`);
+                    if (orig && idx !== -1) {
+                        Object.assign(allSubjects[idx], orig);
+                        filterSubjects();
+                    }
+                }
+            }).catch(err => {
+                console.error(err);
+                alert('Network error while saving subject.');
+            }).finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Save Subject Details';
+            });
+            return;
+        }
+
         try {
-            const url = editCode ? `/hod/api/subject/${editCode}` : '/hod/api/subjects';
-            const method = editCode ? 'PUT' : 'POST';
             const res = await fetch(url, {
                 method: method,
                 headers: { 'Content-Type': 'application/json' },
@@ -1616,8 +1719,7 @@
             if (res.ok && (data.success || data.subject_code)) {
                 subjectModal.hide();
                 showAlert(`Subject "${payload.subject_name}" details saved successfully!`);
-                await loadSubjects();
-                await loadCatalogs();
+                await loadSubjects(true);
             } else {
                 alert(`Error: ${data.error || 'Failed to save subject.'}`);
             }
@@ -1749,9 +1851,43 @@
             payload.test_number = document.getElementById('formMarkTest').value;
         }
 
+        const url = editId ? `/hod/api/marks/${editId}` : '/hod/api/marks';
+        const method = editId ? 'PUT' : 'POST';
+
+        if (editId) {
+            const idx = allMarks.findIndex(m => m.id == editId);
+            let orig = null;
+            if (idx !== -1) {
+                orig = { ...allMarks[idx] };
+                Object.assign(allMarks[idx], payload);
+                renderMarks(allMarks, allMarks.length);
+            }
+            markModal.hide();
+            showAlert('Internal mark score updated instantly!');
+
+            fetch(url, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).then(res => res.json()).then(data => {
+                if (!data.success && !data.id) {
+                    alert(`Error: ${data.error || 'Failed to save marks.'}`);
+                    if (orig && idx !== -1) {
+                        Object.assign(allMarks[idx], orig);
+                        renderMarks(allMarks, allMarks.length);
+                    }
+                }
+            }).catch(err => {
+                console.error(err);
+                alert('Network error while saving marks.');
+            }).finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Save Marks';
+            });
+            return;
+        }
+
         try {
-            const url = editId ? `/hod/api/marks/${editId}` : '/hod/api/marks';
-            const method = editId ? 'PUT' : 'POST';
             const res = await fetch(url, {
                 method: method,
                 headers: { 'Content-Type': 'application/json' },
@@ -1761,7 +1897,7 @@
             if (res.ok && data.success) {
                 markModal.hide();
                 showAlert(`Internal mark details updated successfully!`);
-                await loadMarks();
+                await loadMarks(true);
             } else {
                 alert(`Error: ${data.error || 'Failed to save marks.'}`);
             }
@@ -1892,9 +2028,43 @@
             payload.subject_code = document.getElementById('formAttSubject').value;
         }
 
+        const url = editId ? `/hod/api/attendance/${editId}` : '/hod/api/attendance';
+        const method = editId ? 'PUT' : 'POST';
+
+        if (editId) {
+            const idx = allAttendance.findIndex(a => a.id == editId);
+            let orig = null;
+            if (idx !== -1) {
+                orig = { ...allAttendance[idx] };
+                Object.assign(allAttendance[idx], payload);
+                renderAttendance(allAttendance, allAttendance.length);
+            }
+            attModal.hide();
+            showAlert('Attendance log updated instantly!');
+
+            fetch(url, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).then(res => res.json()).then(data => {
+                if (!data.success && !data.id) {
+                    alert(`Error: ${data.error || 'Failed to save attendance.'}`);
+                    if (orig && idx !== -1) {
+                        Object.assign(allAttendance[idx], orig);
+                        renderAttendance(allAttendance, allAttendance.length);
+                    }
+                }
+            }).catch(err => {
+                console.error(err);
+                alert('Network error while saving attendance.');
+            }).finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Save Attendance';
+            });
+            return;
+        }
+
         try {
-            const url = editId ? `/hod/api/attendance/${editId}` : '/hod/api/attendance';
-            const method = editId ? 'PUT' : 'POST';
             const res = await fetch(url, {
                 method: method,
                 headers: { 'Content-Type': 'application/json' },
@@ -1904,7 +2074,7 @@
             if (res.ok && data.success) {
                 attModal.hide();
                 showAlert(`Attendance details saved successfully!`);
-                await loadAttendance();
+                await loadAttendance(true);
             } else {
                 alert(`Error: ${data.error || 'Failed to save attendance.'}`);
             }

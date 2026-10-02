@@ -168,6 +168,157 @@
     </div>
 </div>
 
+<!-- ========================================================================= -->
+<!-- HOD LIVE EDIT DETAILS SECTION (INSTANT FAST UPDATES) -->
+<!-- ========================================================================= -->
+<div class="row g-4 mb-4" id="hodDashboardEditSection">
+    <div class="col-12">
+        <div class="custom-table-card p-4">
+            <div class="card-title-bar d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                <div>
+                    <h3 class="mb-0">
+                        <i class="fa-solid fa-pen-to-square me-2 text-warning"></i> Department Master Edit Details Console
+                    </h3>
+                    <div class="text-muted fs-8">Direct live administrative editing of students, faculty, subjects, internal marks &amp; attendance with instant zero-lag updates</div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary fs-7" onclick="refreshDashboardEditSection()" title="Reload edit details">
+                        <i class="fa-solid fa-rotate me-1"></i> Refresh
+                    </button>
+                    <a href="{{ url_for('hod.edit_details_page') }}" class="btn btn-sm btn-outline-warning text-dark fw-bold fs-7" title="Open Full Master Editor Hub">
+                        <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Full Hub
+                    </a>
+                </div>
+            </div>
+
+            <!-- Category Filter Tabs -->
+            <div class="d-flex flex-wrap gap-2 mb-3 pb-3 border-bottom">
+                <button type="button" class="btn btn-sm btn-warning text-dark fw-bold dash-edit-tab-btn active" id="dashTabBtn-students" onclick="selectDashboardEditCategory('students')">
+                    <i class="fa-solid fa-user-graduate me-1"></i> Students (<span id="dashCountStudents">--</span>)
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary fw-semibold dash-edit-tab-btn" id="dashTabBtn-staff" onclick="selectDashboardEditCategory('staff')">
+                    <i class="fa-solid fa-chalkboard-user me-1"></i> Faculty &amp; Staff (<span id="dashCountStaff">--</span>)
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary fw-semibold dash-edit-tab-btn" id="dashTabBtn-subjects" onclick="selectDashboardEditCategory('subjects')">
+                    <i class="fa-solid fa-book-open me-1"></i> Subjects (<span id="dashCountSubjects">--</span>)
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary fw-semibold dash-edit-tab-btn" id="dashTabBtn-marks" onclick="selectDashboardEditCategory('marks')">
+                    <i class="fa-solid fa-award me-1"></i> Internal Marks (<span id="dashCountMarks">--</span>)
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary fw-semibold dash-edit-tab-btn" id="dashTabBtn-attendance" onclick="selectDashboardEditCategory('attendance')">
+                    <i class="fa-solid fa-calendar-check me-1"></i> Attendance (<span id="dashCountAttendance">--</span>)
+                </button>
+            </div>
+
+            <!-- Search and Filter Bar -->
+            <div class="row g-2 align-items-center mb-3">
+                <div class="col-md-6 col-sm-12">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-light text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+                        <input type="text" id="dashEditSearch" class="form-control" placeholder="Search records by name, register number, code, or email..." oninput="handleDashEditFilter()">
+                        <button class="btn btn-outline-secondary" type="button" onclick="clearDashEditFilter()" title="Clear search"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                </div>
+                <div class="col-md-6 col-sm-12 d-flex justify-content-md-end align-items-center gap-2">
+                    <span class="badge bg-light text-secondary border fs-8" id="dashEditCategoryBadge">
+                        Showing Students
+                    </span>
+                    <span class="fs-8 text-muted fw-semibold" id="dashEditRecordsInfo">Loading records...</span>
+                </div>
+            </div>
+
+            <!-- Edit Tables Container -->
+            <div class="table-responsive" style="max-height: 440px; overflow-y: auto;">
+                <!-- 1. Students Table -->
+                <table class="table table-custom align-middle mb-0" id="dashTableStudents">
+                    <thead>
+                        <tr>
+                            <th style="width: 140px;">REG NO</th>
+                            <th>STUDENT NAME</th>
+                            <th style="width: 110px;">DEPT</th>
+                            <th style="width: 130px;">YEAR &amp; SEC</th>
+                            <th>EMAIL &amp; PHONE</th>
+                            <th class="text-center" style="width: 120px;">STATUS</th>
+                            <th class="text-end" style="width: 130px;">EDIT ACTION</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dashTbodyStudents">
+                        <tr><td colspan="7" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading student records...</td></tr>
+                    </tbody>
+                </table>
+
+                <!-- 2. Staff Table -->
+                <table class="table table-custom align-middle mb-0 d-none" id="dashTableStaff">
+                    <thead>
+                        <tr>
+                            <th style="width: 110px;">STAFF ID</th>
+                            <th>FACULTY NAME</th>
+                            <th>DESIGNATION</th>
+                            <th>DEPARTMENT</th>
+                            <th>EMAIL &amp; CONTACT</th>
+                            <th class="text-end" style="width: 130px;">EDIT ACTION</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dashTbodyStaff">
+                        <tr><td colspan="6" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading faculty directory...</td></tr>
+                    </tbody>
+                </table>
+
+                <!-- 3. Subjects Table -->
+                <table class="table table-custom align-middle mb-0 d-none" id="dashTableSubjects">
+                    <thead>
+                        <tr>
+                            <th style="width: 130px;">CODE</th>
+                            <th>COURSE TITLE</th>
+                            <th style="width: 100px;">SEMESTER</th>
+                            <th>ASSIGNED FACULTY</th>
+                            <th class="text-end" style="width: 130px;">EDIT ACTION</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dashTbodySubjects">
+                        <tr><td colspan="5" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading subjects...</td></tr>
+                    </tbody>
+                </table>
+
+                <!-- 4. Marks Table -->
+                <table class="table table-custom align-middle mb-0 d-none" id="dashTableMarks">
+                    <thead>
+                        <tr>
+                            <th style="width: 130px;">REG NO</th>
+                            <th>STUDENT NAME</th>
+                            <th>SUBJECT</th>
+                            <th>ASSESSMENT</th>
+                            <th>MARKS OBTAINED</th>
+                            <th class="text-end" style="width: 130px;">EDIT ACTION</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dashTbodyMarks">
+                        <tr><td colspan="6" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading internal marks...</td></tr>
+                    </tbody>
+                </table>
+
+                <!-- 5. Attendance Table -->
+                <table class="table table-custom align-middle mb-0 d-none" id="dashTableAttendance">
+                    <thead>
+                        <tr>
+                            <th style="width: 120px;">DATE</th>
+                            <th style="width: 130px;">REG NO</th>
+                            <th>STUDENT NAME</th>
+                            <th>SUBJECT</th>
+                            <th>STATUS</th>
+                            <th>HOURS</th>
+                            <th class="text-end" style="width: 130px;">EDIT ACTION</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dashTbodyAttendance">
+                        <tr><td colspan="7" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading attendance records...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- HOD ANNOUNCEMENT MANAGEMENT HUB -->
 <div class="row g-4 mb-4">
     <div class="col-12">
@@ -293,6 +444,285 @@
     </div>
 </div>
 
+<!-- ========================================================================= -->
+<!-- FAST EDIT DETAILS MODALS -->
+<!-- ========================================================================= -->
+
+<!-- 1. DASHBOARD STUDENT EDIT MODAL -->
+<div class="modal fade" id="dashEditStudentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-navy text-white">
+                <h5 class="modal-title fw-bold">
+                    <i class="fa-solid fa-user-pen text-warning me-2"></i> Quick Edit Student Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="dashStudentEditForm" onsubmit="handleSaveDashStudent(event)">
+                <div class="modal-body p-4">
+                    <input type="hidden" id="dashFormStudentId">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Register Number</label>
+                            <input type="text" id="dashFormStudentRegNo" class="form-control font-monospace" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Student Name <span class="text-danger">*</span></label>
+                            <input type="text" id="dashFormStudentName" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Department</label>
+                            <select id="dashFormStudentDept" class="form-select">
+                                <option value="Information Technology">Information Technology</option>
+                                <option value="Computer Science">Computer Science</option>
+                                <option value="Artificial Intelligence">Artificial Intelligence</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Year</label>
+                            <select id="dashFormStudentYear" class="form-select">
+                                <option value="First year">First Year</option>
+                                <option value="Second year">Second Year</option>
+                                <option value="Third year">Third Year</option>
+                                <option value="Final year">Final Year</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Section</label>
+                            <select id="dashFormStudentSection" class="form-select">
+                                <option value="A">Section A</option>
+                                <option value="B">Section B</option>
+                                <option value="C">Section C</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Email Address</label>
+                            <input type="email" id="dashFormStudentEmail" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Contact Phone</label>
+                            <input type="tel" id="dashFormStudentPhone" class="form-control">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="dashSaveStudentBtn" class="btn btn-warning text-dark fw-bold px-4">
+                        <i class="fa-solid fa-bolt me-1"></i> Update Instantly
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 2. DASHBOARD STAFF EDIT MODAL -->
+<div class="modal fade" id="dashEditStaffModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-navy text-white">
+                <h5 class="modal-title fw-bold">
+                    <i class="fa-solid fa-chalkboard-user text-warning me-2"></i> Quick Edit Faculty Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="dashStaffEditForm" onsubmit="handleSaveDashStaff(event)">
+                <div class="modal-body p-4">
+                    <input type="hidden" id="dashFormStaffId">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Staff ID / Code</label>
+                            <input type="text" id="dashFormStaffCode" class="form-control font-monospace" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Faculty Name <span class="text-danger">*</span></label>
+                            <input type="text" id="dashFormStaffName" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Designation</label>
+                            <select id="dashFormStaffDesignation" class="form-select">
+                                <option value="Assistant Professor">Assistant Professor</option>
+                                <option value="Associate Professor">Associate Professor</option>
+                                <option value="Professor">Professor</option>
+                                <option value="Head of Department">Head of Department</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Department</label>
+                            <select id="dashFormStaffDept" class="form-select">
+                                <option value="Information Technology">Information Technology</option>
+                                <option value="Computer Science">Computer Science</option>
+                                <option value="Artificial Intelligence">Artificial Intelligence</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Email Address</label>
+                            <input type="email" id="dashFormStaffEmail" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Contact Phone</label>
+                            <input type="tel" id="dashFormStaffPhone" class="form-control">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="dashSaveStaffBtn" class="btn btn-warning text-dark fw-bold px-4">
+                        <i class="fa-solid fa-bolt me-1"></i> Update Instantly
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 3. DASHBOARD SUBJECT EDIT MODAL -->
+<div class="modal fade" id="dashEditSubjectModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-navy text-white">
+                <h5 class="modal-title fw-bold">
+                    <i class="fa-solid fa-book-open text-warning me-2"></i> Quick Edit Subject Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="dashSubjectEditForm" onsubmit="handleSaveDashSubject(event)">
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Subject Code</label>
+                            <input type="text" id="dashFormSubjectCode" class="form-control font-monospace" readonly>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Course Title <span class="text-danger">*</span></label>
+                            <input type="text" id="dashFormSubjectName" class="form-control" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Semester</label>
+                            <select id="dashFormSubjectSem" class="form-select">
+                                <option value="1">Semester 1</option>
+                                <option value="2">Semester 2</option>
+                                <option value="3">Semester 3</option>
+                                <option value="4">Semester 4</option>
+                                <option value="5">Semester 5</option>
+                                <option value="6">Semester 6</option>
+                                <option value="7">Semester 7</option>
+                                <option value="8">Semester 8</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Credits</label>
+                            <input type="number" id="dashFormSubjectCredits" class="form-control" min="1" max="10" value="3">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Department</label>
+                            <select id="dashFormSubjectDept" class="form-select">
+                                <option value="Information Technology">Information Technology</option>
+                                <option value="Computer Science">Computer Science</option>
+                                <option value="Artificial Intelligence">Artificial Intelligence</option>
+                            </select>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Assigned Faculty Member</label>
+                            <select id="dashFormSubjectStaff" class="form-select">
+                                <option value="">-- Unassigned --</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="dashSaveSubjectBtn" class="btn btn-warning text-dark fw-bold px-4">
+                        <i class="fa-solid fa-bolt me-1"></i> Update Instantly
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 4. DASHBOARD MARK EDIT MODAL -->
+<div class="modal fade" id="dashEditMarkModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-navy text-white">
+                <h5 class="modal-title fw-bold">
+                    <i class="fa-solid fa-award text-warning me-2"></i> Quick Edit Internal Mark
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="dashMarkEditForm" onsubmit="handleSaveDashMark(event)">
+                <div class="modal-body p-4">
+                    <input type="hidden" id="dashFormMarkId">
+                    <div class="p-3 bg-light rounded-3 mb-3 border">
+                        <div class="fw-bold text-navy fs-6" id="dashFormMarkStudentDisplay">Student</div>
+                        <div class="text-muted fs-8 font-monospace" id="dashFormMarkSubjectDisplay">Subject</div>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Marks Obtained <span class="text-danger">*</span></label>
+                            <input type="number" step="0.5" min="0" max="100" id="dashFormMarkScore" class="form-control" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Max Marks <span class="text-danger">*</span></label>
+                            <input type="number" step="1" min="1" max="100" id="dashFormMarkMax" class="form-control" value="100" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="dashSaveMarkBtn" class="btn btn-warning text-dark fw-bold px-4">
+                        <i class="fa-solid fa-bolt me-1"></i> Update Instantly
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 5. DASHBOARD ATTENDANCE EDIT MODAL -->
+<div class="modal fade" id="dashEditAttModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-navy text-white">
+                <h5 class="modal-title fw-bold">
+                    <i class="fa-solid fa-calendar-check text-warning me-2"></i> Quick Edit Attendance Log
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="dashAttEditForm" onsubmit="handleSaveDashAtt(event)">
+                <div class="modal-body p-4">
+                    <input type="hidden" id="dashFormAttId">
+                    <div class="p-3 bg-light rounded-3 mb-3 border">
+                        <div class="fw-bold text-navy fs-6" id="dashFormAttStudentDisplay">Student</div>
+                        <div class="text-muted fs-8 font-monospace" id="dashFormAttSubjectDisplay">Subject &amp; Date</div>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-7">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Attendance Status <span class="text-danger">*</span></label>
+                            <select id="dashFormAttStatus" class="form-select" required>
+                                <option value="Present">Present</option>
+                                <option value="Absent">Absent</option>
+                                <option value="OD">On Duty (OD)</option>
+                            </select>
+                        </div>
+                        <div class="col-5">
+                            <label class="form-label fw-semibold fs-7 text-secondary">Hours</label>
+                            <input type="number" min="1" max="8" id="dashFormAttHours" class="form-control" value="1" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="dashSaveAttBtn" class="btn btn-warning text-dark fw-bold px-4">
+                        <i class="fa-solid fa-bolt me-1"></i> Update Instantly
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -414,7 +844,716 @@ function deleteAdminNotification(id) {
 
 document.addEventListener('DOMContentLoaded', () => {
     loadAdminAnnouncements();
+    initDashboardEditDetails();
 });
+
+// =========================================================================
+// HOD LIVE MASTER EDIT DETAILS CONTROLLER (INSTANT ZERO-LAG UPDATES)
+// =========================================================================
+
+let dashEditActiveCategory = 'students';
+let dashData = {
+    students: [],
+    staff: [],
+    subjects: [],
+    marks: [],
+    attendance: []
+};
+let dashFilteredData = {
+    students: [],
+    staff: [],
+    subjects: [],
+    marks: [],
+    attendance: []
+};
+let dashModals = {};
+
+function initDashboardEditDetails() {
+    // 1. Initialize Bootstrap Modals
+    const studentModalEl = document.getElementById('dashEditStudentModal');
+    const staffModalEl = document.getElementById('dashEditStaffModal');
+    const subjectModalEl = document.getElementById('dashEditSubjectModal');
+    const markModalEl = document.getElementById('dashEditMarkModal');
+    const attModalEl = document.getElementById('dashEditAttModal');
+
+    if (studentModalEl) dashModals.student = new bootstrap.Modal(studentModalEl);
+    if (staffModalEl) dashModals.staff = new bootstrap.Modal(staffModalEl);
+    if (subjectModalEl) dashModals.subject = new bootstrap.Modal(subjectModalEl);
+    if (markModalEl) dashModals.mark = new bootstrap.Modal(markModalEl);
+    if (attModalEl) dashModals.attendance = new bootstrap.Modal(attModalEl);
+
+    // 2. Initial Data Loading: Start with students immediately
+    loadDashStudents();
+
+    // 3. Load remaining categories smoothly in background
+    setTimeout(() => {
+        loadDashStaff();
+        loadDashSubjects();
+        loadDashMarks();
+        loadDashAttendance();
+    }, 200);
+}
+
+// --- Category Tab Switching ---
+function selectDashboardEditCategory(cat) {
+    dashEditActiveCategory = cat;
+
+    // Toggle tab buttons
+    document.querySelectorAll('.dash-edit-tab-btn').forEach(btn => {
+        btn.classList.remove('btn-warning', 'text-dark', 'active');
+        btn.classList.add('btn-outline-secondary');
+    });
+    const activeBtn = document.getElementById(`dashTabBtn-${cat}`);
+    if (activeBtn) {
+        activeBtn.classList.remove('btn-outline-secondary');
+        activeBtn.classList.add('btn-warning', 'text-dark', 'active');
+    }
+
+    // Toggle tables
+    ['students', 'staff', 'subjects', 'marks', 'attendance'].forEach(c => {
+        const tbl = document.getElementById(`dashTable${c.charAt(0).toUpperCase() + c.slice(1)}`);
+        if (tbl) {
+            if (c === cat) tbl.classList.remove('d-none');
+            else tbl.classList.add('d-none');
+        }
+    });
+
+    const labelMap = {
+        students: 'Showing Students',
+        staff: 'Showing Faculty & Staff',
+        subjects: 'Showing Subjects',
+        marks: 'Showing Internal Marks',
+        attendance: 'Showing Attendance Records'
+    };
+    const badge = document.getElementById('dashEditCategoryBadge');
+    if (badge) badge.innerText = labelMap[cat] || 'Records';
+
+    handleDashEditFilter();
+}
+
+// --- Fast In-Memory Filtering ---
+function handleDashEditFilter() {
+    const q = (document.getElementById('dashEditSearch').value || '').toLowerCase().trim();
+    const cat = dashEditActiveCategory;
+    const list = dashData[cat] || [];
+
+    if (!q) {
+        dashFilteredData[cat] = [...list];
+    } else {
+        dashFilteredData[cat] = list.filter(item => {
+            if (cat === 'students') {
+                return (item.name && item.name.toLowerCase().includes(q)) ||
+                       (item.regno && item.regno.toLowerCase().includes(q)) ||
+                       (item.email && item.email.toLowerCase().includes(q)) ||
+                       (item.year && item.year.toLowerCase().includes(q));
+            } else if (cat === 'staff') {
+                return (item.name && item.name.toLowerCase().includes(q)) ||
+                       (item.staff_id && String(item.staff_id).toLowerCase().includes(q)) ||
+                       (item.designation && item.designation.toLowerCase().includes(q)) ||
+                       (item.email && item.email.toLowerCase().includes(q));
+            } else if (cat === 'subjects') {
+                return (item.subject_code && item.subject_code.toLowerCase().includes(q)) ||
+                       (item.subject_name && item.subject_name.toLowerCase().includes(q)) ||
+                       (item.staff_name && item.staff_name.toLowerCase().includes(q));
+            } else if (cat === 'marks') {
+                return (item.regno && item.regno.toLowerCase().includes(q)) ||
+                       (item.student_name && item.student_name.toLowerCase().includes(q)) ||
+                       (item.subject_code && item.subject_code.toLowerCase().includes(q)) ||
+                       (item.test_number && item.test_number.toLowerCase().includes(q));
+            } else if (cat === 'attendance') {
+                return (item.regno && item.regno.toLowerCase().includes(q)) ||
+                       (item.student_name && item.student_name.toLowerCase().includes(q)) ||
+                       (item.subject_code && item.subject_code.toLowerCase().includes(q)) ||
+                       (item.status && item.status.toLowerCase().includes(q)) ||
+                       (item.date && item.date.includes(q));
+            }
+            return false;
+        });
+    }
+
+    renderDashEditTable(cat);
+}
+
+function clearDashEditFilter() {
+    const inp = document.getElementById('dashEditSearch');
+    if (inp) inp.value = '';
+    handleDashEditFilter();
+}
+
+function refreshDashboardEditSection() {
+    const cat = dashEditActiveCategory;
+    if (cat === 'students') loadDashStudents(true);
+    else if (cat === 'staff') loadDashStaff(true);
+    else if (cat === 'subjects') loadDashSubjects(true);
+    else if (cat === 'marks') loadDashMarks(true);
+    else if (cat === 'attendance') loadDashAttendance(true);
+    showNotifToast('Edit details refreshed.', 'fa-solid fa-rotate');
+}
+
+// --- Data Fetchers ---
+async function loadDashStudents(force = false) {
+    try {
+        const res = await fetch(`/hod/api/students?simple=1&year=All&department=All${force ? '&refresh=1' : ''}`);
+        const data = await res.json();
+        dashData.students = Array.isArray(data) ? data : (data.students || []);
+        dashFilteredData.students = [...dashData.students];
+        const cntEl = document.getElementById('dashCountStudents');
+        if (cntEl) cntEl.innerText = dashData.students.length;
+        if (dashEditActiveCategory === 'students') renderDashEditTable('students');
+    } catch (e) {
+        console.error('Failed to load students for dashboard editor:', e);
+        document.getElementById('dashTbodyStudents').innerHTML = '<tr><td colspan="7" class="text-center text-danger py-4">Failed to load students.</td></tr>';
+    }
+}
+
+async function loadDashStaff(force = false) {
+    try {
+        const res = await fetch(`/hod/api/staff${force ? '?refresh=1' : ''}`);
+        const data = await res.json();
+        dashData.staff = data.staff || [];
+        dashFilteredData.staff = [...dashData.staff];
+        const cntEl = document.getElementById('dashCountStaff');
+        if (cntEl) cntEl.innerText = dashData.staff.length;
+        if (dashEditActiveCategory === 'staff') renderDashEditTable('staff');
+        populateFacultyOptionsInSubjectModal(dashData.staff);
+    } catch (e) {
+        console.error('Failed to load faculty for dashboard editor:', e);
+    }
+}
+
+async function loadDashSubjects(force = false) {
+    try {
+        const res = await fetch(`/hod/api/subjects?detailed=1${force ? '&refresh=1' : ''}`);
+        const data = await res.json();
+        dashData.subjects = data.subjects || [];
+        dashFilteredData.subjects = [...dashData.subjects];
+        const cntEl = document.getElementById('dashCountSubjects');
+        if (cntEl) cntEl.innerText = dashData.subjects.length;
+        if (dashEditActiveCategory === 'subjects') renderDashEditTable('subjects');
+    } catch (e) {
+        console.error('Failed to load subjects for dashboard editor:', e);
+    }
+}
+
+async function loadDashMarks(force = false) {
+    try {
+        const res = await fetch(`/hod/api/marks?page=1&per_page=30${force ? '&refresh=1' : ''}`);
+        const data = await res.json();
+        dashData.marks = data.marks || [];
+        dashFilteredData.marks = [...dashData.marks];
+        const cntEl = document.getElementById('dashCountMarks');
+        if (cntEl) cntEl.innerText = data.total_records || dashData.marks.length;
+        if (dashEditActiveCategory === 'marks') renderDashEditTable('marks');
+    } catch (e) {
+        console.error('Failed to load marks for dashboard editor:', e);
+    }
+}
+
+async function loadDashAttendance(force = false) {
+    try {
+        const res = await fetch(`/hod/api/attendance?page=1&per_page=30${force ? '&refresh=1' : ''}`);
+        const data = await res.json();
+        dashData.attendance = data.attendance || [];
+        dashFilteredData.attendance = [...dashData.attendance];
+        const cntEl = document.getElementById('dashCountAttendance');
+        if (cntEl) cntEl.innerText = data.total_records || dashData.attendance.length;
+        if (dashEditActiveCategory === 'attendance') renderDashEditTable('attendance');
+    } catch (e) {
+        console.error('Failed to load attendance for dashboard editor:', e);
+    }
+}
+
+function populateFacultyOptionsInSubjectModal(staffList) {
+    const select = document.getElementById('dashFormSubjectStaff');
+    if (!select) return;
+    select.innerHTML = '<option value="">-- Unassigned --</option>';
+    staffList.forEach(st => {
+        const opt = document.createElement('option');
+        opt.value = st.staff_id;
+        opt.innerText = `${st.name} (${st.designation || 'Faculty'})`;
+        select.appendChild(opt);
+    });
+}
+
+// --- Render Table by Category ---
+function renderDashEditTable(cat) {
+    const list = dashFilteredData[cat] || [];
+    const infoEl = document.getElementById('dashEditRecordsInfo');
+    if (infoEl) infoEl.innerText = `Showing ${list.length} ${cat}`;
+
+    if (cat === 'students') {
+        const tbody = document.getElementById('dashTbodyStudents');
+        if (!list.length) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">No student records match search.</td></tr>';
+            return;
+        }
+        tbody.innerHTML = list.slice(0, 100).map(s => {
+            const isAtRisk = s.status === 'At Risk' || s.at_risk;
+            return `
+                <tr id="dashRow-student-${s.studentid}">
+                    <td class="font-monospace fw-bold text-navy">${s.regno || '--'}</td>
+                    <td>
+                        <div class="fw-semibold text-dark">${escapeHtml(s.name || '--')}</div>
+                    </td>
+                    <td><span class="badge bg-light text-dark border">${s.department || 'IT'}</span></td>
+                    <td>
+                        <span class="badge bg-secondary-subtle text-secondary me-1">${s.year || 'Third year'}</span>
+                        <span class="fs-8 text-muted">Sec ${s.section || 'A'}</span>
+                    </td>
+                    <td>
+                        <div class="fs-8 text-truncate" style="max-width: 220px;"><i class="fa-regular fa-envelope me-1 text-muted"></i>${escapeHtml(s.email || '--')}</div>
+                        <div class="fs-8 text-muted"><i class="fa-solid fa-phone me-1 text-muted"></i>${escapeHtml(s.phone || '--')}</div>
+                    </td>
+                    <td class="text-center">
+                        <span class="badge ${isAtRisk ? 'bg-danger-subtle text-danger' : 'bg-success-subtle text-success'}">
+                            ${s.status || 'Active'}
+                        </span>
+                    </td>
+                    <td class="text-end">
+                        <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-bold" onclick="openDashEditStudentModal(${s.studentid})">
+                            <i class="fa-solid fa-pen-to-square me-1"></i> Edit
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    } else if (cat === 'staff') {
+        const tbody = document.getElementById('dashTbodyStaff');
+        if (!list.length) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">No faculty members found.</td></tr>';
+            return;
+        }
+        tbody.innerHTML = list.map(st => `
+            <tr id="dashRow-staff-${st.staff_id}">
+                <td class="font-monospace fw-bold text-navy">${st.staff_id}</td>
+                <td><div class="fw-semibold text-dark">${escapeHtml(st.name)}</div></td>
+                <td><span class="badge bg-light text-dark border">${st.designation || 'Faculty'}</span></td>
+                <td><span class="badge bg-secondary-subtle text-secondary">${st.department || 'IT'}</span></td>
+                <td>
+                    <div class="fs-8"><i class="fa-regular fa-envelope me-1 text-muted"></i>${st.email || '--'}</div>
+                    <div class="fs-8 text-muted"><i class="fa-solid fa-phone me-1 text-muted"></i>${st.phone || '--'}</div>
+                </td>
+                <td class="text-end">
+                    <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-bold" onclick="openDashEditStaffModal(${st.staff_id})">
+                        <i class="fa-solid fa-pen-to-square me-1"></i> Edit
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    } else if (cat === 'subjects') {
+        const tbody = document.getElementById('dashTbodySubjects');
+        if (!list.length) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">No subjects found.</td></tr>';
+            return;
+        }
+        tbody.innerHTML = list.map(sub => `
+            <tr id="dashRow-subject-${sub.subject_code}">
+                <td class="font-monospace fw-bold text-navy">${sub.subject_code}</td>
+                <td><div class="fw-semibold text-dark">${escapeHtml(sub.subject_name)}</div></td>
+                <td><span class="badge bg-secondary-subtle text-secondary">Sem ${sub.semester} (${sub.credits || 3} C)</span></td>
+                <td><div class="fs-8">${escapeHtml(sub.staff_name || 'Unassigned')}</div></td>
+                <td class="text-end">
+                    <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-bold" onclick="openDashEditSubjectModal('${sub.subject_code}')">
+                        <i class="fa-solid fa-pen-to-square me-1"></i> Edit
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    } else if (cat === 'marks') {
+        const tbody = document.getElementById('dashTbodyMarks');
+        if (!list.length) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">No internal marks found.</td></tr>';
+            return;
+        }
+        tbody.innerHTML = list.map(m => {
+            const pct = Math.round((m.marks_obtained / (m.max_marks || 100)) * 100);
+            return `
+                <tr id="dashRow-mark-${m.id}">
+                    <td class="font-monospace fw-bold text-navy">${m.regno || '--'}</td>
+                    <td><div class="fw-semibold text-dark">${escapeHtml(m.student_name || '--')}</div></td>
+                    <td><span class="badge bg-light text-dark border">${m.subject_code || '--'}</span></td>
+                    <td><span class="badge bg-secondary-subtle text-secondary">${m.test_number}</span></td>
+                    <td><span class="fw-bold fs-7 ${pct >= 50 ? 'text-success' : 'text-danger'}">${m.marks_obtained} / ${m.max_marks || 100}</span> (${pct}%)</td>
+                    <td class="text-end">
+                        <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-bold" onclick="openDashEditMarkModal(${m.id})">
+                            <i class="fa-solid fa-pen-to-square me-1"></i> Edit
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    } else if (cat === 'attendance') {
+        const tbody = document.getElementById('dashTbodyAttendance');
+        if (!list.length) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">No attendance logs found.</td></tr>';
+            return;
+        }
+        tbody.innerHTML = list.map(a => {
+            const st = (a.status || 'Present').toLowerCase();
+            let badgeClass = 'bg-success-subtle text-success';
+            if (st === 'absent') badgeClass = 'bg-danger-subtle text-danger';
+            else if (st === 'od') badgeClass = 'bg-purple-subtle text-purple';
+
+            return `
+                <tr id="dashRow-attendance-${a.id}">
+                    <td class="font-monospace fs-8">${a.date || '--'}</td>
+                    <td class="font-monospace fw-bold text-navy">${a.regno || '--'}</td>
+                    <td><div class="fw-semibold text-dark">${escapeHtml(a.student_name || '--')}</div></td>
+                    <td><span class="badge bg-light text-dark border">${a.subject_code || '--'}</span></td>
+                    <td><span class="badge ${badgeClass}">${a.status}</span></td>
+                    <td>${a.hours || 1} hr</td>
+                    <td class="text-end">
+                        <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-bold" onclick="openDashEditAttModal(${a.id})">
+                            <i class="fa-solid fa-pen-to-square me-1"></i> Edit
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+}
+
+// =========================================================================
+// MODAL OPENERS & INSTANT OPTIMISTIC SAVE HANDLERS
+// =========================================================================
+
+// 1. Student Edit
+function openDashEditStudentModal(id) {
+    const s = dashData.students.find(item => item.studentid == id);
+    if (!s) return;
+    document.getElementById('dashFormStudentId').value = s.studentid;
+    document.getElementById('dashFormStudentRegNo').value = s.regno || '';
+    document.getElementById('dashFormStudentName').value = s.name || '';
+    document.getElementById('dashFormStudentDept').value = s.department || 'Information Technology';
+    document.getElementById('dashFormStudentYear').value = s.year || 'Third year';
+    document.getElementById('dashFormStudentSection').value = s.section || 'A';
+    document.getElementById('dashFormStudentEmail').value = s.email || '';
+    document.getElementById('dashFormStudentPhone').value = s.phone || '';
+    if (dashModals.student) dashModals.student.show();
+}
+
+function handleSaveDashStudent(e) {
+    e.preventDefault();
+    const id = document.getElementById('dashFormStudentId').value;
+    const payload = {
+        name: document.getElementById('dashFormStudentName').value.trim(),
+        department: document.getElementById('dashFormStudentDept').value,
+        year: document.getElementById('dashFormStudentYear').value,
+        section: document.getElementById('dashFormStudentSection').value,
+        email: document.getElementById('dashFormStudentEmail').value.trim(),
+        phone: document.getElementById('dashFormStudentPhone').value.trim()
+    };
+
+    // --- INSTANT OPTIMISTIC IN-MEMORY & DOM UPDATE (<1ms) ---
+    const sIndex = dashData.students.findIndex(s => s.studentid == id);
+    let originalStudent = null;
+    if (sIndex !== -1) {
+        originalStudent = { ...dashData.students[sIndex] };
+        Object.assign(dashData.students[sIndex], payload);
+    }
+    const fIndex = dashFilteredData.students.findIndex(s => s.studentid == id);
+    if (fIndex !== -1) {
+        Object.assign(dashFilteredData.students[fIndex], payload);
+    }
+
+    // Update row instantly in the DOM
+    const row = document.getElementById(`dashRow-student-${id}`);
+    if (row) {
+        row.querySelector('td:nth-child(2) .fw-semibold').innerText = payload.name;
+        row.querySelector('td:nth-child(3) .badge').innerText = payload.department;
+        row.querySelector('td:nth-child(4) .badge').innerText = payload.year;
+        row.querySelector('td:nth-child(4) .fs-8').innerText = `Sec ${payload.section}`;
+        row.querySelector('td:nth-child(5) .text-truncate').innerHTML = `<i class="fa-regular fa-envelope me-1 text-muted"></i>${escapeHtml(payload.email || '--')}`;
+        row.querySelector('td:nth-child(5) .text-muted').innerHTML = `<i class="fa-solid fa-phone me-1 text-muted"></i>${escapeHtml(payload.phone || '--')}`;
+        row.classList.remove('row-updated-flash');
+        void row.offsetWidth; // trigger reflow
+        row.classList.add('row-updated-flash');
+    }
+
+    // Hide modal and notify instantly
+    if (dashModals.student) dashModals.student.hide();
+    showNotifToast(`Student ${payload.name} updated instantly!`, 'fa-solid fa-circle-check');
+
+    // Async background API request
+    fetch(`/hod/api/student/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    }).then(res => res.json()).then(data => {
+        if (!data.success && !data.studentid) {
+            showNotifToast(data.error || 'Failed to save student update', 'fa-solid fa-triangle-exclamation');
+            if (originalStudent && sIndex !== -1) {
+                Object.assign(dashData.students[sIndex], originalStudent);
+                renderDashEditTable('students');
+            }
+        }
+    }).catch(err => {
+        console.error('Async student update error:', err);
+        showNotifToast('Network error while saving student', 'fa-solid fa-triangle-exclamation');
+    });
+}
+
+// 2. Staff Edit
+function openDashEditStaffModal(id) {
+    const st = dashData.staff.find(item => item.staff_id == id);
+    if (!st) return;
+    document.getElementById('dashFormStaffId').value = st.staff_id;
+    document.getElementById('dashFormStaffCode').value = st.staff_id;
+    document.getElementById('dashFormStaffName').value = st.name || '';
+    document.getElementById('dashFormStaffDesignation').value = st.designation || 'Assistant Professor';
+    document.getElementById('dashFormStaffDept').value = st.department || 'Information Technology';
+    document.getElementById('dashFormStaffEmail').value = st.email || '';
+    document.getElementById('dashFormStaffPhone').value = st.phone || '';
+    if (dashModals.staff) dashModals.staff.show();
+}
+
+function handleSaveDashStaff(e) {
+    e.preventDefault();
+    const id = document.getElementById('dashFormStaffId').value;
+    const payload = {
+        name: document.getElementById('dashFormStaffName').value.trim(),
+        designation: document.getElementById('dashFormStaffDesignation').value,
+        department: document.getElementById('dashFormStaffDept').value,
+        email: document.getElementById('dashFormStaffEmail').value.trim(),
+        phone: document.getElementById('dashFormStaffPhone').value.trim()
+    };
+
+    // Instant optimistic update
+    const idx = dashData.staff.findIndex(st => st.staff_id == id);
+    let original = null;
+    if (idx !== -1) {
+        original = { ...dashData.staff[idx] };
+        Object.assign(dashData.staff[idx], payload);
+    }
+    const fIdx = dashFilteredData.staff.findIndex(st => st.staff_id == id);
+    if (fIdx !== -1) Object.assign(dashFilteredData.staff[fIdx], payload);
+
+    const row = document.getElementById(`dashRow-staff-${id}`);
+    if (row) {
+        row.querySelector('td:nth-child(2) .fw-semibold').innerText = payload.name;
+        row.querySelector('td:nth-child(3) .badge').innerText = payload.designation;
+        row.querySelector('td:nth-child(4) .badge').innerText = payload.department;
+        row.querySelector('td:nth-child(5) .fs-8:first-child').innerHTML = `<i class="fa-regular fa-envelope me-1 text-muted"></i>${payload.email || '--'}`;
+        row.querySelector('td:nth-child(5) .fs-8:last-child').innerHTML = `<i class="fa-solid fa-phone me-1 text-muted"></i>${payload.phone || '--'}`;
+        row.classList.remove('row-updated-flash');
+        void row.offsetWidth;
+        row.classList.add('row-updated-flash');
+    }
+
+    if (dashModals.staff) dashModals.staff.hide();
+    showNotifToast(`Faculty ${payload.name} updated instantly!`, 'fa-solid fa-circle-check');
+
+    fetch(`/hod/api/staff/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    }).then(res => res.json()).then(data => {
+        if (!data.success && !data.staffid) {
+            showNotifToast(data.error || 'Failed to update faculty', 'fa-solid fa-triangle-exclamation');
+            if (original && idx !== -1) {
+                Object.assign(dashData.staff[idx], original);
+                renderDashEditTable('staff');
+            }
+        }
+    }).catch(err => {
+        console.error('Async staff update error:', err);
+    });
+}
+
+// 3. Subject Edit
+function openDashEditSubjectModal(code) {
+    const sub = dashData.subjects.find(item => item.subject_code === code);
+    if (!sub) return;
+    document.getElementById('dashFormSubjectCode').value = sub.subject_code;
+    document.getElementById('dashFormSubjectName').value = sub.subject_name || '';
+    document.getElementById('dashFormSubjectSem').value = sub.semester || 5;
+    document.getElementById('dashFormSubjectCredits').value = sub.credits || 3;
+    document.getElementById('dashFormSubjectDept').value = sub.department || 'Information Technology';
+    document.getElementById('dashFormSubjectStaff').value = sub.staff_id || '';
+    if (dashModals.subject) dashModals.subject.show();
+}
+
+function handleSaveDashSubject(e) {
+    e.preventDefault();
+    const code = document.getElementById('dashFormSubjectCode').value;
+    const staffSelect = document.getElementById('dashFormSubjectStaff');
+    const selectedStaffName = staffSelect.options[staffSelect.selectedIndex]?.text?.split('(')[0]?.trim() || 'Unassigned';
+
+    const payload = {
+        subject_name: document.getElementById('dashFormSubjectName').value.trim(),
+        semester: parseInt(document.getElementById('dashFormSubjectSem').value),
+        credits: parseInt(document.getElementById('dashFormSubjectCredits').value),
+        department: document.getElementById('dashFormSubjectDept').value,
+        staff_id: staffSelect.value || null,
+        staff_name: staffSelect.value ? selectedStaffName : 'Unassigned'
+    };
+
+    // Instant optimistic update
+    const idx = dashData.subjects.findIndex(s => s.subject_code === code);
+    let original = null;
+    if (idx !== -1) {
+        original = { ...dashData.subjects[idx] };
+        Object.assign(dashData.subjects[idx], payload);
+    }
+    const fIdx = dashFilteredData.subjects.findIndex(s => s.subject_code === code);
+    if (fIdx !== -1) Object.assign(dashFilteredData.subjects[fIdx], payload);
+
+    const row = document.getElementById(`dashRow-subject-${code}`);
+    if (row) {
+        row.querySelector('td:nth-child(2) .fw-semibold').innerText = payload.subject_name;
+        row.querySelector('td:nth-child(3) .badge').innerText = `Sem ${payload.semester} (${payload.credits} C)`;
+        row.querySelector('td:nth-child(4) .fs-8').innerText = payload.staff_name;
+        row.classList.remove('row-updated-flash');
+        void row.offsetWidth;
+        row.classList.add('row-updated-flash');
+    }
+
+    if (dashModals.subject) dashModals.subject.hide();
+    showNotifToast(`Subject ${payload.subject_name} updated instantly!`, 'fa-solid fa-circle-check');
+
+    fetch(`/hod/api/subject/${code}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    }).then(res => res.json()).then(data => {
+        if (!data.success && !data.subject_code) {
+            showNotifToast(data.error || 'Failed to update subject', 'fa-solid fa-triangle-exclamation');
+            if (original && idx !== -1) {
+                Object.assign(dashData.subjects[idx], original);
+                renderDashEditTable('subjects');
+            }
+        }
+    }).catch(err => {
+        console.error('Async subject update error:', err);
+    });
+}
+
+// 4. Mark Edit
+function openDashEditMarkModal(id) {
+    const m = dashData.marks.find(item => item.id == id);
+    if (!m) return;
+    document.getElementById('dashFormMarkId').value = m.id;
+    document.getElementById('dashFormMarkStudentDisplay').innerText = `${m.student_name || 'Student'} (${m.regno || '--'})`;
+    document.getElementById('dashFormMarkSubjectDisplay').innerText = `Subject: ${m.subject_code || '--'} | ${m.test_number || 'Test'}`;
+    document.getElementById('dashFormMarkScore').value = m.marks_obtained;
+    document.getElementById('dashFormMarkMax').value = m.max_marks || 100;
+    if (dashModals.mark) dashModals.mark.show();
+}
+
+function handleSaveDashMark(e) {
+    e.preventDefault();
+    const id = document.getElementById('dashFormMarkId').value;
+    const payload = {
+        marks_obtained: parseFloat(document.getElementById('dashFormMarkScore').value),
+        max_marks: parseFloat(document.getElementById('dashFormMarkMax').value)
+    };
+
+    // Instant optimistic update
+    const idx = dashData.marks.findIndex(m => m.id == id);
+    let original = null;
+    if (idx !== -1) {
+        original = { ...dashData.marks[idx] };
+        Object.assign(dashData.marks[idx], payload);
+    }
+    const fIdx = dashFilteredData.marks.findIndex(m => m.id == id);
+    if (fIdx !== -1) Object.assign(dashFilteredData.marks[fIdx], payload);
+
+    const pct = Math.round((payload.marks_obtained / payload.max_marks) * 100);
+    const row = document.getElementById(`dashRow-mark-${id}`);
+    if (row) {
+        const scoreCell = row.querySelector('td:nth-child(5)');
+        if (scoreCell) {
+            scoreCell.innerHTML = `<span class="fw-bold fs-7 ${pct >= 50 ? 'text-success' : 'text-danger'}">${payload.marks_obtained} / ${payload.max_marks}</span> (${pct}%)`;
+        }
+        row.classList.remove('row-updated-flash');
+        void row.offsetWidth;
+        row.classList.add('row-updated-flash');
+    }
+
+    if (dashModals.mark) dashModals.mark.hide();
+    showNotifToast('Internal mark score updated instantly!', 'fa-solid fa-circle-check');
+
+    fetch(`/hod/api/marks/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    }).then(res => res.json()).then(data => {
+        if (!data.success && !data.id) {
+            showNotifToast(data.error || 'Failed to update marks', 'fa-solid fa-triangle-exclamation');
+            if (original && idx !== -1) {
+                Object.assign(dashData.marks[idx], original);
+                renderDashEditTable('marks');
+            }
+        }
+    }).catch(err => {
+        console.error('Async mark update error:', err);
+    });
+}
+
+// 5. Attendance Edit
+function openDashEditAttModal(id) {
+    const a = dashData.attendance.find(item => item.id == id);
+    if (!a) return;
+    document.getElementById('dashFormAttId').value = a.id;
+    document.getElementById('dashFormAttStudentDisplay').innerText = `${a.student_name || 'Student'} (${a.regno || '--'})`;
+    document.getElementById('dashFormAttSubjectDisplay').innerText = `Date: ${a.date || '--'} | Subject: ${a.subject_code || '--'}`;
+    document.getElementById('dashFormAttStatus').value = a.status || 'Present';
+    document.getElementById('dashFormAttHours').value = a.hours || 1;
+    if (dashModals.attendance) dashModals.attendance.show();
+}
+
+function handleSaveDashAtt(e) {
+    e.preventDefault();
+    const id = document.getElementById('dashFormAttId').value;
+    const payload = {
+        status: document.getElementById('dashFormAttStatus').value,
+        hours: parseInt(document.getElementById('dashFormAttHours').value || 1)
+    };
+
+    // Instant optimistic update
+    const idx = dashData.attendance.findIndex(a => a.id == id);
+    let original = null;
+    if (idx !== -1) {
+        original = { ...dashData.attendance[idx] };
+        Object.assign(dashData.attendance[idx], payload);
+    }
+    const fIdx = dashFilteredData.attendance.findIndex(a => a.id == id);
+    if (fIdx !== -1) Object.assign(dashFilteredData.attendance[fIdx], payload);
+
+    const row = document.getElementById(`dashRow-attendance-${id}`);
+    if (row) {
+        const st = (payload.status || 'Present').toLowerCase();
+        let badgeClass = 'bg-success-subtle text-success';
+        if (st === 'absent') badgeClass = 'bg-danger-subtle text-danger';
+        else if (st === 'od') badgeClass = 'bg-purple-subtle text-purple';
+
+        row.querySelector('td:nth-child(5)').innerHTML = `<span class="badge ${badgeClass}">${payload.status}</span>`;
+        row.querySelector('td:nth-child(6)').innerText = `${payload.hours} hr`;
+        row.classList.remove('row-updated-flash');
+        void row.offsetWidth;
+        row.classList.add('row-updated-flash');
+    }
+
+    if (dashModals.attendance) dashModals.attendance.hide();
+    showNotifToast(`Attendance marked as ${payload.status} instantly!`, 'fa-solid fa-circle-check');
+
+    fetch(`/hod/api/attendance/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    }).then(res => res.json()).then(data => {
+        if (!data.success && !data.id) {
+            showNotifToast(data.error || 'Failed to update attendance', 'fa-solid fa-triangle-exclamation');
+            if (original && idx !== -1) {
+                Object.assign(dashData.attendance[idx], original);
+                renderDashEditTable('attendance');
+            }
+        }
+    }).catch(err => {
+        console.error('Async attendance update error:', err);
+    });
+}
+
 </script>
 {% endblock %}
 
