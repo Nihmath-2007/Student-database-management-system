@@ -142,7 +142,7 @@
                         <tr>
                             <th>Register No</th>
                             <th>Student Name</th>
-                            <th>Department</th>
+                            <th>Academic Year</th>
                             <th>Tests Evaluated</th>
                             <th>Passed Tests</th>
                             <th>Failed Tests</th>
@@ -680,7 +680,7 @@
                     <tr>
                         <td class="font-monospace fw-bold text-navy">${s.regno}</td>
                         <td class="fw-bold text-dark">${s.name}</td>
-                        <td>${s.department} (${s.year})</td>
+                        <td>${s.year || 'Third year'}</td>
                         <td><span class="badge bg-light text-dark">${s.total_tests_taken || 0}</span></td>
                         <td><span class="text-success fw-bold">${s.passed_tests || 0}</span></td>
                         <td><span class="text-danger fw-bold">${s.failed_tests || 0}</span></td>

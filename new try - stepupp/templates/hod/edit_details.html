@@ -146,7 +146,7 @@
 
             <!-- SEARCH BOX THAT ENABLES SEARCHING A PARTICULAR STUDENT -->
             <div class="row g-2 align-items-center">
-                <div class="col-lg-6 col-md-12">
+                <div class="col-lg-8 col-md-7">
                     <div class="input-group input-group-lg shadow-sm">
                         <span class="input-group-text bg-white text-warning border-end-0 fs-6">
                             <i class="fa-solid fa-magnifying-glass"></i>
@@ -157,15 +157,8 @@
                         </button>
                     </div>
                 </div>
-                <div class="col-lg-3 col-md-6">
-                    <select id="studentDeptFilter" class="form-select form-select-lg fs-7" onchange="filterStudents()">
-                        <option value="All" selected>All Departments</option>
-                        <option value="IT">IT (Information Technology)</option>
-                        <option value="Computer Science">Computer Science</option>
-                        <option value="Artificial Intelligence">Artificial Intelligence</option>
-                    </select>
-                </div>
-                <div class="col-lg-3 col-md-6">
+                <input type="hidden" id="studentDeptFilter" value="All">
+                <div class="col-lg-4 col-md-5">
                     <select id="studentYearFilter" class="form-select form-select-lg fs-7" onchange="filterStudents()">
                         <option value="All" selected>All Academic Years</option>
                         <option value="First year">First Year</option>
@@ -184,7 +177,6 @@
                         <tr>
                             <th style="width: 140px;">REG NO</th>
                             <th>STUDENT NAME</th>
-                            <th style="width: 110px;">DEPARTMENT</th>
                             <th style="width: 130px;">YEAR &amp; SECTION</th>
                             <th class="text-center" style="width: 150px;">EDIT DETAILS</th>
                             <th>EMAIL &amp; CONTACT</th>
@@ -192,7 +184,7 @@
                         </tr>
                     </thead>
                     <tbody id="studentsTableBody">
-                        <tr><td colspan="7" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading student records...</td></tr>
+                        <tr><td colspan="6" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading student records...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -215,15 +207,8 @@
                         <input type="text" id="staffSearchInput" class="form-control" placeholder="Search by Faculty Name, ID, Email..." oninput="filterStaff()">
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <select id="staffDeptFilter" class="form-select" onchange="filterStaff()">
-                        <option value="All" selected>All Departments</option>
-                        <option value="Information Technology">Information Technology</option>
-                        <option value="Computer Science">Computer Science</option>
-                        <option value="Artificial Intelligence">Artificial Intelligence</option>
-                    </select>
-                </div>
-                <div class="col-md-2 text-end">
+                <input type="hidden" id="staffDeptFilter" value="All">
+                <div class="col-md-3 text-end">
                     <button class="btn btn-warning text-dark fw-bold w-100" onclick="openAddStaffModal()">
                         <i class="fa-solid fa-user-plus me-1"></i> Add Faculty
                     </button>
@@ -239,14 +224,13 @@
                             <th>Staff ID</th>
                             <th>Faculty Name</th>
                             <th>Designation</th>
-                            <th>Department</th>
                             <th class="text-center" style="width: 150px;">EDIT DETAILS</th>
                             <th>Email &amp; Phone</th>
                             <th class="text-center" style="width: 130px;">Role &amp; Action</th>
                         </tr>
                     </thead>
                     <tbody id="staffTableBody">
-                        <tr><td colspan="7" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading faculty directory...</td></tr>
+                        <tr><td colspan="6" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading faculty directory...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -262,21 +246,14 @@
     <div class="tab-pane fade" id="tabSubjectsPane" role="tabpanel">
         <div class="analytics-card mb-3 p-3">
             <div class="row g-2 align-items-center">
-                <div class="col-md-5">
+                <div class="col-md-7">
                     <div class="input-group">
                         <span class="input-group-text bg-light"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
                         <input type="text" id="subjectSearchInput" class="form-control" placeholder="Search by Code or Subject Name..." oninput="filterSubjects()">
                     </div>
                 </div>
+                <input type="hidden" id="subjectDeptFilter" value="All">
                 <div class="col-md-3">
-                    <select id="subjectDeptFilter" class="form-select" onchange="filterSubjects()">
-                        <option value="All" selected>All Departments</option>
-                        <option value="Information Technology">Information Technology</option>
-                        <option value="Computer Science">Computer Science</option>
-                        <option value="Artificial Intelligence">Artificial Intelligence</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
                     <select id="subjectSemFilter" class="form-select" onchange="filterSubjects()">
                         <option value="All" selected>All Semesters</option>
                         <option value="1">Sem 1</option>
@@ -304,7 +281,6 @@
                         <tr>
                             <th>Subject Code</th>
                             <th>Subject Title</th>
-                            <th>Department</th>
                             <th>Semester &amp; Credits</th>
                             <th class="text-center" style="width: 150px;">EDIT DETAILS</th>
                             <th>Assigned Faculty</th>
@@ -312,7 +288,7 @@
                         </tr>
                     </thead>
                     <tbody id="subjectsTableBody">
-                        <tr><td colspan="7" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading subjects...</td></tr>
+                        <tr><td colspan="6" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading subjects...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -362,14 +338,13 @@
                         <tr>
                             <th style="width: 140px;">Reg No</th>
                             <th>Student Name</th>
-                            <th style="width: 140px;">Department</th>
                             <th style="width: 140px;">Year &amp; Semester</th>
                             <th class="text-center" style="width: 180px;">EDIT INTERNAL MARKS</th>
                             <th class="text-center" style="width: 160px;">Evaluation Status</th>
                         </tr>
                     </thead>
                     <tbody id="marksTableBody">
-                        <tr><td colspan="6" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading student directory for internal marks...</td></tr>
+                        <tr><td colspan="5" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading student directory for internal marks...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -536,15 +511,8 @@
                             <label class="form-label fw-semibold fs-7 text-secondary">Student Full Name <span class="text-danger">*</span></label>
                             <input type="text" id="formStudentName" class="form-control" placeholder="e.g. ARUN KUMAR M" required>
                         </div>
+                        <input type="hidden" id="formStudentDept" value="Information Technology">
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold fs-7 text-secondary">Department <span class="text-danger">*</span></label>
-                            <select id="formStudentDept" class="form-select" required>
-                                <option value="Information Technology">Information Technology</option>
-                                <option value="Computer Science">Computer Science</option>
-                                <option value="Artificial Intelligence">Artificial Intelligence</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
                             <label class="form-label fw-semibold fs-7 text-secondary">Academic Year <span class="text-danger">*</span></label>
                             <select id="formStudentYear" class="form-select" required>
                                 <option value="First year">First Year</option>
@@ -553,7 +521,7 @@
                                 <option value="Final year">Final Year</option>
                             </select>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-6">
                             <label class="form-label fw-semibold fs-7 text-secondary">Section <span class="text-danger">*</span></label>
                             <select id="formStudentSection" class="form-select" required>
                                 <option value="A">Section A</option>
@@ -613,14 +581,7 @@
                             <label class="form-label fw-semibold fs-7 text-secondary">Staff ID / Code <span class="text-danger">*</span></label>
                             <input type="text" id="formStaffCode" class="form-control" placeholder="e.g. STF101" required>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold fs-7 text-secondary">Department <span class="text-danger">*</span></label>
-                            <select id="formStaffDept" class="form-select" required>
-                                <option value="Information Technology">Information Technology</option>
-                                <option value="Computer Science">Computer Science</option>
-                                <option value="Artificial Intelligence">Artificial Intelligence</option>
-                            </select>
-                        </div>
+                        <input type="hidden" id="formStaffDept" value="Information Technology">
                         <div class="col-md-6">
                             <label class="form-label fw-semibold fs-7 text-secondary">Email Address <span class="text-danger">*</span></label>
                             <input type="email" id="formStaffEmail" class="form-control" placeholder="e.g. faculty@msec.org.in" required>
@@ -672,15 +633,8 @@
                             <label class="form-label fw-semibold fs-7 text-secondary">Subject Title <span class="text-danger">*</span></label>
                             <input type="text" id="formSubjectName" class="form-control" placeholder="e.g. Digital Principles & Computer Organization" required>
                         </div>
+                        <input type="hidden" id="formSubjectDept" value="Information Technology">
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold fs-7 text-secondary">Department <span class="text-danger">*</span></label>
-                            <select id="formSubjectDept" class="form-select" required>
-                                <option value="Information Technology">Information Technology</option>
-                                <option value="Computer Science">Computer Science</option>
-                                <option value="Artificial Intelligence">Artificial Intelligence</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
                             <label class="form-label fw-semibold fs-7 text-secondary">Semester</label>
                             <select id="formSubjectSem" class="form-select">
                                 <option value="1">1</option>
@@ -693,7 +647,7 @@
                                 <option value="8">8</option>
                             </select>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-6">
                             <label class="form-label fw-semibold fs-7 text-secondary">Credits</label>
                             <input type="number" id="formSubjectCredits" class="form-control" value="3" min="1" max="10">
                         </div>
@@ -740,8 +694,8 @@
                         <div class="text-muted fs-8 font-monospace" id="editDetailBulkStudentRegNo">Register No: --</div>
                     </div>
                     <div class="d-flex gap-2">
-                        <span class="badge bg-navy text-white px-2 py-1" id="editDetailBulkDept">Information Technology</span>
-                        <span class="badge bg-secondary-subtle text-secondary px-2 py-1" id="editDetailBulkYear">Third Year</span>
+                        <span class="d-none" id="editDetailBulkDept"></span>
+                        <span class="badge bg-navy text-white px-2 py-1" id="editDetailBulkYear">Third Year</span>
                     </div>
                 </div>
 
@@ -1259,7 +1213,6 @@
                     <div class="fw-semibold text-dark">${escapeHtml(s.name || '--')}</div>
                     <div class="fs-8 text-muted">${s.section ? 'Section ' + s.section : 'Section A'}</div>
                 </td>
-                <td><span class="badge bg-light text-dark border">${s.department || 'IT'}</span></td>
                 <td><span class="badge bg-secondary-subtle text-secondary">${s.year || 'Third year'}</span></td>
                 <td class="text-center">
                     <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-semibold" onclick="openEditStudentModal(${s.studentid})" title="Edit Student Details">
@@ -1291,7 +1244,7 @@
         const studentPerPage = 100;
 
         if (!list.length) {
-            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-5 text-muted"><i class="fa-solid fa-user-slash fs-3 mb-2 d-block text-warning"></i>No student records found matching filters.<br><button class="btn btn-sm btn-outline-secondary mt-2" onclick="clearStudentSearch()">Clear Filters</button></td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-muted"><i class="fa-solid fa-user-slash fs-3 mb-2 d-block text-warning"></i>No student records found matching filters.<br><button class="btn btn-sm btn-outline-secondary mt-2" onclick="clearStudentSearch()">Clear Filters</button></td></tr>`;
             countText.innerText = '0 records found';
             document.getElementById('studentsPagination').innerHTML = '';
             return;
@@ -1437,13 +1390,13 @@
             filterStaff();
         } catch (e) {
             console.error('Failed to load staff:', e);
-            document.getElementById('staffTableBody').innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">Failed to load faculty.</td></tr>`;
+            document.getElementById('staffTableBody').innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">Failed to load faculty.</td></tr>`;
         }
     }
 
     function filterStaff() {
         const search = (document.getElementById('staffSearchInput').value || '').toLowerCase().trim();
-        const dept = document.getElementById('staffDeptFilter').value;
+        const dept = document.getElementById('staffDeptFilter') ? document.getElementById('staffDeptFilter').value : 'All';
 
         const filtered = allStaff.filter(st => {
             const matchesSearch = !search || 
@@ -1462,7 +1415,7 @@
         const countText = document.getElementById('staffCountText');
 
         if (!list.length) {
-            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted">No faculty members found.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">No faculty members found.</td></tr>`;
             countText.innerText = '0 faculty members';
             return;
         }
@@ -1475,7 +1428,6 @@
                     <div class="fs-8 text-muted">${st.qualification || ''}</div>
                 </td>
                 <td><span class="badge bg-light text-dark border">${st.designation || 'Faculty'}</span></td>
-                <td><span class="badge bg-secondary-subtle text-secondary">${st.department || 'IT'}</span></td>
                 <td class="text-center">
                     <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-semibold" onclick="openEditStaffModal(${st.staff_id})" title="Edit Faculty Details">
                         <i class="fa-solid fa-pen-to-square me-1"></i> Edit Faculty
@@ -1502,6 +1454,7 @@
     function openAddStaffModal() {
         document.getElementById('staffForm').reset();
         document.getElementById('staffEditId').value = '';
+        document.getElementById('formStaffDept').value = 'Information Technology';
         document.getElementById('staffModalTitle').innerHTML = '<i class="fa-solid fa-user-plus text-warning me-2"></i> Add New Faculty Member';
         document.getElementById('formStaffCode').removeAttribute('readonly');
         staffModal.show();
@@ -1618,13 +1571,13 @@
             filterSubjects();
         } catch (e) {
             console.error('Failed to load subjects:', e);
-            document.getElementById('subjectsTableBody').innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">Failed to load subjects.</td></tr>`;
+            document.getElementById('subjectsTableBody').innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">Failed to load subjects.</td></tr>`;
         }
     }
 
     function filterSubjects() {
         const search = (document.getElementById('subjectSearchInput').value || '').toLowerCase().trim();
-        const dept = document.getElementById('subjectDeptFilter').value;
+        const dept = document.getElementById('subjectDeptFilter') ? document.getElementById('subjectDeptFilter').value : 'All';
         const sem = document.getElementById('subjectSemFilter').value;
 
         const filtered = allSubjects.filter(sub => {
@@ -1644,7 +1597,7 @@
         const countText = document.getElementById('subjectsCountText');
 
         if (!list.length) {
-            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted">No subjects found.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">No subjects found.</td></tr>`;
             countText.innerText = '0 subjects';
             return;
         }
@@ -1653,7 +1606,6 @@
             <tr>
                 <td class="font-monospace fw-bold text-navy">${sub.subject_code}</td>
                 <td><div class="fw-semibold text-dark">${escapeHtml(sub.subject_name)}</div></td>
-                <td><span class="badge bg-light text-dark border">${sub.department || 'IT'}</span></td>
                 <td><span class="badge bg-secondary-subtle text-secondary">Sem ${sub.semester || 5} (${sub.credits || 3} Credits)</span></td>
                 <td class="text-center">
                     <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-semibold" onclick="openEditSubjectModal('${sub.subject_code}')" title="Edit Subject Details">
@@ -1675,6 +1627,7 @@
     function openAddSubjectModal() {
         document.getElementById('subjectForm').reset();
         document.getElementById('subjectEditCode').value = '';
+        document.getElementById('formSubjectDept').value = 'Information Technology';
         document.getElementById('subjectModalTitle').innerHTML = '<i class="fa-solid fa-book-medical text-warning me-2"></i> Add New Subject';
         document.getElementById('formSubjectCode').removeAttribute('readonly');
         subjectModal.show();
@@ -1797,7 +1750,7 @@
             filterEditDetailMarks();
         } catch (e) {
             console.error('Failed to load marks students:', e);
-            document.getElementById('marksTableBody').innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">Failed to load student directory for marks.</td></tr>`;
+            document.getElementById('marksTableBody').innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">Failed to load student directory for marks.</td></tr>`;
         }
     }
 
@@ -1808,7 +1761,6 @@
             return (s.name && s.name.toLowerCase().includes(q)) ||
                    (s.regno && s.regno.toLowerCase().includes(q)) ||
                    (s.email && s.email.toLowerCase().includes(q)) ||
-                   (s.department && s.department.toLowerCase().includes(q)) ||
                    (s.year && s.year.toLowerCase().includes(q));
         });
 
@@ -1820,7 +1772,7 @@
         const countText = document.getElementById('marksCountText');
 
         if (!list.length) {
-            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">No student records found matching search.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">No student records found matching search.</td></tr>`;
             countText.innerText = '0 records';
             const paginationEl = document.getElementById('marksPagination');
             if (paginationEl) paginationEl.innerHTML = '';
@@ -1835,7 +1787,6 @@
                         <div class="fw-semibold text-dark">${escapeHtml(s.name || '--')}</div>
                         <div class="fs-8 text-muted">${s.section ? 'Sec ' + s.section : ''} &bull; ${escapeHtml(s.email || '')}</div>
                     </td>
-                    <td><span class="badge bg-light text-navy border">${escapeHtml(s.department || 'Information Technology')}</span></td>
                     <td><span class="badge bg-primary-subtle text-primary fw-semibold">${escapeHtml(s.year || 'Third year')} (Sem 5)</span></td>
                     <td class="text-center">
                         <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-semibold" onclick="openEditDetailBulkMarkModal(${s.studentid}, '${escapeHtml(s.name)}', '${escapeHtml(s.regno)}', '${escapeHtml(s.department || 'Information Technology')}', '${escapeHtml(s.year || 'Third year')}')" title="Edit 6-Subject Internal Marks">
@@ -1861,7 +1812,8 @@
         document.getElementById('editDetailBulkStudentId').value = studentId;
         document.getElementById('editDetailBulkStudentName').innerText = name || 'Student';
         document.getElementById('editDetailBulkStudentRegNo').innerText = `Register No: ${regno || '--'}`;
-        document.getElementById('editDetailBulkDept').innerText = dept || 'Information Technology';
+        const deptEl = document.getElementById('editDetailBulkDept');
+        if (deptEl) deptEl.innerText = dept || 'Information Technology';
         document.getElementById('editDetailBulkYear').innerText = year || 'Third year';
 
         document.getElementById('editDetailBulkMarkSem').value = "5";
