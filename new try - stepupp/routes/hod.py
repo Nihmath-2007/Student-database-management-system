@@ -32,7 +32,7 @@ ALLOWED_GALLERY_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.webp'}
 @hod_bp.route('/dashboard')
 @role_required('hod')
 def dashboard():
-    gallery_items = fetch_all("SELECT * FROM gallery ORDER BY uploaded_at DESC")
+    gallery_items = api_cache.get_or_set('hod_gallery_items', lambda: fetch_all("SELECT * FROM gallery ORDER BY uploaded_at DESC") or [], ttl=600)
     return render_template('hod/dashboard.html', gallery_items=gallery_items)
 
 @hod_bp.route('/edit-details')
@@ -704,6 +704,7 @@ def gallery_upload():
             INSERT INTO gallery (title, description, event_date, image_path, uploaded_by)
             VALUES (%s, %s, %s, %s, %s)
         """, (title, description, event_date, image_path, uploaded_by))
+        api_cache.invalidate('gallery')
         flash("Event photo uploaded successfully to gallery!", "success")
     except Exception as e:
         if os.path.exists(stored_path):
@@ -734,6 +735,7 @@ def gallery_delete(photo_id):
 
     try:
         execute("DELETE FROM gallery WHERE id = %s", (photo_id,))
+        api_cache.invalidate('gallery')
         flash("Photo removed successfully from gallery.", "success")
     except Exception as e:
         flash(f"Failed to delete photo from database: {str(e)}", "danger")

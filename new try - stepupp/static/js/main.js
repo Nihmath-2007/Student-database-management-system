@@ -1,10 +1,44 @@
 /* 
-   MSEC Academic Analytics Portal - Global Application & Wave Menu Loader Script
-   Wave Loader component design by JkHuger (Uiverse.io)
+   MSEC Academic Analytics Portal - Global Application & High-Performance Navigation Script
+   Provides non-blocking visual feedback, instant DOM ready transitions, and lightweight progress indicators.
 */
 
-// Global Wave Loader API
-window.showWaveLoader = function(text = 'Loading Analytics System...') {
+// Top Progress Bar Controller
+let topProgressInterval = null;
+
+window.showTopProgress = function() {
+    let bar = document.getElementById('topProgressBar');
+    if (!bar) {
+        bar = document.createElement('div');
+        bar.id = 'topProgressBar';
+        document.body.appendChild(bar);
+    }
+    bar.classList.add('active');
+    bar.style.width = '25%';
+    
+    clearInterval(topProgressInterval);
+    topProgressInterval = setInterval(() => {
+        const currentWidth = parseFloat(bar.style.width) || 25;
+        if (currentWidth < 85) {
+            bar.style.width = (currentWidth + Math.random() * 15) + '%';
+        }
+    }, 200);
+};
+
+window.hideTopProgress = function() {
+    clearInterval(topProgressInterval);
+    const bar = document.getElementById('topProgressBar');
+    if (bar) {
+        bar.style.width = '100%';
+        setTimeout(() => {
+            bar.classList.remove('active');
+            bar.style.width = '0%';
+        }, 150);
+    }
+};
+
+// Global Wave Loader API (Reserved for heavy background operations / file uploads)
+window.showWaveLoader = function(text = 'Loading Data...') {
     const loader = document.getElementById('globalWaveLoader');
     const loaderText = document.getElementById('globalWaveLoaderText');
     if (loader) {
@@ -20,11 +54,20 @@ window.hideWaveLoader = function() {
     }
 };
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Ensure loader is hidden immediately on DOM ready
+// Immediate DOM Ready Execution (Instant Dismissal)
+function onPageReady() {
     window.hideWaveLoader();
+    window.hideTopProgress();
+}
 
-    // Mobile sidebar toggle
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', onPageReady);
+} else {
+    onPageReady();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Mobile sidebar toggle
     const toggleBtn = document.getElementById('sidebarToggle');
     const sidebar = document.getElementById('portalSidebar');
     
@@ -44,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Highlight current active link in sidebar
+    // 2. Highlight current active link in sidebar
     const currentPath = window.location.pathname;
     document.querySelectorAll('.sidebar-link-btn').forEach(link => {
         const href = link.getAttribute('href');
@@ -53,31 +96,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Show loader when clicking navigation links
+    // 3. Fast non-blocking top progress bar on navigation link clicks
     document.querySelectorAll('a[href]').forEach(link => {
         link.addEventListener('click', (e) => {
             const href = link.getAttribute('href');
             if (href && !href.startsWith('#') && !href.startsWith('javascript:') && !e.ctrlKey && !e.metaKey && link.target !== '_blank') {
-                window.showWaveLoader('Loading Page...');
+                window.showTopProgress();
             }
         });
     });
 
-    // Show loader on form submissions
+    // 4. Form submissions: show progress bar for regular forms, wave loader only for file uploads
     document.querySelectorAll('form').forEach(form => {
         form.addEventListener('submit', () => {
-            window.showWaveLoader('Submitting Data...');
+            const hasFileInput = form.querySelector('input[type="file"]');
+            if (hasFileInput && hasFileInput.files && hasFileInput.files.length > 0) {
+                window.showWaveLoader('Uploading & Processing Data...');
+            } else {
+                window.showTopProgress();
+            }
         });
     });
 });
 
 // Hide loader when window finishes loading or on page restore from bfcache
-window.addEventListener('load', () => {
-    setTimeout(() => window.hideWaveLoader(), 150);
-});
-
-window.addEventListener('pageshow', (event) => {
-    if (event.persisted) {
-        window.hideWaveLoader();
-    }
-});
+window.addEventListener('load', onPageReady);
+window.addEventListener('pageshow', onPageReady);
