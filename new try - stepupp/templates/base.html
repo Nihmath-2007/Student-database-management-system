@@ -59,8 +59,8 @@
                 <span class="user-display-name">{{ session.get('display_name', 'User') }}</span>
                 <span class="badge-role-tag">{{ session.get('role', '').upper() }}</span>
             </div>
-            <a href="{{ url_for('auth.logout') }}" class="btn-campus-exit" title="Logout">
-                <i class="fa-solid fa-arrow-right-from-bracket me-1"></i> EXIT
+            <a href="{{ url_for('auth.logout') }}" class="btn-campus-exit" title="Logout" id="globalLogoutBtn">
+                <i class="fa-solid fa-arrow-right-from-bracket me-1"></i> LOGOUT
             </a>
         </div>
     </div>
@@ -513,8 +513,27 @@
             toast.style.transition = 'opacity 0.3s ease';
             toast.style.opacity = '0';
             setTimeout(() => toast.remove(), 300);
-        }, 3000);
-    }
+    <script>
+    // 15-minute client-side inactivity auto-logout tracker
+    (function() {
+        let inactivityTimeout;
+        const INACTIVITY_LIMIT_MS = 15 * 60 * 1000; // 15 minutes
+
+        function resetInactivityTimer() {
+            clearTimeout(inactivityTimeout);
+            inactivityTimeout = setTimeout(function() {
+                alert("Your session has timed out due to 15 minutes of inactivity. Redirecting to login...");
+                window.location.href = "{{ url_for('auth.logout') }}?timeout=1";
+            }, INACTIVITY_LIMIT_MS);
+        }
+
+        const activityEvents = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click'];
+        activityEvents.forEach(function(eventName) {
+            window.addEventListener(eventName, resetInactivityTimer, { passive: true });
+        });
+
+        resetInactivityTimer();
+    })();
     </script>
 
     {% block scripts %}{% endblock %}

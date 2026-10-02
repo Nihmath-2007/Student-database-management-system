@@ -148,6 +148,9 @@ def erp_get_student_by_id(student_id):
     stu = fetch_one("SELECT * FROM students WHERE studentid = %s", (student_id,))
     if not stu:
         return None
+    # Security requirement: Never expose password or DOB in front-end or API responses
+    stu.pop('dob', None)
+    stu.pop('password_hash', None)
 
     # Attendance summary
     att_summary = fetch_one("""
