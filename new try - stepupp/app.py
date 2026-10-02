@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, redirect, url_for, session, jsonify
+from flask import Flask, render_template, redirect, url_for, session, jsonify, request, flash
 from dotenv import load_dotenv
 
 load_dotenv(override=True)
@@ -37,6 +37,55 @@ app.register_blueprint(student_bp)
 app.register_blueprint(csv_bp)
 app.register_blueprint(notifications_bp)
 
+from datetime import timedelta
+import time
+
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=15)
+
+# Global Authentication and Inactivity Enforcer
+@app.before_request
+def enforce_app_wide_authentication():
+    # 1. Allow static assets and media files without authentication
+    if request.path.startswith('/static/') or request.endpoint == 'static':
+        return None
+
+    # 2. Allow authentication endpoints (login and logout)
+    allowed_routes = ['/login', '/logout']
+    if request.path in allowed_routes or request.endpoint in ('auth.login', 'auth.logout'):
+        return None
+
+    # 3. Block every page and API route unless user is logged in
+    # Requirement: "Block every page and API route unless the user is logged in (session or JWT).
+    # Redirecting to the login page is not enough on its own; the server must also reject unauthenticated requests."
+    if 'user_id' not in session:
+        is_api = request.path.startswith('/api/') or '/api/' in request.path or request.is_json or request.headers.get('Accept') == 'application/json'
+        if is_api:
+            return jsonify({
+                'error': 'Unauthorized: Access denied. Please login to access this resource.',
+                'authenticated': False
+            }), 401
+        return redirect(url_for('auth.login', next=request.path))
+
+    # 4. Enforce 15 minutes of inactivity logout
+    # Requirement: "Add a Logout button and log users out after 15 minutes of inactivity."
+    now = time.time()
+    last_activity = session.get('last_activity')
+    if last_activity and (now - float(last_activity) > 15 * 60):
+        session.clear()
+        is_api = request.path.startswith('/api/') or '/api/' in request.path or request.is_json or request.headers.get('Accept') == 'application/json'
+        if is_api:
+            return jsonify({
+                'error': 'Session expired due to 15 minutes of inactivity. Please log in again.',
+                'timeout': True,
+                'authenticated': False
+            }), 401
+        flash("You have been logged out after 15 minutes of inactivity.", "warning")
+        return redirect(url_for('auth.login', timeout=1))
+
+    # Refresh last activity timestamp for active user
+    session['last_activity'] = now
+
+
 # Injects active announcements into base.html on every portal page
 @app.context_processor
 def inject_notifications():
@@ -57,7 +106,7 @@ def inject_notifications():
 def index():
     if 'user_id' in session:
         role = session.get('role')
-        if role == 'hod':
+        if role in ('hod', 'admin'):
             return redirect(url_for('hod.dashboard'))
         elif role == 'staff':
             return redirect(url_for('staff.dashboard'))

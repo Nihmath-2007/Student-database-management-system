@@ -27,15 +27,23 @@ def get_student_attendance_map():
     api_cache.set('student_att_map', att_map, ttl=60)
     return att_map
 
-def get_user_by_username(username):
+def get_user_by_username(identifier):
+    """
+    Finds a user account by:
+    1. u.username (e.g. roll number, 'admin', 'hod', 'staff1')
+    2. s.regno (student roll number as text)
+    3. s.name (case-insensitive student name from Excel/database)
+    """
+    clean_id = str(identifier).strip()
     query = """
     SELECT u.*, s.name as student_name, st.name as staff_name 
     FROM users u
     LEFT JOIN students s ON u.student_id = s.studentid
     LEFT JOIN staff st ON u.staff_id = st.staffid
-    WHERE u.username = %s
+    WHERE u.username = %s OR s.regno = %s OR LOWER(TRIM(s.name)) = LOWER(TRIM(%s))
+    LIMIT 1
     """
-    return execute_query(query, (username,), fetchone=True)
+    return execute_query(query, (clean_id, clean_id, clean_id), fetchone=True)
 
 def get_all_students(year_filter=None, semester_filter=None, subject_filter=None, search=None, subject_ids=None):
     """

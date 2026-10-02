@@ -38,10 +38,26 @@ def init_db(force=False):
                 role VARCHAR(20) NOT NULL,
                 student_id INT NULL,
                 staff_id INT NULL,
+                failed_attempts INT NOT NULL DEFAULT 0,
+                locked_until DATETIME NULL,
                 FOREIGN KEY (student_id) REFERENCES students(studentid) ON DELETE CASCADE,
                 FOREIGN KEY (staff_id) REFERENCES staff(staffid) ON DELETE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
             """)
+
+            try:
+                cursor.execute("SHOW COLUMNS FROM users LIKE 'failed_attempts'")
+                if not cursor.fetchone():
+                    cursor.execute("ALTER TABLE users ADD COLUMN failed_attempts INT NOT NULL DEFAULT 0")
+                cursor.execute("SHOW COLUMNS FROM users LIKE 'locked_until'")
+                if not cursor.fetchone():
+                    cursor.execute("ALTER TABLE users ADD COLUMN locked_until DATETIME NULL")
+                cursor.execute("SHOW COLUMNS FROM students LIKE 'dob'")
+                if not cursor.fetchone():
+                    cursor.execute("ALTER TABLE students ADD COLUMN dob VARCHAR(20) NULL")
+                conn.commit()
+            except Exception as col_err:
+                print(f"Notice: schema column check: {col_err}")
 
             # Ensure 'notifications' and 'notification_dismissals' tables exist in MySQL
             cursor.execute("""

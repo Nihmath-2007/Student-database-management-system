@@ -13,7 +13,7 @@ DB_PASSWORD = os.getenv('DB_PASSWORD', 'KnFpfXxCggQUXxaDvDpSfuWsDUqgMMDw')
 DB_NAME = os.getenv('DB_NAME', 'railway')
 DB_PORT = int(os.getenv('DB_PORT', 30160))
 SECRET_KEY = os.getenv('SECRET_KEY', 'msec_it_student_analytics_secret_key_2026')
-DB_POOL_SIZE = int(os.getenv('DB_POOL_SIZE', 4))
+DB_POOL_SIZE = int(os.getenv('DB_POOL_SIZE', 2))
 
 SQLITE_DB_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'student_analytics.db')
 
@@ -44,37 +44,62 @@ def _init_mysql_pool():
         with _pool_lock:
             if _mysql_pool is None:
                 import mysql.connector.pooling
-                _mysql_pool = mysql.connector.pooling.MySQLConnectionPool(
-                    pool_name="student_erp_pool",
-                    pool_size=DB_POOL_SIZE,
-                    pool_reset_session=False,
-                    host=DB_HOST,
-                    user=DB_USER,
-                    password=DB_PASSWORD,
-                    database=DB_NAME,
-                    port=DB_PORT,
-                    connect_timeout=10,
-                    autocommit=True
-                )
+                try:
+                    _mysql_pool = mysql.connector.pooling.MySQLConnectionPool(
+                        pool_name="student_erp_pool",
+                        pool_size=DB_POOL_SIZE,
+                        pool_reset_session=False,
+                        host=DB_HOST,
+                        user=DB_USER,
+                        password=DB_PASSWORD,
+                        database=DB_NAME,
+                        port=DB_PORT,
+                        connect_timeout=10,
+                        autocommit=True
+                    )
+                except Exception as e:
+                    print(f"Notice: MySQL pool init deferred/failed: {e}")
+                    _mysql_pool = None
     return _mysql_pool
+
+_thread_local = threading.local()
 
 def _get_mysql_connection():
     """
-    Retrieves a healthy connection from the connection pool with automatic keep-alive ping.
-    Prevents expensive handshake overhead on every request.
+    Retrieves or establishes a thread-local persistent MySQL connection with auto-ping.
+    Drastically eliminates TCP handshake latency and prevents port exhaustion during repeated requests.
     """
-    pool = _init_mysql_pool()
-    conn = pool.get_connection()
-    try:
-        if not conn.is_connected():
-            conn.ping(reconnect=True, attempts=3, delay=1)
-    except Exception:
-        pass
+    conn = getattr(_thread_local, 'conn', None)
+    if conn is not None:
+        try:
+            if conn.is_connected():
+                return conn
+            else:
+                conn.reconnect(attempts=2, delay=1)
+                return conn
+        except Exception:
+            try:
+                conn.close()
+            except Exception:
+                pass
+            _thread_local.conn = None
+
+    import mysql.connector
+    conn = mysql.connector.connect(
+        host=DB_HOST,
+        user=DB_USER,
+        password=DB_PASSWORD,
+        database=DB_NAME,
+        port=DB_PORT,
+        connect_timeout=10,
+        autocommit=True
+    )
+    _thread_local.conn = conn
     return conn
 
 def get_db_connection():
     """
-    Connects to live Railway MySQL database using connection pooling.
+    Connects to live Railway MySQL database using thread-local pooled connection.
     Never falls back to SQLite unless DB_FALLBACK is explicitly set to true.
     """
     db_type = os.getenv('DB_TYPE', 'mysql').lower()
@@ -96,8 +121,7 @@ def get_db_connection():
 
 def execute_query(query, params=(), fetchall=True, fetchone=False, commit=False):
     """
-    Executes a query safely using pooled MySQL connections.
-    Always cleans up cursor and returns pooled connection back to the pool.
+    Executes a query safely using thread-local MySQL connection.
     """
     conn, db_engine = get_db_connection()
     cursor = None
@@ -140,9 +164,9 @@ def execute_query(query, params=(), fetchall=True, fetchone=False, commit=False)
                 cursor.close()
             except Exception:
                 pass
-        if conn:
+        if db_engine == 'sqlite' and conn:
             try:
-                conn.close()  # For pooled connection, returns connection back to the pool
+                conn.close()
             except Exception:
                 pass
 
