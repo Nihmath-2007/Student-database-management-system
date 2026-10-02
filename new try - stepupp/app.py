@@ -211,12 +211,18 @@ def page_not_found(e):
 def server_error(e):
     return render_template('500.html', error=str(e)), 500
 
-# Seed database on startup if SQLite or needed
+# Seed database and pre-warm in-memory cache on startup
 with app.app_context():
     try:
         init_db()
     except Exception as e:
         print(f"Database initialization log: {e}")
+
+    try:
+        from services.cache_service import warm_application_cache
+        warm_application_cache()
+    except Exception as e:
+        print(f"Cache warm notice: {e}")
 
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
