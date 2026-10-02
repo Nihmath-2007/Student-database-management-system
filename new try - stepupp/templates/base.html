@@ -184,19 +184,7 @@
                                 <i class="fa-solid fa-book-open me-2"></i> SUBJECTS
                             </a>
                         </li>
-                        <li>
-                            <a href="{{ url_for('hod.edit_details_page') }}" class="sidebar-link-btn {% if request.endpoint == 'hod.edit_details_page' %}active{% endif %}">
-                                <i class="fa-solid fa-pen-to-square me-2 text-warning"></i> EDIT DETAILS
-                            </a>
-                        </li>
-                        <li>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ url_for('hod.reports_page') }}" class="sidebar-link-btn {% if request.endpoint == 'hod.reports_page' %}active{% endif %}">
-                                <i class="fa-solid fa-file-lines me-2"></i> REPORTS
-                            </a>
-                        </li>
+
                         <li>
                             <a href="{{ url_for('hod.analytics_page') }}" class="sidebar-link-btn {% if request.endpoint == 'hod.analytics_page' %}active{% endif %}">
                                 <i class="fa-solid fa-chart-line me-2"></i> ANALYTICS

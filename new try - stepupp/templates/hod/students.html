@@ -23,8 +23,9 @@
 
 <!-- FILTERS CARD -->
 <div class="analytics-card mb-4">
+    <input type="hidden" id="deptFilter" value="All">
     <div class="row g-3 align-items-center">
-        <div class="col-md-3">
+        <div class="col-md-5">
             <label class="form-label fw-semibold fs-7 text-secondary">Search Student</label>
             <div class="input-group">
                 <span class="input-group-text bg-light"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
@@ -32,15 +33,6 @@
             </div>
         </div>
         <div class="col-md-3">
-            <label class="form-label fw-semibold fs-7 text-secondary">Department</label>
-            <select id="deptFilter" class="form-select" onchange="filterStudents()">
-                <option value="All">All Departments</option>
-                <option value="Information Technology" selected>Information Technology</option>
-                <option value="Computer Science">Computer Science</option>
-                <option value="Artificial Intelligence">Artificial Intelligence</option>
-            </select>
-        </div>
-        <div class="col-md-2">
             <label class="form-label fw-semibold fs-7 text-secondary">Academic Year</label>
             <select id="yearFilter" class="form-select" onchange="filterStudents()">
                 <option value="All">All Academic Years</option>
@@ -76,8 +68,7 @@
                 <tr>
                     <th>Register No</th>
                     <th>Student Name</th>
-                    <th>Dept &amp; Year</th>
-                    <th>Section</th>
+                    <th>Academic Year</th>
                     <th>Contact Info</th>
                     <th>Attendance %</th>
                     <th>Avg Mark</th>
@@ -86,7 +77,7 @@
                 </tr>
             </thead>
             <tbody id="studentsTableBody">
-                <tr><td colspan="9" class="text-center py-5 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Fetching students from live database...</td></tr>
+                <tr><td colspan="8" class="text-center py-5 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Fetching students from live database...</td></tr>
             </tbody>
         </table>
     </div>
@@ -119,29 +110,15 @@
                             <label class="form-label fw-semibold fs-7 text-secondary">Full Name <span class="text-danger">*</span></label>
                             <input type="text" id="formName" class="form-control" placeholder="e.g. MOHAMED ABDULLAH" required>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold fs-7 text-secondary">Department <span class="text-danger">*</span></label>
-                            <select id="formDept" class="form-select" required>
-                                <option value="Information Technology">Information Technology</option>
-                                <option value="Computer Science">Computer Science</option>
-                                <option value="Artificial Intelligence">Artificial Intelligence</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
+                        <input type="hidden" id="formDept" value="Information Technology">
+                        <input type="hidden" id="formSection" value="A">
+                        <div class="col-md-12">
                             <label class="form-label fw-semibold fs-7 text-secondary">Academic Year <span class="text-danger">*</span></label>
                             <select id="formYear" class="form-select" required>
                                 <option value="First year">First Year</option>
                                 <option value="Second year">Second Year</option>
                                 <option value="Third year" selected>Third Year</option>
                                 <option value="Final year">Final Year</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label fw-semibold fs-7 text-secondary">Section <span class="text-danger">*</span></label>
-                            <select id="formSection" class="form-select" required>
-                                <option value="A" selected>Section A</option>
-                                <option value="B">Section B</option>
-                                <option value="C">Section C</option>
                             </select>
                         </div>
                         <div class="col-md-6">
@@ -242,13 +219,11 @@
                 allStudentsData = data.students || [];
                 filterStudents();
             } else {
-                tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-danger"><i class="fa-solid fa-triangle-exclamation me-1"></i> Failed to load students from database.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-danger"><i class="fa-solid fa-triangle-exclamation me-1"></i> Failed to load students from database.</td></tr>`;
             }
-
-            renderStudentsTable(students, total, page, totalPages);
         } catch (e) {
             console.error('Error loading students:', e);
-            tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-danger"><i class="fa-solid fa-triangle-exclamation me-1"></i> Network error loading student directory.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-danger"><i class="fa-solid fa-triangle-exclamation me-1"></i> Network error loading student directory.</td></tr>`;
         }
     }
 
@@ -259,7 +234,7 @@
 
     function filterStudents() {
         const search = document.getElementById('searchInput').value.toLowerCase().trim();
-        const dept = document.getElementById('deptFilter').value;
+        const dept = document.getElementById('deptFilter') ? document.getElementById('deptFilter').value : 'All';
         const year = document.getElementById('yearFilter').value;
         const status = document.getElementById('statusFilter').value;
 
@@ -269,7 +244,7 @@
                 (s.regno && s.regno.toLowerCase().includes(search)) ||
                 (s.email && s.email.toLowerCase().includes(search));
 
-            const matchesDept = dept === 'All' || s.department === dept;
+            const matchesDept = !dept || dept === 'All' || s.department === dept || (dept === 'Information Technology' && (s.department === 'IT' || s.department === 'Information Technology'));
             const matchesYear = year === 'All' || s.year === year;
 
             let matchesStatus = true;
@@ -291,7 +266,7 @@
 
     function resetFilters() {
         document.getElementById('searchInput').value = '';
-        document.getElementById('deptFilter').value = 'All';
+        if (document.getElementById('deptFilter')) document.getElementById('deptFilter').value = 'All';
         document.getElementById('yearFilter').value = 'All';
         document.getElementById('statusFilter').value = 'All';
         filterStudents();
@@ -315,7 +290,7 @@
         document.getElementById('studentsCountText').innerText = `Showing ${students.length} of ${totalCount} students`;
 
         if (!students || students.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="9" class="text-center py-5 text-muted">No students matching the selected criteria found.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center py-5 text-muted">No students matching the selected criteria found.</td></tr>`;
             return;
         }
 
@@ -336,11 +311,7 @@
                         <div class="fs-8 text-muted">${s.email || ''}</div>
                     </td>
                     <td>
-                        <span class="badge bg-light text-navy border font-monospace fs-8">${s.department || 'IT'}</span>
-                        <div class="fs-8 text-muted mt-1">${s.year || ''}</div>
-                    </td>
-                    <td>
-                        <span class="badge bg-secondary-subtle text-dark fw-bold">Sec ${s.section || 'A'}</span>
+                        <span class="badge bg-light text-navy border font-monospace fs-8">${s.year || ''}</span>
                     </td>
                     <td>
                         <div class="fs-8"><i class="fa-solid fa-phone text-muted me-1"></i> ${s.phone || '<span class="text-muted">Not registered</span>'}</div>
@@ -411,7 +382,7 @@
     function goToPage(page) {
         currentPage = page;
         const search = document.getElementById('searchInput').value.toLowerCase().trim();
-        const dept = document.getElementById('deptFilter').value;
+        const dept = document.getElementById('deptFilter') ? document.getElementById('deptFilter').value : 'All';
         const year = document.getElementById('yearFilter').value;
         const status = document.getElementById('statusFilter').value;
 
@@ -420,7 +391,7 @@
                 (s.name && s.name.toLowerCase().includes(search)) || 
                 (s.regno && s.regno.toLowerCase().includes(search)) ||
                 (s.email && s.email.toLowerCase().includes(search));
-            const matchesDept = dept === 'All' || s.department === dept;
+            const matchesDept = !dept || dept === 'All' || s.department === dept || (dept === 'Information Technology' && (s.department === 'IT' || s.department === 'Information Technology'));
             const matchesYear = year === 'All' || s.year === year;
             let matchesStatus = true;
             if (status === 'At Risk') matchesStatus = s.at_risk;
