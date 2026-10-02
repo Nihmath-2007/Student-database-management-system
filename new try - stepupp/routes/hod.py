@@ -456,6 +456,117 @@ def api_hod_mark_detail(mark_id):
     except Exception as e:
         return jsonify({'error': f'Failed to update mark: {str(e)}'}), 500
 
+@hod_bp.route('/api/marks/student-subjects', methods=['GET'])
+@role_required('hod', 'admin')
+def api_hod_marks_student_subjects():
+    student_id = request.args.get('student_id', type=int)
+    semester = request.args.get('semester', default=5, type=int)
+    test_number = request.args.get('test_number', default=1, type=int)
+
+    if not student_id:
+        return jsonify({'error': 'student_id is required'}), 400
+
+    student = fetch_one("SELECT studentid, name, regno, department, year, section FROM students WHERE studentid = %s", (student_id,))
+    if not student:
+        return jsonify({'error': 'Student not found'}), 404
+
+    # Fetch subjects for this semester (default to sem 5 if none found for selected sem)
+    subjects = fetch_all("""
+        SELECT subjectid, subject_code, subject_name, semester
+        FROM subjects
+        WHERE semester = %s
+        ORDER BY subjectid ASC
+    """, (semester,))
+
+    if not subjects:
+        subjects = fetch_all("""
+            SELECT subjectid, subject_code, subject_name, semester
+            FROM subjects
+            WHERE semester = 5
+            ORDER BY subjectid ASC
+        """)
+
+    # Now fetch existing marks for this student and test
+    existing_marks = fetch_all("""
+        SELECT id, subject_id, marks_obtained, max_marks
+        FROM internal_marks
+        WHERE student_id = %s AND test_number = %s
+    """, (student_id, test_number))
+
+    mark_by_sub = {m['subject_id']: m for m in (existing_marks or [])}
+
+    subject_list = []
+    for s in (subjects or [])[:6]:  # Limit to 6 subjects
+        existing = mark_by_sub.get(s['subjectid'])
+        subject_list.append({
+            'subject_id': s['subjectid'],
+            'subject_code': s['subject_code'],
+            'subject_name': s['subject_name'],
+            'semester': s['semester'],
+            'mark_id': existing['id'] if existing else None,
+            'marks_obtained': float(existing['marks_obtained']) if existing and existing['marks_obtained'] is not None else None,
+            'max_marks': float(existing['max_marks']) if existing and existing['max_marks'] is not None else 100.0
+        })
+
+    return jsonify({
+        'success': True,
+        'student': student,
+        'semester': semester,
+        'test_number': test_number,
+        'subjects': subject_list
+    })
+
+@hod_bp.route('/api/marks/batch', methods=['POST'])
+@role_required('hod', 'admin')
+def api_hod_marks_batch():
+    data = request.get_json() if request.is_json else request.form.to_dict()
+    student_id = data.get('student_id')
+    test_number = data.get('test_number', 1)
+    marks_list = data.get('marks', [])
+
+    if not student_id or not marks_list:
+        return jsonify({'error': 'student_id and marks list are required'}), 400
+
+    student_id = int(student_id)
+    test_number = int(test_number)
+    user_meta = get_current_user_meta()
+
+    updated_count = 0
+    for item in marks_list:
+        sub_id = item.get('subject_id')
+        val = item.get('marks_obtained')
+        if sub_id is None or val is None or val == '':
+            continue
+        try:
+            m_obtained = float(val)
+            m_max = float(item.get('max_marks', 100))
+            if m_obtained < 0 or m_obtained > m_max:
+                continue
+
+            erp_add_mark({
+                'student_id': student_id,
+                'subject_id': int(sub_id),
+                'test_number': test_number,
+                'marks_obtained': m_obtained,
+                'max_marks': m_max
+            }, user_meta)
+            updated_count += 1
+        except Exception as ex:
+            print(f"Error saving mark for subject {sub_id}:", ex)
+
+    api_cache.invalidate('marks')
+    api_cache.invalidate('all_stud')
+    api_cache.invalidate('student_details')
+    api_cache.invalidate('mreports')
+
+    return jsonify({
+        'success': True,
+        'student_id': student_id,
+        'test_number': test_number,
+        'updated_count': updated_count,
+        'message': f'Successfully updated marks for {updated_count} subjects!'
+    })
+
 @hod_bp.route('/api/marks/reports')
 @role_required('hod', 'admin')
 def api_hod_marks_reports():
