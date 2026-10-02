@@ -42,11 +42,8 @@
                                 <option value="1">Semester 1</option>
                                 <option value="2">Semester 2</option>
                                 <option value="3">Semester 3</option>
-                                <option value="4" selected>Semester 4</option>
-                                <option value="5">Semester 5</option>
-                                <option value="6">Semester 6</option>
-                                <option value="7">Semester 7</option>
-                                <option value="8">Semester 8</option>
+                                <option value="4">Semester 4</option>
+                                <option value="5" selected>Semester 5</option>
                             </select>
                         </div>
                     </div>
@@ -111,11 +108,8 @@
                                 <option value="1">Semester 1</option>
                                 <option value="2">Semester 2</option>
                                 <option value="3">Semester 3</option>
-                                <option value="4" selected>Semester 4</option>
-                                <option value="5">Semester 5</option>
-                                <option value="6">Semester 6</option>
-                                <option value="7">Semester 7</option>
-                                <option value="8">Semester 8</option>
+                                <option value="4">Semester 4</option>
+                                <option value="5" selected>Semester 5</option>
                             </select>
                         </div>
                     </div>
@@ -186,65 +180,55 @@
     // All 8 Semesters Default Subjects Data
     const semesterDataMap = {
         1: [
-            { name: 'Professional English', credits: 3, grade: 'A+' },
-            { name: 'Matrices & Calculus', credits: 4, grade: 'A' },
-            { name: 'Engineering Physics', credits: 3, grade: 'A+' },
+            { name: 'Heritage of Tamil', credits: 1, grade: 'O' },
+            { name: 'Professional English I', credits: 3, grade: 'A+' },
+            { name: 'Matrices and Calculus', credits: 4, grade: 'A' },
             { name: 'Engineering Chemistry', credits: 3, grade: 'A' },
-            { name: 'Problem Solving & Python Programming', credits: 3, grade: 'O' },
-            { name: 'Heritage of Tamils', credits: 1, grade: 'O' }
+            { name: 'Engineering Physics', credits: 3, grade: 'A+' },
+            { name: 'Problem solving and Python Programming', credits: 3, grade: 'O' },
+            { name: 'Problem solving and Python Programming Laboratory', credits: 2, grade: 'O' },
+            { name: 'Chemistry and Physics Lab', credits: 2, grade: 'A+' },
+            { name: 'Professional English I Laboratory', credits: 1, grade: 'O' }
         ],
         2: [
-            { name: 'Technical English', credits: 3, grade: 'A+' },
-            { name: 'Statistics & Numerical Methods', credits: 4, grade: 'A' },
+            { name: 'Tamils and Technology', credits: 1, grade: 'O' },
+            { name: 'Professional English II', credits: 2, grade: 'A+' },
             { name: 'Physics for Information Science', credits: 3, grade: 'A+' },
-            { name: 'Basic Electrical & Electronics', credits: 3, grade: 'A' },
-            { name: 'C Programming', credits: 3, grade: 'O' },
-            { name: 'Tamils and Technology', credits: 1, grade: 'O' }
+            { name: 'Statistics and Numerical Methods', credits: 4, grade: 'A' },
+            { name: 'Basic Electrical and Electronics Engineering', credits: 3, grade: 'A' },
+            { name: 'Engineering Graphics', credits: 4, grade: 'A' },
+            { name: 'Programming in C', credits: 3, grade: 'O' },
+            { name: 'Programming in C Laboratory', credits: 2, grade: 'O' },
+            { name: 'Engineering Practice Laboratory', credits: 2, grade: 'O' },
+            { name: 'Communication Laboratory', credits: 2, grade: 'O' }
         ],
         3: [
-            { name: 'Digital Principles & Computer Organization', credits: 4, grade: 'A' },
-            { name: 'Data Structures', credits: 3, grade: 'A+' },
-            { name: 'Object Oriented Programming', credits: 3, grade: 'A+' },
-            { name: 'Operating Systems', credits: 3, grade: 'A' },
-            { name: 'Software Engineering', credits: 3, grade: 'B+' },
-            { name: 'Discrete Mathematics', credits: 4, grade: 'A' }
+            { name: 'Discrete Mathematics', credits: 4, grade: 'A' },
+            { name: 'Digital Principles of Computer Organisation', credits: 4, grade: 'A' },
+            { name: 'Object Oriented Software Programming', credits: 3, grade: 'A+' },
+            { name: 'Data Structure and Algorithm', credits: 3, grade: 'A+' },
+            { name: 'Operating System', credits: 3, grade: 'A' },
+            { name: 'Data Structure and Algorithm Laboratory', credits: 2, grade: 'O' },
+            { name: 'Object Oriented Software Programming Laboratory', credits: 2, grade: 'O' },
+            { name: 'Professional Development', credits: 1, grade: 'O' }
         ],
         4: [
-            { name: 'Cloud Computing', credits: 3, grade: 'A+' },
-            { name: 'Distributed Computing', credits: 3, grade: 'A' },
-            { name: 'Embedded System and IOT', credits: 4, grade: 'A+' },
-            { name: 'Foundations of Data Science', credits: 4, grade: 'O' },
-            { name: 'Full Stack Web Development', credits: 3, grade: 'A+' },
-            { name: 'UI&UX Designing', credits: 3, grade: 'O' }
+            { name: 'Environment science and Sustainability', credits: 2, grade: 'A' },
+            { name: 'Web programming', credits: 4, grade: 'A+' },
+            { name: 'Artificial Intelligence and Machine Learning', credits: 4, grade: 'A+' },
+            { name: 'Computer Networks', credits: 4, grade: 'A' },
+            { name: 'Object Oriented Software Engineering', credits: 4, grade: 'A' },
+            { name: 'Database Management System', credits: 3, grade: 'A+' },
+            { name: 'Database Management Systems Laboratory', credits: 2, grade: 'O' }
         ],
         5: [
-            { name: 'Computer Networks', credits: 3, grade: 'A+' },
-            { name: 'Machine Learning', credits: 4, grade: 'A+' },
-            { name: 'Web Technologies', credits: 3, grade: 'O' },
-            { name: 'Database Management Systems', credits: 3, grade: 'A' },
-            { name: 'Theory of Computation', credits: 3, grade: 'B+' },
-            { name: 'Open Elective I', credits: 3, grade: 'A+' }
-        ],
-        6: [
-            { name: 'Cryptography & Network Security', credits: 3, grade: 'A+' },
-            { name: 'Mobile Computing', credits: 3, grade: 'A' },
-            { name: 'Artificial Intelligence', credits: 3, grade: 'O' },
-            { name: 'Professional Elective I', credits: 3, grade: 'A+' },
-            { name: 'Professional Elective II', credits: 3, grade: 'A' },
-            { name: 'Open Elective II', credits: 3, grade: 'A+' }
-        ],
-        7: [
-            { name: 'Data Analytics', credits: 3, grade: 'O' },
-            { name: 'Deep Learning', credits: 3, grade: 'A+' },
-            { name: 'Professional Elective III', credits: 3, grade: 'A+' },
-            { name: 'Professional Elective IV', credits: 3, grade: 'A' },
-            { name: 'Open Elective III', credits: 3, grade: 'O' },
-            { name: 'Project Work Phase I', credits: 2, grade: 'O' }
-        ],
-        8: [
-            { name: 'Professional Elective V', credits: 3, grade: 'O' },
-            { name: 'Professional Elective VI', credits: 3, grade: 'A+' },
-            { name: 'Project Work Phase II / Internship', credits: 6, grade: 'O' }
+            { name: 'Distributed Computing', credits: 3, grade: 'A+' },
+            { name: 'Foundations of Data Science', credits: 4, grade: 'O' },
+            { name: 'Cloud computing', credits: 3, grade: 'A+' },
+            { name: 'UI&UX designing', credits: 3, grade: 'O' },
+            { name: 'Full Stack Web Development', credits: 3, grade: 'A+' },
+            { name: 'Embedded System and IOT', credits: 4, grade: 'A+' },
+            { name: 'Full Stack Web Development Laboratory', credits: 2, grade: 'O' }
         ]
     };
 
@@ -296,8 +280,8 @@
     }
 
     function onGpaSemChange() {
-        const sem = parseInt(document.getElementById('gpaSemSelect').value, 10) || 4;
-        const subjects = semesterDataMap[sem] || semesterDataMap[4];
+        const sem = parseInt(document.getElementById('gpaSemSelect').value, 10) || 5;
+        const subjects = semesterDataMap[sem] || semesterDataMap[5];
         const tbody = document.getElementById('gpaBody');
         tbody.innerHTML = subjects.map((s, idx) => 
             buildGpaRowHTML(idx, s.name, s.credits, s.grade)
@@ -332,8 +316,8 @@
     }
 
     function updateCgpaSemesters() {
-        const currentSem = parseInt(document.getElementById('currentSemSelect').value, 10) || 4;
-        const defaultSemGpas = ['8.50', '8.25', '8.60', '8.40', '8.50', '8.70', '8.80', '8.90'];
+        const currentSem = parseInt(document.getElementById('currentSemSelect').value, 10) || 5;
+        const defaultSemGpas = ['8.50', '8.25', '8.60', '8.40', '8.50'];
         const cgpaBody = document.getElementById('cgpaBody');
         
         let semRows = '';

@@ -3,17 +3,26 @@
    Wave Loader component design by JkHuger (Uiverse.io)
 */
 
-// Global Wave Loader API
-window.showWaveLoader = function(text = 'Loading Analytics System...') {
-    const loader = document.getElementById('globalWaveLoader');
-    const loaderText = document.getElementById('globalWaveLoaderText');
-    if (loader) {
-        if (loaderText) loaderText.textContent = text;
-        loader.classList.add('active');
-    }
+// High-Performance Debounced Wave Loader API
+let _waveLoaderTimer = null;
+
+window.showWaveLoader = function(text = 'Loading Analytics System...', delay = 120) {
+    if (_waveLoaderTimer) clearTimeout(_waveLoaderTimer);
+    _waveLoaderTimer = setTimeout(() => {
+        const loader = document.getElementById('globalWaveLoader');
+        const loaderText = document.getElementById('globalWaveLoaderText');
+        if (loader) {
+            if (loaderText) loaderText.textContent = text;
+            loader.classList.add('active');
+        }
+    }, delay);
 };
 
 window.hideWaveLoader = function() {
+    if (_waveLoaderTimer) {
+        clearTimeout(_waveLoaderTimer);
+        _waveLoaderTimer = null;
+    }
     const loader = document.getElementById('globalWaveLoader');
     if (loader) {
         loader.classList.remove('active');
@@ -71,9 +80,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// Hide loader when window finishes loading or on page restore from bfcache
+// Hide loader immediately when window finishes loading or on page restore from bfcache
 window.addEventListener('load', () => {
-    setTimeout(() => window.hideWaveLoader(), 150);
+    window.hideWaveLoader();
 });
 
 window.addEventListener('pageshow', (event) => {

@@ -41,6 +41,13 @@ from datetime import timedelta
 import time
 
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=15)
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 86400
+
+@app.after_request
+def add_performance_headers(response):
+    if request.path.startswith('/static/'):
+        response.headers['Cache-Control'] = 'public, max-age=86400'
+    return response
 
 # Global Authentication and Inactivity Enforcer
 @app.before_request
