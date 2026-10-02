@@ -18,8 +18,11 @@
             <span class="profile-meta-tag"><i class="fa-solid fa-envelope me-1"></i> Email: <strong id="hodStEmail">--</strong></span>
         </div>
     </div>
-    <div>
-        <a href="{{ url_for('hod.students_page') }}" class="btn btn-outline-light"><i class="fa-solid fa-arrow-left me-1"></i> Back to Directory</a>
+    <div class="d-flex align-items-center gap-2">
+        <button type="button" class="btn btn-warning text-dark fw-semibold btn-sm px-3 shadow-sm" onclick="openEditCurrentStudentModal()">
+            <i class="fa-solid fa-pen-to-square me-1"></i> Edit Student
+        </button>
+        <a href="{{ url_for('hod.students_page') }}" class="btn btn-outline-light btn-sm"><i class="fa-solid fa-arrow-left me-1"></i> Back to Directory</a>
     </div>
 </div>
 
@@ -175,8 +178,149 @@
         }
     }
 
+    let currentStudentObj = null;
+    let editModalInstance = null;
+
+    function openEditCurrentStudentModal() {
+        if (!currentStudentObj) return;
+        document.getElementById('curStRegNo').value = currentStudentObj.regno || '';
+        document.getElementById('curStName').value = currentStudentObj.name || '';
+        document.getElementById('curStDept').value = currentStudentObj.department || 'Information Technology';
+        document.getElementById('curStYear').value = currentStudentObj.year || 'Third year';
+        document.getElementById('curStSection').value = currentStudentObj.section || 'A';
+        document.getElementById('curStEmail').value = currentStudentObj.email || '';
+        document.getElementById('curStPhone').value = currentStudentObj.phone || '';
+
+        if (!editModalInstance) {
+            editModalInstance = new bootstrap.Modal(document.getElementById('editCurrentStudentModal'));
+        }
+        editModalInstance.show();
+    }
+
+    async function handleSaveCurrentStudent(event) {
+        event.preventDefault();
+        if (!currentStudentObj) return;
+        const btn = document.getElementById('saveCurStBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
+
+        const payload = {
+            regno: document.getElementById('curStRegNo').value.trim(),
+            name: document.getElementById('curStName').value.trim(),
+            department: document.getElementById('curStDept').value.trim(),
+            year: document.getElementById('curStYear').value,
+            section: document.getElementById('curStSection').value.trim(),
+            email: document.getElementById('curStEmail').value.trim(),
+            phone: document.getElementById('curStPhone').value.trim()
+        };
+
+        // Optimistic UI updates
+        document.getElementById('hodStName').innerText = payload.name;
+        document.getElementById('hodStDept').innerText = payload.department;
+        document.getElementById('hodStYear').innerText = payload.year;
+        document.getElementById('hodStEmail').innerText = payload.email;
+        currentStudentObj = { ...currentStudentObj, ...payload };
+
+        if (editModalInstance) editModalInstance.hide();
+
+        try {
+            const res = await fetch(`/hod/api/student/${currentStudentObj.studentid}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (!res.ok || !data.success) {
+                alert(`Error: ${data.error || 'Failed to save student record.'}`);
+            }
+        } catch (e) {
+            console.error('Error saving student profile:', e);
+            alert('Network error while saving changes.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Save Changes';
+        }
+    }
+
+    // Capture student object on load
+    const originalLoadHodStudentDetail = loadHodStudentDetail;
+    loadHodStudentDetail = async function() {
+        await originalLoadHodStudentDetail();
+        try {
+            const pathParts = window.location.pathname.split('/');
+            const stId = pathParts[pathParts.length - 1];
+            const res = await fetch(`/api/student/${stId}/details`);
+            if (res.ok) {
+                const d = await res.json();
+                currentStudentObj = d.profile || {};
+            }
+        } catch (err) {
+            console.error('Failed to cache current student profile:', err);
+        }
+    };
+
     document.addEventListener('DOMContentLoaded', loadHodStudentDetail);
 </script>
+
+<!-- EDIT STUDENT MODAL -->
+<div class="modal fade" id="editCurrentStudentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-navy text-white">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-user-pen text-warning me-2"></i> Edit Student Profile</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editCurrentStudentForm" onsubmit="handleSaveCurrentStudent(event)">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold fs-8">Register Number</label>
+                        <input type="text" id="curStRegNo" class="form-control font-monospace" required readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold fs-8">Student Full Name</label>
+                        <input type="text" id="curStName" class="form-control" required>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold fs-8">Department</label>
+                            <input type="text" id="curStDept" class="form-control" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold fs-8">Year of Study</label>
+                            <select id="curStYear" class="form-select">
+                                <option value="First year">First year</option>
+                                <option value="Second year">Second year</option>
+                                <option value="Third year">Third year</option>
+                                <option value="Fourth year">Fourth year</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold fs-8">Section</label>
+                            <input type="text" id="curStSection" class="form-control" placeholder="A, B, or C">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold fs-8">Contact Phone</label>
+                            <input type="text" id="curStPhone" class="form-control" placeholder="+91 ...">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold fs-8">Email Address</label>
+                        <input type="email" id="curStEmail" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="saveCurStBtn" class="btn btn-warning text-dark fw-bold px-4">
+                        <i class="fa-solid fa-check me-1"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <style>
     .col-md-2-4 { flex: 0 0 auto; width: 20%; }
     @media (max-width: 992px) { .col-md-2-4 { width: 50%; } }

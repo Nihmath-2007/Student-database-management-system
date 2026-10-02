@@ -280,20 +280,20 @@
                     </tbody>
                 </table>
 
-                <!-- 4. Marks Table -->
+                <!-- 4. Marks Table (1 Row Per Student) -->
                 <table class="table table-custom align-middle mb-0 d-none" id="dashTableMarks">
                     <thead>
                         <tr>
-                            <th style="width: 130px;">REG NO</th>
+                            <th style="width: 140px;">REG NO</th>
                             <th>STUDENT NAME</th>
-                            <th>SUBJECT</th>
-                            <th>ASSESSMENT</th>
-                            <th>MARKS OBTAINED</th>
-                            <th class="text-end" style="width: 130px;">EDIT ACTION</th>
+                            <th style="width: 130px;">DEPARTMENT</th>
+                            <th style="width: 140px;">YEAR &amp; SEM</th>
+                            <th>EVALUATION STATUS</th>
+                            <th class="text-end" style="width: 150px;">EDIT ACTION</th>
                         </tr>
                     </thead>
                     <tbody id="dashTbodyMarks">
-                        <tr><td colspan="6" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading internal marks...</td></tr>
+                        <tr><td colspan="6" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading students for internal marks...</td></tr>
                     </tbody>
                 </table>
 
@@ -641,41 +641,99 @@
     </div>
 </div>
 
-<!-- 4. DASHBOARD MARK EDIT MODAL -->
-<div class="modal fade" id="dashEditMarkModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-navy text-white">
-                <h5 class="modal-title fw-bold">
-                    <i class="fa-solid fa-award text-warning me-2"></i> Quick Edit Internal Mark
-                </h5>
+<!-- 4. DASHBOARD BULK 6-SUBJECT INTERNAL MARK EDIT MODAL -->
+<div class="modal fade" id="dashBulkMarkEditModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-navy text-white py-3">
+                <div>
+                    <h5 class="modal-title fw-bold mb-0">
+                        <i class="fa-solid fa-award text-warning me-2"></i> Edit Student Internal Marks
+                    </h5>
+                    <div class="text-white-50 fs-8 mt-1">Select semester and test to update all 6 curriculum subjects simultaneously</div>
+                </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form id="dashMarkEditForm" onsubmit="handleSaveDashMark(event)">
-                <div class="modal-body p-4">
-                    <input type="hidden" id="dashFormMarkId">
-                    <div class="p-3 bg-light rounded-3 mb-3 border">
-                        <div class="fw-bold text-navy fs-6" id="dashFormMarkStudentDisplay">Student</div>
-                        <div class="text-muted fs-8 font-monospace" id="dashFormMarkSubjectDisplay">Subject</div>
+            <div class="modal-body p-4">
+                <input type="hidden" id="dashBulkMarkStudentId">
+                
+                <!-- Student Info Banner -->
+                <div class="p-3 bg-light rounded-3 mb-3 border d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div>
+                        <div class="fw-bold text-navy fs-6" id="dashBulkMarkStudentName">Student Name</div>
+                        <div class="text-muted fs-8 font-monospace" id="dashBulkMarkStudentRegNo">Register No: --</div>
                     </div>
-                    <div class="row g-3">
-                        <div class="col-6">
-                            <label class="form-label fw-semibold fs-7 text-secondary">Marks Obtained <span class="text-danger">*</span></label>
-                            <input type="number" step="0.5" min="0" max="100" id="dashFormMarkScore" class="form-control" required>
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label fw-semibold fs-7 text-secondary">Max Marks <span class="text-danger">*</span></label>
-                            <input type="number" step="1" min="1" max="100" id="dashFormMarkMax" class="form-control" value="100" required>
-                        </div>
+                    <div class="d-flex gap-2">
+                        <span class="badge bg-navy text-white px-2 py-1" id="dashBulkMarkDept">Information Technology</span>
+                        <span class="badge bg-secondary-subtle text-secondary px-2 py-1" id="dashBulkMarkYear">Third Year</span>
                     </div>
                 </div>
-                <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" id="dashSaveMarkBtn" class="btn btn-warning text-dark fw-bold px-4">
-                        <i class="fa-solid fa-bolt me-1"></i> Update Instantly
-                    </button>
+
+                <!-- Selectors: Semester and Internal Test -->
+                <div class="row g-3 mb-3 p-3 bg-warning-subtle rounded-3 border border-warning-subtle align-items-center">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold fs-7 text-dark mb-1">
+                            <i class="fa-solid fa-layer-group text-warning me-1"></i> Select Semester:
+                        </label>
+                        <select id="dashBulkMarkSem" class="form-select fw-semibold" onchange="loadDashBulkSubjectsForStudent()">
+                            <option value="1">Semester 1</option>
+                            <option value="2">Semester 2</option>
+                            <option value="3">Semester 3</option>
+                            <option value="4">Semester 4</option>
+                            <option value="5" selected>Semester 5 (Active)</option>
+                            <option value="6">Semester 6</option>
+                            <option value="7">Semester 7</option>
+                            <option value="8">Semester 8</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold fs-7 text-dark mb-1">
+                            <i class="fa-solid fa-file-signature text-warning me-1"></i> Select Internal Test:
+                        </label>
+                        <select id="dashBulkMarkTest" class="form-select fw-semibold" onchange="loadDashBulkSubjectsForStudent()">
+                            <option value="1" selected>Internal Assessment 1 (IA-1)</option>
+                            <option value="2">Internal Assessment 2 (IA-2)</option>
+                            <option value="3">Model Exam (IA-3)</option>
+                        </select>
+                    </div>
                 </div>
-            </form>
+
+                <!-- 6 Subjects Container -->
+                <div class="card border shadow-none mb-2">
+                    <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
+                        <span class="fw-bold fs-7 text-navy"><i class="fa-solid fa-book-open me-1 text-warning"></i> All 6 Subjects Internal Marks</span>
+                        <span class="fs-8 text-muted" id="dashBulkSubjectsStatus">Loading subjects...</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light fs-8 text-secondary">
+                                    <tr>
+                                        <th style="width: 120px;">SUBJECT CODE</th>
+                                        <th>SUBJECT NAME</th>
+                                        <th style="width: 150px;" class="text-center">MARKS OBTAINED</th>
+                                        <th style="width: 80px;" class="text-center">MAX</th>
+                                        <th style="width: 110px;" class="text-center">STATUS</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dashBulkSubjectsTableBody">
+                                    <tr><td colspan="5" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading 6 curriculum subjects...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-light py-2 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <span class="fs-8 text-muted"><i class="fa-solid fa-circle-info me-1"></i> Pass criteria: &ge; 50.0 / 100</span>
+                        <div class="fw-bold fs-7 text-navy" id="dashBulkTotalSummary">Total: 0 / 600 (0%)</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light py-3">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="dashSaveBulkMarksBtn" class="btn btn-warning text-dark fw-bold px-4" onclick="submitDashBulkMarks()">
+                    <i class="fa-solid fa-floppy-disk me-1"></i> Save All 6 Marks
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -873,13 +931,13 @@ function initDashboardEditDetails() {
     const studentModalEl = document.getElementById('dashEditStudentModal');
     const staffModalEl = document.getElementById('dashEditStaffModal');
     const subjectModalEl = document.getElementById('dashEditSubjectModal');
-    const markModalEl = document.getElementById('dashEditMarkModal');
+    const bulkMarkModalEl = document.getElementById('dashBulkMarkEditModal');
     const attModalEl = document.getElementById('dashEditAttModal');
 
     if (studentModalEl) dashModals.student = new bootstrap.Modal(studentModalEl);
     if (staffModalEl) dashModals.staff = new bootstrap.Modal(staffModalEl);
     if (subjectModalEl) dashModals.subject = new bootstrap.Modal(subjectModalEl);
-    if (markModalEl) dashModals.mark = new bootstrap.Modal(markModalEl);
+    if (bulkMarkModalEl) dashModals.bulkMark = new bootstrap.Modal(bulkMarkModalEl);
     if (attModalEl) dashModals.attendance = new bootstrap.Modal(attModalEl);
 
     // 2. Initial Data Loading: Start with students immediately
@@ -922,7 +980,7 @@ function selectDashboardEditCategory(cat) {
         students: 'Showing Students',
         staff: 'Showing Faculty & Staff',
         subjects: 'Showing Subjects',
-        marks: 'Showing Internal Marks',
+        marks: 'Showing Students for Internal Marks',
         attendance: 'Showing Attendance Records'
     };
     const badge = document.getElementById('dashEditCategoryBadge');
@@ -941,10 +999,11 @@ function handleDashEditFilter() {
         dashFilteredData[cat] = [...list];
     } else {
         dashFilteredData[cat] = list.filter(item => {
-            if (cat === 'students') {
+            if (cat === 'students' || cat === 'marks') {
                 return (item.name && item.name.toLowerCase().includes(q)) ||
                        (item.regno && item.regno.toLowerCase().includes(q)) ||
                        (item.email && item.email.toLowerCase().includes(q)) ||
+                       (item.department && item.department.toLowerCase().includes(q)) ||
                        (item.year && item.year.toLowerCase().includes(q));
             } else if (cat === 'staff') {
                 return (item.name && item.name.toLowerCase().includes(q)) ||
@@ -955,11 +1014,6 @@ function handleDashEditFilter() {
                 return (item.subject_code && item.subject_code.toLowerCase().includes(q)) ||
                        (item.subject_name && item.subject_name.toLowerCase().includes(q)) ||
                        (item.staff_name && item.staff_name.toLowerCase().includes(q));
-            } else if (cat === 'marks') {
-                return (item.regno && item.regno.toLowerCase().includes(q)) ||
-                       (item.student_name && item.student_name.toLowerCase().includes(q)) ||
-                       (item.subject_code && item.subject_code.toLowerCase().includes(q)) ||
-                       (item.test_number && item.test_number.toLowerCase().includes(q));
             } else if (cat === 'attendance') {
                 return (item.regno && item.regno.toLowerCase().includes(q)) ||
                        (item.student_name && item.student_name.toLowerCase().includes(q)) ||
@@ -1037,15 +1091,19 @@ async function loadDashSubjects(force = false) {
 
 async function loadDashMarks(force = false) {
     try {
-        const res = await fetch(`/hod/api/marks?page=1&per_page=30${force ? '&refresh=1' : ''}`);
-        const data = await res.json();
-        dashData.marks = data.marks || [];
+        if (!dashData.students || !dashData.students.length || force) {
+            const res = await fetch(`/hod/api/students?simple=1&year=All&department=All${force ? '&refresh=1' : ''}`);
+            const data = await res.json();
+            dashData.students = data.students || [];
+        }
+        // Group / display each student JUST ONCE!
+        dashData.marks = [...dashData.students];
         dashFilteredData.marks = [...dashData.marks];
         const cntEl = document.getElementById('dashCountMarks');
-        if (cntEl) cntEl.innerText = data.total_records || dashData.marks.length;
+        if (cntEl) cntEl.innerText = dashData.marks.length;
         if (dashEditActiveCategory === 'marks') renderDashEditTable('marks');
     } catch (e) {
-        console.error('Failed to load marks for dashboard editor:', e);
+        console.error('Failed to load marks students for dashboard editor:', e);
     }
 }
 
@@ -1162,21 +1220,27 @@ function renderDashEditTable(cat) {
     } else if (cat === 'marks') {
         const tbody = document.getElementById('dashTbodyMarks');
         if (!list.length) {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">No internal marks found.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">No student records found.</td></tr>';
             return;
         }
-        tbody.innerHTML = list.map(m => {
-            const pct = Math.round((m.marks_obtained / (m.max_marks || 100)) * 100);
+        tbody.innerHTML = list.map(s => {
             return `
-                <tr id="dashRow-mark-${m.id}">
-                    <td class="font-monospace fw-bold text-navy">${m.regno || '--'}</td>
-                    <td><div class="fw-semibold text-dark">${escapeHtml(m.student_name || '--')}</div></td>
-                    <td><span class="badge bg-light text-dark border">${m.subject_code || '--'}</span></td>
-                    <td><span class="badge bg-secondary-subtle text-secondary">${m.test_number}</span></td>
-                    <td><span class="fw-bold fs-7 ${pct >= 50 ? 'text-success' : 'text-danger'}">${m.marks_obtained} / ${m.max_marks || 100}</span> (${pct}%)</td>
+                <tr id="dashRow-studentmark-${s.studentid}">
+                    <td class="font-monospace fw-bold text-navy">${s.regno || '--'}</td>
+                    <td>
+                        <div class="fw-semibold text-dark">${escapeHtml(s.name || '--')}</div>
+                        <div class="fs-8 text-muted">${s.section ? 'Sec ' + s.section : ''} &bull; ${escapeHtml(s.email || '')}</div>
+                    </td>
+                    <td><span class="badge bg-light text-navy border">${escapeHtml(s.department || 'Information Technology')}</span></td>
+                    <td><span class="badge bg-primary-subtle text-primary fw-semibold">${escapeHtml(s.year || 'Third year')} (Sem 5)</span></td>
+                    <td>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+                            <i class="fa-solid fa-circle-check me-1"></i> Internal Test Evaluated
+                        </span>
+                    </td>
                     <td class="text-end">
-                        <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-bold" onclick="openDashEditMarkModal(${m.id})">
-                            <i class="fa-solid fa-pen-to-square me-1"></i> Edit
+                        <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-bold" onclick="openDashBulkMarkModal(${s.studentid}, '${escapeHtml(s.name)}', '${escapeHtml(s.regno)}', '${escapeHtml(s.department || 'Information Technology')}', '${escapeHtml(s.year || 'Third year')}')">
+                            <i class="fa-solid fa-pen-to-square me-1"></i> Edit Marks
                         </button>
                     </td>
                 </tr>
@@ -1428,66 +1492,194 @@ function handleSaveDashSubject(e) {
     });
 }
 
-// 4. Mark Edit
-function openDashEditMarkModal(id) {
-    const m = dashData.marks.find(item => item.id == id);
-    if (!m) return;
-    document.getElementById('dashFormMarkId').value = m.id;
-    document.getElementById('dashFormMarkStudentDisplay').innerText = `${m.student_name || 'Student'} (${m.regno || '--'})`;
-    document.getElementById('dashFormMarkSubjectDisplay').innerText = `Subject: ${m.subject_code || '--'} | ${m.test_number || 'Test'}`;
-    document.getElementById('dashFormMarkScore').value = m.marks_obtained;
-    document.getElementById('dashFormMarkMax').value = m.max_marks || 100;
-    if (dashModals.mark) dashModals.mark.show();
+// 4. Bulk 6-Subject Internal Mark Edit
+let currentBulkStudentId = null;
+let currentBulkSubjects = [];
+
+function openDashBulkMarkModal(studentId, name, regno, dept, year) {
+    currentBulkStudentId = studentId;
+    document.getElementById('dashBulkMarkStudentId').value = studentId;
+    document.getElementById('dashBulkMarkStudentName').innerText = name || 'Student';
+    document.getElementById('dashBulkMarkStudentRegNo').innerText = `Register No: ${regno || '--'}`;
+    document.getElementById('dashBulkMarkDept').innerText = dept || 'Information Technology';
+    document.getElementById('dashBulkMarkYear').innerText = year || 'Third year';
+    
+    // Default semester 5, test 1
+    document.getElementById('dashBulkMarkSem').value = "5";
+    document.getElementById('dashBulkMarkTest').value = "1";
+
+    if (dashModals.bulkMark) {
+        dashModals.bulkMark.show();
+    }
+    loadDashBulkSubjectsForStudent();
 }
 
-function handleSaveDashMark(e) {
-    e.preventDefault();
-    const id = document.getElementById('dashFormMarkId').value;
-    const payload = {
-        marks_obtained: parseFloat(document.getElementById('dashFormMarkScore').value),
-        max_marks: parseFloat(document.getElementById('dashFormMarkMax').value)
-    };
+async function loadDashBulkSubjectsForStudent() {
+    if (!currentBulkStudentId) return;
+    const sem = document.getElementById('dashBulkMarkSem').value;
+    const test = document.getElementById('dashBulkMarkTest').value;
+    const tbody = document.getElementById('dashBulkSubjectsTableBody');
+    const statusEl = document.getElementById('dashBulkSubjectsStatus');
+    
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Fetching 6 subjects for Semester ${sem} (Assessment ${test})...</td></tr>`;
+    statusEl.innerText = 'Loading curriculum subjects...';
 
-    // Instant optimistic update
-    const idx = dashData.marks.findIndex(m => m.id == id);
-    let original = null;
-    if (idx !== -1) {
-        original = { ...dashData.marks[idx] };
-        Object.assign(dashData.marks[idx], payload);
-    }
-    const fIdx = dashFilteredData.marks.findIndex(m => m.id == id);
-    if (fIdx !== -1) Object.assign(dashFilteredData.marks[fIdx], payload);
-
-    const pct = Math.round((payload.marks_obtained / payload.max_marks) * 100);
-    const row = document.getElementById(`dashRow-mark-${id}`);
-    if (row) {
-        const scoreCell = row.querySelector('td:nth-child(5)');
-        if (scoreCell) {
-            scoreCell.innerHTML = `<span class="fw-bold fs-7 ${pct >= 50 ? 'text-success' : 'text-danger'}">${payload.marks_obtained} / ${payload.max_marks}</span> (${pct}%)`;
+    try {
+        const res = await fetch(`/hod/api/marks/student-subjects?student_id=${currentBulkStudentId}&semester=${sem}&test_number=${test}`);
+        const data = await res.json();
+        if (res.ok && data.success) {
+            currentBulkSubjects = data.subjects || [];
+            renderDashBulkSubjectsTable(currentBulkSubjects);
+            statusEl.innerText = `Showing all ${currentBulkSubjects.length} subjects`;
+        } else {
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-danger"><i class="fa-solid fa-triangle-exclamation me-1"></i> ${data.error || 'Failed to load subjects'}</td></tr>`;
+            statusEl.innerText = 'Error loading subjects';
         }
+    } catch (e) {
+        console.error('Error fetching student subjects:', e);
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-danger">Network error loading subjects.</td></tr>`;
+        statusEl.innerText = 'Network error';
+    }
+}
+
+function renderDashBulkSubjectsTable(subjects) {
+    const tbody = document.getElementById('dashBulkSubjectsTableBody');
+    if (!subjects || !subjects.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">No curriculum subjects found for this semester.</td></tr>';
+        calcDashBulkTotalSummary();
+        return;
+    }
+
+    tbody.innerHTML = subjects.map((sub) => {
+        const val = sub.marks_obtained !== null && sub.marks_obtained !== undefined ? sub.marks_obtained : '';
+        const numVal = parseFloat(val);
+        const hasScore = !isNaN(numVal) && val !== '';
+        const isPass = hasScore && numVal >= 50.0;
+        const statusHtml = !hasScore 
+            ? `<span class="badge bg-light text-muted border">Pending</span>`
+            : (isPass ? `<span class="badge bg-success-subtle text-success border border-success-subtle">Pass</span>`
+                      : `<span class="badge bg-danger-subtle text-danger border border-danger-subtle">Fail</span>`);
+
+        return `
+            <tr>
+                <td class="font-monospace fw-bold text-navy">${sub.subject_code}</td>
+                <td>
+                    <div class="fw-semibold text-dark">${escapeHtml(sub.subject_name)}</div>
+                    <div class="fs-8 text-muted">Semester ${sub.semester}</div>
+                </td>
+                <td class="text-center">
+                    <input type="number" step="0.5" min="0" max="100" 
+                        class="form-control form-control-sm text-center fw-bold fs-6 dash-bulk-mark-input"
+                        data-subject-id="${sub.subject_id}" 
+                        data-max-marks="${sub.max_marks || 100}"
+                        value="${val}" 
+                        placeholder="0-100"
+                        oninput="handleDashBulkMarkInputChange(this)">
+                </td>
+                <td class="text-center font-monospace text-muted fs-7">/ 100</td>
+                <td class="text-center status-badge-cell">${statusHtml}</td>
+            </tr>
+        `;
+    }).join('');
+
+    calcDashBulkTotalSummary();
+}
+
+function handleDashBulkMarkInputChange(input) {
+    const val = parseFloat(input.value);
+    const cell = input.closest('tr').querySelector('.status-badge-cell');
+    if (isNaN(val) || input.value === '') {
+        cell.innerHTML = `<span class="badge bg-light text-muted border">Pending</span>`;
+    } else if (val >= 50.0) {
+        cell.innerHTML = `<span class="badge bg-success-subtle text-success border border-success-subtle">Pass</span>`;
+    } else {
+        cell.innerHTML = `<span class="badge bg-danger-subtle text-danger border border-danger-subtle">Fail</span>`;
+    }
+    calcDashBulkTotalSummary();
+}
+
+function calcDashBulkTotalSummary() {
+    const inputs = document.querySelectorAll('.dash-bulk-mark-input');
+    let total = 0;
+    let count = 0;
+    inputs.forEach(inp => {
+        const val = parseFloat(inp.value);
+        if (!isNaN(val)) {
+            total += val;
+            count++;
+        }
+    });
+    const maxTotal = inputs.length * 100;
+    const pct = maxTotal > 0 ? ((total / maxTotal) * 100).toFixed(1) : 0;
+    const summaryEl = document.getElementById('dashBulkTotalSummary');
+    if (summaryEl) {
+        summaryEl.innerText = `Total: ${total.toFixed(1)} / ${maxTotal} (${pct}%) — ${count}/${inputs.length} Subjects Evaluated`;
+    }
+}
+
+async function submitDashBulkMarks() {
+    if (!currentBulkStudentId) return;
+    const btn = document.getElementById('dashSaveBulkMarksBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving to MySQL...';
+
+    const sem = parseInt(document.getElementById('dashBulkMarkSem').value || 5);
+    const test = parseInt(document.getElementById('dashBulkMarkTest').value || 1);
+
+    const inputs = document.querySelectorAll('.dash-bulk-mark-input');
+    const marksPayload = [];
+    inputs.forEach(inp => {
+        const subId = parseInt(inp.getAttribute('data-subject-id'));
+        const val = inp.value.trim();
+        if (subId && val !== '') {
+            marksPayload.push({
+                subject_id: subId,
+                marks_obtained: parseFloat(val),
+                max_marks: parseFloat(inp.getAttribute('data-max-marks') || 100)
+            });
+        }
+    });
+
+    if (!marksPayload.length) {
+        alert('Please enter marks for at least one subject.');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-floppy-disk me-1"></i> Save All 6 Marks';
+        return;
+    }
+
+    // Optimistic UI close & flash
+    if (dashModals.bulkMark) dashModals.bulkMark.hide();
+    showNotifToast(`Internal marks for all 6 subjects updated successfully!`, 'fa-solid fa-circle-check');
+
+    const row = document.getElementById(`dashRow-studentmark-${currentBulkStudentId}`);
+    if (row) {
         row.classList.remove('row-updated-flash');
         void row.offsetWidth;
         row.classList.add('row-updated-flash');
     }
 
-    if (dashModals.mark) dashModals.mark.hide();
-    showNotifToast('Internal mark score updated instantly!', 'fa-solid fa-circle-check');
-
-    fetch(`/hod/api/marks/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-    }).then(res => res.json()).then(data => {
-        if (!data.success && !data.id) {
-            showNotifToast(data.error || 'Failed to update marks', 'fa-solid fa-triangle-exclamation');
-            if (original && idx !== -1) {
-                Object.assign(dashData.marks[idx], original);
-                renderDashEditTable('marks');
-            }
+    try {
+        const res = await fetch('/hod/api/marks/batch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                student_id: currentBulkStudentId,
+                semester: sem,
+                test_number: test,
+                marks: marksPayload
+            })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+            showNotifToast(`Error saving marks: ${data.error || 'Server error'}`, 'fa-solid fa-triangle-exclamation');
         }
-    }).catch(err => {
-        console.error('Async mark update error:', err);
-    });
+    } catch (e) {
+        console.error('Batch save error:', e);
+        showNotifToast('Network error while saving marks to live database.', 'fa-solid fa-triangle-exclamation');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-floppy-disk me-1"></i> Save All 6 Marks';
+    }
 }
 
 // 5. Attendance Edit

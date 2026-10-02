@@ -304,7 +304,7 @@
             const avgM = parseFloat(s.avg_marks) || 0.0;
 
             html += `
-                <tr>
+                <tr id="studentRow-${s.studentid}">
                     <td class="font-monospace fw-bold text-navy">${s.regno || '---'}</td>
                     <td>
                         <div class="fw-semibold text-dark">${s.name}</div>
@@ -328,12 +328,12 @@
                     <td>${statusBadge}</td>
                     <td class="text-center">
                         <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-warning text-dark fw-semibold" title="Edit Student Details" onclick="openEditStudentModal(${s.studentid})">
+                                <i class="fa-solid fa-pen-to-square me-1"></i> Edit
+                            </button>
                             <a href="/hod/student/${s.studentid}" class="btn btn-outline-primary" title="View Student Analytics">
                                 <i class="fa-solid fa-chart-line"></i>
                             </a>
-                            <button type="button" class="btn btn-outline-warning text-dark" title="Edit Student" onclick="openEditStudentModal(${s.studentid})">
-                                <i class="fa-solid fa-pen-to-square"></i>
-                            </button>
                             <button type="button" class="btn btn-outline-danger" title="Delete Student" onclick="promptDeleteStudent(${s.studentid}, '${escapeHtml(s.name)}', '${s.regno}')">
                                 <i class="fa-solid fa-trash-can"></i>
                             </button>
@@ -430,9 +430,6 @@
     async function handleSaveStudent(event) {
         event.preventDefault();
         const btn = document.getElementById('saveStudentBtn');
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving to MySQL...';
-
         const editId = document.getElementById('studentEditId').value;
         const payload = {
             regno: document.getElementById('formRegNo').value.trim(),
@@ -444,33 +441,70 @@
             phone: document.getElementById('formPhone').value.trim()
         };
 
-        try {
-            let res;
-            if (editId) {
-                res = await fetch(`/hod/api/student/${editId}`, {
+        if (editId) {
+            // OPTIMISTIC LOCAL UPDATE (0ms lag)
+            const idx = allStudentsData.findIndex(s => String(s.studentid) === String(editId));
+            let oldCopy = null;
+            if (idx !== -1) {
+                oldCopy = { ...allStudentsData[idx] };
+                allStudentsData[idx] = { ...allStudentsData[idx], ...payload };
+                filterStudents();
+                const updatedRow = document.getElementById(`studentRow-${editId}`);
+                if (updatedRow) {
+                    updatedRow.classList.add('row-updated-flash');
+                    setTimeout(() => updatedRow.classList.remove('row-updated-flash'), 2200);
+                }
+            }
+
+            studentModalInstance.hide();
+            showAlert(`Student "${payload.name}" updated successfully!`, 'success');
+
+            // Send to live MySQL in background
+            try {
+                const res = await fetch(`/hod/api/student/${editId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-            } else {
-                res = await fetch('/hod/api/students', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+                const data = await res.json();
+                if (!res.ok || !data.success) {
+                    if (oldCopy && idx !== -1) {
+                        allStudentsData[idx] = oldCopy;
+                        filterStudents();
+                    }
+                    showAlert(`Error updating student: ${data.error || 'Server error'}`, 'danger');
+                }
+            } catch (err) {
+                console.error('Error updating student in background:', err);
+                if (oldCopy && idx !== -1) {
+                    allStudentsData[idx] = oldCopy;
+                    filterStudents();
+                }
+                showAlert('Network error while saving student changes.', 'danger');
             }
+            return;
+        }
 
+        // New Student creation
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Creating Student...';
+        try {
+            const res = await fetch('/hod/api/students', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
             const data = await res.json();
             if (res.ok && data.success) {
                 studentModalInstance.hide();
-                showAlert(editId ? `Student "${payload.name}" updated successfully in live database!` : `Student "${payload.name}" created with portal account!`);
+                showAlert(`Student "${payload.name}" created with portal account!`, 'success');
                 await loadStudents(true);
             } else {
-                alert(`Error: ${data.error || 'Failed to save student record.'}`);
+                showAlert(`Error: ${data.error || 'Failed to save student record.'}`, 'danger');
             }
         } catch (e) {
             console.error('Error saving student:', e);
-            alert('A network error occurred while updating the database.');
+            showAlert('A network error occurred while updating the database.', 'danger');
         } finally {
             btn.disabled = false;
             btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Save Changes';

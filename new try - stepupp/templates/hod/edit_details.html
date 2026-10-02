@@ -360,19 +360,16 @@
                 <table class="table table-custom align-middle mb-0">
                     <thead>
                         <tr>
-                            <th>Reg No</th>
+                            <th style="width: 140px;">Reg No</th>
                             <th>Student Name</th>
-                            <th>Subject</th>
-                            <th>Assessment Type</th>
-                            <th class="text-center" style="width: 150px;">EDIT DETAILS</th>
-                            <th>Score / Max</th>
-                            <th>Percentage</th>
-                            <th>Result</th>
-                            <th class="text-center" style="width: 100px;">Action</th>
+                            <th style="width: 140px;">Department</th>
+                            <th style="width: 140px;">Year &amp; Semester</th>
+                            <th class="text-center" style="width: 180px;">EDIT INTERNAL MARKS</th>
+                            <th class="text-center" style="width: 160px;">Evaluation Status</th>
                         </tr>
                     </thead>
                     <tbody id="marksTableBody">
-                        <tr><td colspan="9" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading marks...</td></tr>
+                        <tr><td colspan="6" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading student directory for internal marks...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -720,56 +717,99 @@
 </div>
 
 <!-- 4. INTERNAL MARK MODAL -->
-<div class="modal fade" id="markFormModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-navy text-white">
-                <h5 class="modal-title fw-bold" id="markModalTitle">
-                    <i class="fa-solid fa-pen-to-square text-warning me-2"></i> Edit Internal Mark
-                </h5>
+<!-- 4. INTERNAL MARK BULK 6-SUBJECT MODAL -->
+<div class="modal fade" id="editDetailBulkMarkModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-navy text-white py-3">
+                <div>
+                    <h5 class="modal-title fw-bold mb-0">
+                        <i class="fa-solid fa-award text-warning me-2"></i> Edit Student Internal Marks
+                    </h5>
+                    <div class="text-white-50 fs-8 mt-1">Select semester and test number to update all 6 curriculum subjects simultaneously</div>
+                </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form id="markForm" onsubmit="handleSaveMark(event)">
-                <div class="modal-body p-4">
-                    <input type="hidden" id="markEditId" value="">
-                    <div class="mb-3" id="markStudentSelectorWrap">
-                        <label class="form-label fw-semibold fs-7 text-secondary">Student <span class="text-danger">*</span></label>
-                        <select id="formMarkStudent" class="form-select">
-                            <option value="">Select Student</option>
-                        </select>
+            <div class="modal-body p-4">
+                <input type="hidden" id="editDetailBulkStudentId">
+                
+                <!-- Student Info Banner -->
+                <div class="p-3 bg-light rounded-3 mb-3 border d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div>
+                        <div class="fw-bold text-navy fs-6" id="editDetailBulkStudentName">Student Name</div>
+                        <div class="text-muted fs-8 font-monospace" id="editDetailBulkStudentRegNo">Register No: --</div>
                     </div>
-                    <div class="mb-3" id="markSubjectSelectorWrap">
-                        <label class="form-label fw-semibold fs-7 text-secondary">Subject <span class="text-danger">*</span></label>
-                        <select id="formMarkSubject" class="form-select">
-                            <option value="">Select Subject</option>
-                        </select>
-                    </div>
-                    <div class="mb-3" id="markTestSelectorWrap">
-                        <label class="form-label fw-semibold fs-7 text-secondary">Assessment / Exam <span class="text-danger">*</span></label>
-                        <select id="formMarkTest" class="form-select">
-                            <option value="Assessment 1">Assessment 1</option>
-                            <option value="Assessment 2">Assessment 2</option>
-                            <option value="Model Exam">Model Exam</option>
-                        </select>
-                    </div>
-                    <div class="row g-3">
-                        <div class="col-6">
-                            <label class="form-label fw-semibold fs-7 text-secondary">Marks Obtained <span class="text-danger">*</span></label>
-                            <input type="number" step="0.5" min="0" max="100" id="formMarkScore" class="form-control" required>
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label fw-semibold fs-7 text-secondary">Max Marks <span class="text-danger">*</span></label>
-                            <input type="number" step="1" min="1" max="100" id="formMarkMax" class="form-control" value="100" required>
-                        </div>
+                    <div class="d-flex gap-2">
+                        <span class="badge bg-navy text-white px-2 py-1" id="editDetailBulkDept">Information Technology</span>
+                        <span class="badge bg-secondary-subtle text-secondary px-2 py-1" id="editDetailBulkYear">Third Year</span>
                     </div>
                 </div>
-                <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" id="saveMarkBtn" class="btn btn-warning text-dark fw-bold px-4">
-                        <i class="fa-solid fa-check me-1"></i> Save Marks
-                    </button>
+
+                <!-- Selectors: Semester and Internal Test -->
+                <div class="row g-3 mb-3 p-3 bg-warning-subtle rounded-3 border border-warning-subtle align-items-center">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold fs-7 text-dark mb-1">
+                            <i class="fa-solid fa-layer-group text-warning me-1"></i> Select Semester:
+                        </label>
+                        <select id="editDetailBulkMarkSem" class="form-select fw-semibold" onchange="loadEditDetailBulkSubjectsForStudent()">
+                            <option value="1">Semester 1</option>
+                            <option value="2">Semester 2</option>
+                            <option value="3">Semester 3</option>
+                            <option value="4">Semester 4</option>
+                            <option value="5" selected>Semester 5 (Active)</option>
+                            <option value="6">Semester 6</option>
+                            <option value="7">Semester 7</option>
+                            <option value="8">Semester 8</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold fs-7 text-dark mb-1">
+                            <i class="fa-solid fa-file-signature text-warning me-1"></i> Select Internal Test:
+                        </label>
+                        <select id="editDetailBulkMarkTest" class="form-select fw-semibold" onchange="loadEditDetailBulkSubjectsForStudent()">
+                            <option value="1" selected>Internal Assessment 1 (IA-1)</option>
+                            <option value="2">Internal Assessment 2 (IA-2)</option>
+                            <option value="3">Model Exam (IA-3)</option>
+                        </select>
+                    </div>
                 </div>
-            </form>
+
+                <!-- 6 Subjects Container -->
+                <div class="card border shadow-none mb-2">
+                    <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
+                        <span class="fw-bold fs-7 text-navy"><i class="fa-solid fa-book-open me-1 text-warning"></i> All 6 Subjects Internal Marks</span>
+                        <span class="fs-8 text-muted" id="editDetailBulkSubjectsStatus">Loading subjects...</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light fs-8 text-secondary">
+                                    <tr>
+                                        <th style="width: 120px;">SUBJECT CODE</th>
+                                        <th>SUBJECT NAME</th>
+                                        <th style="width: 150px;" class="text-center">MARKS OBTAINED</th>
+                                        <th style="width: 80px;" class="text-center">MAX</th>
+                                        <th style="width: 110px;" class="text-center">STATUS</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="editDetailBulkSubjectsTableBody">
+                                    <tr><td colspan="5" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading 6 curriculum subjects...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-light py-2 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <span class="fs-8 text-muted"><i class="fa-solid fa-circle-info me-1"></i> Pass criteria: &ge; 50.0 / 100</span>
+                        <div class="fw-bold fs-7 text-navy" id="editDetailBulkTotalSummary">Total: 0 / 600 (0%)</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light py-3">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="editDetailSaveBulkMarksBtn" class="btn btn-warning text-dark fw-bold px-4" onclick="submitEditDetailBulkMarks()">
+                    <i class="fa-solid fa-floppy-disk me-1"></i> Save All 6 Marks
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -973,7 +1013,7 @@
         studentModal = new bootstrap.Modal(document.getElementById('studentFormModal'));
         staffModal = new bootstrap.Modal(document.getElementById('staffFormModal'));
         subjectModal = new bootstrap.Modal(document.getElementById('subjectFormModal'));
-        markModal = new bootstrap.Modal(document.getElementById('markFormModal'));
+        bulkMarkModal = new bootstrap.Modal(document.getElementById('editDetailBulkMarkModal'));
         attModal = new bootstrap.Modal(document.getElementById('attFormModal'));
         ttModal = new bootstrap.Modal(document.getElementById('ttFormModal'));
         deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
@@ -1733,34 +1773,46 @@
     }
 
     // =========================================================================
-    // 4. INTERNAL MARKS
+    // 4. INTERNAL MARKS (1 Row Per Student + 6-Subject Bulk Editor)
     // =========================================================================
     let marksDebounce;
+    let currentEditDetailBulkStudentId = null;
+    let currentEditDetailBulkSubjects = [];
+
     function handleMarksSearchDebounced() {
         clearTimeout(marksDebounce);
-        marksDebounce = setTimeout(loadMarks, 350);
+        marksDebounce = setTimeout(filterEditDetailMarks, 250);
     }
 
     async function loadMarks(forceRefresh = false) {
-        const search = document.getElementById('marksSearchInput').value.trim();
-        const sub = document.getElementById('marksSubjectFilter').value;
-        const test = document.getElementById('marksTestFilter').value;
-
         try {
-            let url = `/hod/api/marks?page=${marksPage}&per_page=15${forceRefresh ? '&refresh=1' : ''}`;
-            if (search) url += `&search=${encodeURIComponent(search)}`;
-            if (sub) url += `&subject_id=${encodeURIComponent(sub)}`;
-            if (test) url += `&test_number=${encodeURIComponent(test)}`;
-
-            const res = await fetch(url);
-            const data = await res.json();
-            allMarks = data.marks || [];
-            document.getElementById('statMarksCount').innerText = data.total_records || allMarks.length;
-            renderMarks(allMarks, data.total_records || allMarks.length);
+            if (!allStudents || !allStudents.length || forceRefresh) {
+                const res = await fetch(`/hod/api/students?simple=1&year=All&department=All${forceRefresh ? '&refresh=1' : ''}`);
+                const data = await res.json();
+                allStudents = data.students || [];
+            }
+            allMarks = [...allStudents];
+            const statMarksEl = document.getElementById('statMarksCount');
+            if (statMarksEl) statMarksEl.innerText = allMarks.length;
+            filterEditDetailMarks();
         } catch (e) {
-            console.error('Failed to load marks:', e);
-            document.getElementById('marksTableBody').innerHTML = `<tr><td colspan="8" class="text-center text-danger py-4">Failed to load marks.</td></tr>`;
+            console.error('Failed to load marks students:', e);
+            document.getElementById('marksTableBody').innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">Failed to load student directory for marks.</td></tr>`;
         }
+    }
+
+    function filterEditDetailMarks() {
+        const q = (document.getElementById('marksSearchInput').value || '').toLowerCase().trim();
+        const filtered = allMarks.filter(s => {
+            if (!q) return true;
+            return (s.name && s.name.toLowerCase().includes(q)) ||
+                   (s.regno && s.regno.toLowerCase().includes(q)) ||
+                   (s.email && s.email.toLowerCase().includes(q)) ||
+                   (s.department && s.department.toLowerCase().includes(q)) ||
+                   (s.year && s.year.toLowerCase().includes(q));
+        });
+
+        renderMarks(filtered, filtered.length);
     }
 
     function renderMarks(list, totalCount) {
@@ -1768,145 +1820,222 @@
         const countText = document.getElementById('marksCountText');
 
         if (!list.length) {
-            tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted">No internal marks found matching filters.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">No student records found matching search.</td></tr>`;
             countText.innerText = '0 records';
-            document.getElementById('marksPagination').innerHTML = '';
+            const paginationEl = document.getElementById('marksPagination');
+            if (paginationEl) paginationEl.innerHTML = '';
             return;
         }
 
-        tbody.innerHTML = list.map(m => {
-            const pct = Math.round((m.marks_obtained / (m.max_marks || 100)) * 100);
-            const isPass = pct >= 50;
+        tbody.innerHTML = list.map(s => {
             return `
-                <tr>
-                    <td class="font-monospace fw-bold text-navy">${m.regno || '--'}</td>
-                    <td><div class="fw-semibold text-dark">${escapeHtml(m.student_name || '--')}</div></td>
-                    <td><span class="badge bg-light text-dark border">${m.subject_code} - ${escapeHtml(m.subject_name || '')}</span></td>
-                    <td><span class="badge bg-secondary-subtle text-secondary">${m.test_number}</span></td>
-                    <td class="text-center">
-                        <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-semibold" onclick="openEditMarkModal(${m.id}, ${m.marks_obtained}, ${m.max_marks || 100})" title="Edit Mark Details">
-                            <i class="fa-solid fa-pen-to-square me-1"></i> Edit Mark
-                        </button>
-                    </td>
-                    <td class="fw-bold fs-7">${m.marks_obtained} / ${m.max_marks || 100}</td>
+                <tr id="editDetailRow-studentmark-${s.studentid}">
+                    <td class="font-monospace fw-bold text-navy">${s.regno || '--'}</td>
                     <td>
-                        <div class="progress" style="height: 6px; width: 70px;">
-                            <div class="progress-bar ${isPass ? 'bg-success' : 'bg-danger'}" style="width: ${pct}%;"></div>
-                        </div>
-                        <span class="fs-8 text-muted">${pct}%</span>
+                        <div class="fw-semibold text-dark">${escapeHtml(s.name || '--')}</div>
+                        <div class="fs-8 text-muted">${s.section ? 'Sec ' + s.section : ''} &bull; ${escapeHtml(s.email || '')}</div>
                     </td>
-                    <td><span class="badge ${isPass ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'}">${isPass ? 'Pass' : 'Fail'}</span></td>
+                    <td><span class="badge bg-light text-navy border">${escapeHtml(s.department || 'Information Technology')}</span></td>
+                    <td><span class="badge bg-primary-subtle text-primary fw-semibold">${escapeHtml(s.year || 'Third year')} (Sem 5)</span></td>
                     <td class="text-center">
-                        <button class="btn btn-sm btn-outline-danger" onclick="promptDelete('mark', ${m.id}, 'Mark for ${escapeHtml(m.student_name || '')}', '${m.subject_code} - ${m.test_number}: ${m.marks_obtained}')" title="Delete Mark">
-                            <i class="fa-solid fa-trash-can"></i>
+                        <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-semibold" onclick="openEditDetailBulkMarkModal(${s.studentid}, '${escapeHtml(s.name)}', '${escapeHtml(s.regno)}', '${escapeHtml(s.department || 'Information Technology')}', '${escapeHtml(s.year || 'Third year')}')" title="Edit 6-Subject Internal Marks">
+                            <i class="fa-solid fa-pen-to-square me-1"></i> Edit Marks
                         </button>
+                    </td>
+                    <td class="text-center">
+                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+                            <i class="fa-solid fa-circle-check me-1"></i> Evaluated
+                        </span>
                     </td>
                 </tr>
             `;
         }).join('');
 
-        countText.innerText = `Showing ${list.length} of ${totalCount} marks records`;
-        renderPagination('marksPagination', totalCount, marksPage, 15, async (p) => {
-            marksPage = p;
-            await loadMarks();
-        });
+        countText.innerText = `Showing ${list.length} student records for internal marks`;
+        const paginationEl = document.getElementById('marksPagination');
+        if (paginationEl) paginationEl.innerHTML = '';
     }
 
-    function openAddMarkModal() {
-        document.getElementById('markForm').reset();
-        document.getElementById('markEditId').value = '';
-        document.getElementById('markModalTitle').innerHTML = '<i class="fa-solid fa-plus text-warning me-2"></i> Add Internal Mark Entry';
-        document.getElementById('markStudentSelectorWrap').style.display = 'block';
-        document.getElementById('markSubjectSelectorWrap').style.display = 'block';
-        document.getElementById('markTestSelectorWrap').style.display = 'block';
-        markModal.show();
+    function openEditDetailBulkMarkModal(studentId, name, regno, dept, year) {
+        currentEditDetailBulkStudentId = studentId;
+        document.getElementById('editDetailBulkStudentId').value = studentId;
+        document.getElementById('editDetailBulkStudentName').innerText = name || 'Student';
+        document.getElementById('editDetailBulkStudentRegNo').innerText = `Register No: ${regno || '--'}`;
+        document.getElementById('editDetailBulkDept').innerText = dept || 'Information Technology';
+        document.getElementById('editDetailBulkYear').innerText = year || 'Third year';
+
+        document.getElementById('editDetailBulkMarkSem').value = "5";
+        document.getElementById('editDetailBulkMarkTest').value = "1";
+
+        if (bulkMarkModal) bulkMarkModal.show();
+        loadEditDetailBulkSubjectsForStudent();
     }
 
-    function openEditMarkModal(id, currentScore, maxMarks) {
-        document.getElementById('markEditId').value = id;
-        document.getElementById('formMarkScore').value = currentScore;
-        document.getElementById('formMarkMax').value = maxMarks || 100;
-        document.getElementById('markModalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square text-warning me-2"></i> Edit Internal Mark';
-        document.getElementById('markStudentSelectorWrap').style.display = 'none';
-        document.getElementById('markSubjectSelectorWrap').style.display = 'none';
-        document.getElementById('markTestSelectorWrap').style.display = 'none';
-        markModal.show();
-    }
+    async function loadEditDetailBulkSubjectsForStudent() {
+        if (!currentEditDetailBulkStudentId) return;
+        const sem = document.getElementById('editDetailBulkMarkSem').value;
+        const test = document.getElementById('editDetailBulkMarkTest').value;
+        const tbody = document.getElementById('editDetailBulkSubjectsTableBody');
+        const statusEl = document.getElementById('editDetailBulkSubjectsStatus');
 
-    async function handleSaveMark(e) {
-        e.preventDefault();
-        const btn = document.getElementById('saveMarkBtn');
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Fetching 6 subjects for Semester ${sem} (Assessment ${test})...</td></tr>`;
+        statusEl.innerText = 'Loading curriculum subjects...';
 
-        const editId = document.getElementById('markEditId').value;
-        const payload = {
-            marks_obtained: parseFloat(document.getElementById('formMarkScore').value),
-            max_marks: parseFloat(document.getElementById('formMarkMax').value)
-        };
-
-        if (!editId) {
-            payload.student_id = document.getElementById('formMarkStudent').value;
-            payload.subject_code = document.getElementById('formMarkSubject').value;
-            payload.test_number = document.getElementById('formMarkTest').value;
-        }
-
-        const url = editId ? `/hod/api/marks/${editId}` : '/hod/api/marks';
-        const method = editId ? 'PUT' : 'POST';
-
-        if (editId) {
-            const idx = allMarks.findIndex(m => m.id == editId);
-            let orig = null;
-            if (idx !== -1) {
-                orig = { ...allMarks[idx] };
-                Object.assign(allMarks[idx], payload);
-                renderMarks(allMarks, allMarks.length);
+        try {
+            const res = await fetch(`/hod/api/marks/student-subjects?student_id=${currentEditDetailBulkStudentId}&semester=${sem}&test_number=${test}`);
+            const data = await res.json();
+            if (res.ok && data.success) {
+                currentEditDetailBulkSubjects = data.subjects || [];
+                renderEditDetailBulkSubjectsTable(currentEditDetailBulkSubjects);
+                statusEl.innerText = `Showing all ${currentEditDetailBulkSubjects.length} subjects`;
+            } else {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-danger"><i class="fa-solid fa-triangle-exclamation me-1"></i> ${data.error || 'Failed to load subjects'}</td></tr>`;
+                statusEl.innerText = 'Error loading subjects';
             }
-            markModal.hide();
-            showAlert('Internal mark score updated instantly!');
+        } catch (e) {
+            console.error('Error fetching student subjects:', e);
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-danger">Network error loading subjects.</td></tr>`;
+            statusEl.innerText = 'Network error';
+        }
+    }
 
-            fetch(url, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            }).then(res => res.json()).then(data => {
-                if (!data.success && !data.id) {
-                    alert(`Error: ${data.error || 'Failed to save marks.'}`);
-                    if (orig && idx !== -1) {
-                        Object.assign(allMarks[idx], orig);
-                        renderMarks(allMarks, allMarks.length);
-                    }
-                }
-            }).catch(err => {
-                console.error(err);
-                alert('Network error while saving marks.');
-            }).finally(() => {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Save Marks';
-            });
+    function renderEditDetailBulkSubjectsTable(subjects) {
+        const tbody = document.getElementById('editDetailBulkSubjectsTableBody');
+        if (!subjects || !subjects.length) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">No curriculum subjects found for this semester.</td></tr>';
+            calcEditDetailBulkTotalSummary();
             return;
         }
 
+        tbody.innerHTML = subjects.map((sub) => {
+            const val = sub.marks_obtained !== null && sub.marks_obtained !== undefined ? sub.marks_obtained : '';
+            const numVal = parseFloat(val);
+            const hasScore = !isNaN(numVal) && val !== '';
+            const isPass = hasScore && numVal >= 50.0;
+            const statusHtml = !hasScore 
+                ? `<span class="badge bg-light text-muted border">Pending</span>`
+                : (isPass ? `<span class="badge bg-success-subtle text-success border border-success-subtle">Pass</span>`
+                          : `<span class="badge bg-danger-subtle text-danger border border-danger-subtle">Fail</span>`);
+
+            return `
+                <tr>
+                    <td class="font-monospace fw-bold text-navy">${sub.subject_code}</td>
+                    <td>
+                        <div class="fw-semibold text-dark">${escapeHtml(sub.subject_name)}</div>
+                        <div class="fs-8 text-muted">Semester ${sub.semester}</div>
+                    </td>
+                    <td class="text-center">
+                        <input type="number" step="0.5" min="0" max="100" 
+                            class="form-control form-control-sm text-center fw-bold fs-6 editdetail-bulk-mark-input"
+                            data-subject-id="${sub.subject_id}" 
+                            data-max-marks="${sub.max_marks || 100}"
+                            value="${val}" 
+                            placeholder="0-100"
+                            oninput="handleEditDetailBulkMarkInputChange(this)">
+                    </td>
+                    <td class="text-center font-monospace text-muted fs-7">/ 100</td>
+                    <td class="text-center status-badge-cell">${statusHtml}</td>
+                </tr>
+            `;
+        }).join('');
+
+        calcEditDetailBulkTotalSummary();
+    }
+
+    function handleEditDetailBulkMarkInputChange(input) {
+        const val = parseFloat(input.value);
+        const cell = input.closest('tr').querySelector('.status-badge-cell');
+        if (isNaN(val) || input.value === '') {
+            cell.innerHTML = `<span class="badge bg-light text-muted border">Pending</span>`;
+        } else if (val >= 50.0) {
+            cell.innerHTML = `<span class="badge bg-success-subtle text-success border border-success-subtle">Pass</span>`;
+        } else {
+            cell.innerHTML = `<span class="badge bg-danger-subtle text-danger border border-danger-subtle">Fail</span>`;
+        }
+        calcEditDetailBulkTotalSummary();
+    }
+
+    function calcEditDetailBulkTotalSummary() {
+        const inputs = document.querySelectorAll('.editdetail-bulk-mark-input');
+        let total = 0;
+        let count = 0;
+        inputs.forEach(inp => {
+            const val = parseFloat(inp.value);
+            if (!isNaN(val)) {
+                total += val;
+                count++;
+            }
+        });
+        const maxTotal = inputs.length * 100;
+        const pct = maxTotal > 0 ? ((total / maxTotal) * 100).toFixed(1) : 0;
+        const summaryEl = document.getElementById('editDetailBulkTotalSummary');
+        if (summaryEl) {
+            summaryEl.innerText = `Total: ${total.toFixed(1)} / ${maxTotal} (${pct}%) — ${count}/${inputs.length} Subjects Evaluated`;
+        }
+    }
+
+    async function submitEditDetailBulkMarks() {
+        if (!currentEditDetailBulkStudentId) return;
+        const btn = document.getElementById('editDetailSaveBulkMarksBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving to MySQL...';
+
+        const sem = parseInt(document.getElementById('editDetailBulkMarkSem').value || 5);
+        const test = parseInt(document.getElementById('editDetailBulkMarkTest').value || 1);
+
+        const inputs = document.querySelectorAll('.editdetail-bulk-mark-input');
+        const marksPayload = [];
+        inputs.forEach(inp => {
+            const subId = parseInt(inp.getAttribute('data-subject-id'));
+            const val = inp.value.trim();
+            if (subId && val !== '') {
+                marksPayload.push({
+                    subject_id: subId,
+                    marks_obtained: parseFloat(val),
+                    max_marks: parseFloat(inp.getAttribute('data-max-marks') || 100)
+                });
+            }
+        });
+
+        if (!marksPayload.length) {
+            alert('Please enter marks for at least one subject.');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-floppy-disk me-1"></i> Save All 6 Marks';
+            return;
+        }
+
+        // Optimistic UI close & flash
+        if (bulkMarkModal) bulkMarkModal.hide();
+        showAlert(`Internal marks for all 6 subjects updated successfully!`, 'success');
+
+        const row = document.getElementById(`editDetailRow-studentmark-${currentEditDetailBulkStudentId}`);
+        if (row) {
+            row.classList.remove('row-updated-flash');
+            void row.offsetWidth;
+            row.classList.add('row-updated-flash');
+        }
+
         try {
-            const res = await fetch(url, {
-                method: method,
+            const res = await fetch('/hod/api/marks/batch', {
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                body: JSON.stringify({
+                    student_id: currentEditDetailBulkStudentId,
+                    semester: sem,
+                    test_number: test,
+                    marks: marksPayload
+                })
             });
             const data = await res.json();
-            if (res.ok && data.success) {
-                markModal.hide();
-                showAlert(`Internal mark details updated successfully!`);
-                await loadMarks(true);
-            } else {
-                alert(`Error: ${data.error || 'Failed to save marks.'}`);
+            if (!res.ok || !data.success) {
+                showAlert(`Error saving marks: ${data.error || 'Server error'}`, 'danger');
             }
-        } catch (err) {
-            console.error(err);
-            alert('Network error while saving marks.');
+        } catch (e) {
+            console.error('Batch save error:', e);
+            showAlert('Network error while saving marks to live database.', 'danger');
         } finally {
             btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Save Marks';
+            btn.innerHTML = '<i class="fa-solid fa-floppy-disk me-1"></i> Save All 6 Marks';
         }
     }
 
