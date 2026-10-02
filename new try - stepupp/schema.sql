@@ -121,3 +121,19 @@ CREATE INDEX idx_audit_tbl_time ON audit_log (table_name, changed_at);
 CREATE INDEX idx_mcr_staff_stat ON mark_correction_requests (staff_id, status);
 CREATE INDEX idx_mcr_stud_stat ON mark_correction_requests (student_id, status);
 
+-- Internal marks uniqueness constraint (prevent duplicates on student + subject + test)
+ALTER TABLE internal_marks ADD UNIQUE KEY uq_student_subject_test (student_id, subject_id, test_number);
+
+-- Upload Log Table Schema (tracks marks sheet upload history)
+CREATE TABLE IF NOT EXISTS upload_log (
+    id           INT AUTO_INCREMENT PRIMARY KEY,
+    uploaded_by  VARCHAR(100) NOT NULL,
+    subject_id   INT NOT NULL,
+    test_number  INT NOT NULL,
+    filename     VARCHAR(255) NOT NULL,
+    rows_saved   INT NOT NULL DEFAULT 0,
+    uploaded_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_upload_subj (subject_id),
+    INDEX idx_upload_time (uploaded_at)
+);
+

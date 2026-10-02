@@ -2,10 +2,15 @@
 {% block title %}Staff Dashboard - Subject Analytics{% endblock %}
 
 {% block content %}
-<div class="page-header">
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
     <div>
         <h1 class="page-title"><i class="fa-solid fa-chalkboard-user me-2 text-gold"></i> Staff Subject Analytics Dashboard</h1>
         <div class="page-subtitle">Academic performance analytics for your assigned subjects</div>
+    </div>
+    <div>
+        <a href="{{ url_for('marks_upload.upload_page') }}" class="btn btn-campus-orange btn-sm shadow-sm fw-bold">
+            <i class="fa-solid fa-file-arrow-up me-2"></i> Upload Marks Sheet
+        </a>
     </div>
 </div>
 
