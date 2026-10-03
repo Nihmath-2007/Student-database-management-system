@@ -1,5 +1,18 @@
 import re
-from rapidfuzz import fuzz
+try:
+    from rapidfuzz import fuzz
+except ImportError:
+    import difflib
+    class FuzzFallback:
+        @staticmethod
+        def ratio(s1, s2):
+            return difflib.SequenceMatcher(None, str(s1), str(s2)).ratio() * 100
+        @staticmethod
+        def token_sort_ratio(s1, s2):
+            t1 = " ".join(sorted(str(s1).split()))
+            t2 = " ".join(sorted(str(s2).split()))
+            return difflib.SequenceMatcher(None, t1, t2).ratio() * 100
+    fuzz = FuzzFallback()
 from config.database import fetch_all, fetch_one
 
 def normalize_text(text):

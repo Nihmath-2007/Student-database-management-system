@@ -1,6 +1,9 @@
 import os
 import re
-import cv2
+try:
+    import cv2
+except ImportError:
+    cv2 = None
 import numpy as np
 from PIL import Image
 
@@ -12,6 +15,9 @@ def preprocess_image_for_ocr(img_input):
     3. Calculates deskew angle and rotates
     4. Applies Otsu / Adaptive thresholding
     """
+    if cv2 is None:
+        raise ImportError("OpenCV ('cv2') is required for OCR image processing. Please install it using 'pip install opencv-python'.")
+
     # 1. Convert input to cv2 numpy array (BGR)
     if isinstance(img_input, str):
         cv_img = cv2.imread(img_input)
