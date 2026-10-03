@@ -1,0 +1,573 @@
+{% extends "base.html" %}
+
+{% block title %}Review Extracted Marks - {{ subject.subject_name }}{% endblock %}
+{% block breadcrumb %}Review Marks{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+
+    <!-- HERO HEADER & SUMMARY CARD -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-4">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <div>
+                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-3 py-1 rounded-pill fs-8 mb-2">
+                        <i class="fa-solid fa-clipboard-check me-1"></i> Step 2 of 2: Review & Confirmation
+                    </span>
+                    <h2 class="fw-bold text-navy mb-1">
+                        Review Extracted Marks
+                    </h2>
+                    <p class="text-muted mb-0 fs-7">
+                        Review student mapping and marks extracted from <code>{{ original_filename }}</code>. Verify or modify any entry before committing to the database.
+                    </p>
+                </div>
+                
+                <!-- ACTION BUTTONS -->
+                <div class="d-flex align-items-center gap-2">
+                    <a href="{{ url_for('marks_upload.upload_page') }}" class="btn btn-outline-secondary btn-sm rounded-3">
+                        <i class="fa-solid fa-arrow-left me-1"></i> Discard & Re-upload
+                    </a>
+                    <button type="button" class="btn btn-campus-orange btn-sm fw-bold px-4 rounded-3 shadow-sm" id="confirmSaveTopBtn">
+                        <i class="fa-solid fa-floppy-disk me-1"></i> Confirm & Save
+                    </button>
+                </div>
+            </div>
+
+            <hr class="my-3 text-muted opacity-25">
+
+            <!-- METRIC CHIPS -->
+            <div class="row g-3 text-center text-sm-start">
+                <div class="col-6 col-md-3">
+                    <div class="p-3 bg-light rounded-3 border">
+                        <div class="text-muted fs-8 mb-1">Subject & Code</div>
+                        <div class="fw-bold text-navy text-truncate" title="{{ subject.subject_name }}">
+                            {{ subject.subject_name }}
+                        </div>
+                        <div class="fs-9 text-secondary">{{ subject.subject_code }} &bull; Sem {{ subject.semester }}</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="p-3 bg-light rounded-3 border">
+                        <div class="text-muted fs-8 mb-1">Assessment Level</div>
+                        <div class="fw-bold text-navy">Test {{ test_number }}</div>
+                        <div class="fs-9 text-secondary">Max Marks: <strong id="maxMarksValue">{{ max_marks }}</strong></div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="p-3 bg-light rounded-3 border">
+                        <div class="text-muted fs-8 mb-1">Total Extracted</div>
+                        <div class="fw-bold text-navy fs-5" id="totalRowsCount">{{ rows|length }}</div>
+                        <div class="fs-9 text-secondary">Students detected</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="p-3 bg-light rounded-3 border d-flex flex-column justify-content-center">
+                        <div class="text-muted fs-8 mb-1">Status Breakdown</div>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <span class="badge bg-success-subtle text-success fs-9" id="matchedCountBadge">
+                                <i class="fa-solid fa-check me-1"></i>{{ matched_count }} Matched
+                            </span>
+                            <span class="badge bg-warning-subtle text-warning-emphasis fs-9" id="reviewCountBadge">
+                                <i class="fa-solid fa-triangle-exclamation me-1"></i>{{ review_count }} Review
+                            </span>
+                            <span class="badge bg-danger-subtle text-danger fs-9" id="notFoundCountBadge">
+                                <i class="fa-solid fa-xmark me-1"></i>{{ not_found_count }} Not Found
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- INSTRUCTION BANNER -->
+    <div class="alert alert-info border-0 shadow-sm rounded-4 d-flex align-items-center gap-3 mb-4">
+        <i class="fa-solid fa-circle-info fs-4 text-primary"></i>
+        <div class="fs-7">
+            <strong>Required Review Step:</strong> No marks are written to the database until you click <strong>Confirm & Save</strong>.
+            You can edit extracted names, select or change matched students, adjust marks, or delete rows.
+            Marks must be between <strong>0 and {{ max_marks }}</strong>, or <strong>AB</strong> for absent. Invalid marks are highlighted in red.
+        </div>
+    </div>
+
+    <!-- MARKS REVIEW TABLE CARD -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+        <div class="card-header bg-white border-bottom py-3 px-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <span class="fw-bold text-navy fs-6">
+                    <i class="fa-solid fa-table-list text-orange me-2"></i>Review Extracted Student Marks
+                </span>
+                <span class="badge bg-light text-muted border fs-8" id="tableRowCountBadge">{{ rows|length }} rows</span>
+            </div>
+            
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-sm btn-outline-primary rounded-3" id="addNewRowBtn">
+                    <i class="fa-solid fa-plus me-1"></i> Add Student Row
+                </button>
+            </div>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="reviewMarksTable">
+                    <thead class="table-light text-navy fs-7">
+                        <tr>
+                            <th class="ps-4" style="width: 50px;">#</th>
+                            <th style="min-width: 200px;">Extracted Name / Text</th>
+                            <th style="min-width: 280px;">Matched Student in Database <span class="text-danger">*</span></th>
+                            <th style="width: 140px;">Mark (Max: {{ max_marks }}) <span class="text-danger">*</span></th>
+                            <th style="min-width: 150px;">Match Status</th>
+                            <th class="pe-4 text-center" style="width: 80px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reviewTableBody" class="fs-7">
+                        {% for r in rows %}
+                        <tr class="review-row" id="row-{{ loop.index }}" data-row-id="{{ loop.index }}">
+                            <!-- ROW NUMBER -->
+                            <td class="ps-4 text-muted fw-bold row-index-cell">{{ loop.index }}</td>
+
+                            <!-- EXTRACTED NAME / IDENTIFIER (EDITABLE) -->
+                            <td>
+                                <input type="text" class="form-control form-control-sm row-extracted-name rounded-2" 
+                                       value="{{ r.extracted_name or r.raw_identifier }}" 
+                                       placeholder="Extracted name or regno" title="Original: {{ r.line_text }}">
+                                {% if r.extracted_regno %}
+                                <div class="fs-9 text-muted mt-1">
+                                    <i class="fa-regular fa-id-badge me-1"></i>Reg No: <code>{{ r.extracted_regno }}</code>
+                                </div>
+                                {% endif %}
+                            </td>
+
+                            <!-- MATCHED STUDENT DROPDOWN -->
+                            <td>
+                                <select class="form-select form-select-sm row-student-select rounded-2" required>
+                                    <option value="" {% if not r.matched_student_id %}selected{% endif %}>-- Not Matched / Select Student --</option>
+                                    {% for stud in eligible_students %}
+                                    <option value="{{ stud.studentid }}" 
+                                            data-name="{{ stud.name }}" 
+                                            data-regno="{{ stud.regno }}"
+                                            {% if r.matched_student_id == stud.studentid %}selected{% endif %}>
+                                        {{ stud.regno }} - {{ stud.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="fs-9 text-muted mt-1 row-reason-text">
+                                    <i class="fa-solid fa-circle-dot me-1 text-secondary"></i>{{ r.reason }}
+                                </div>
+                            </td>
+
+                            <!-- MARK INPUT (WITH REAL-TIME NUMERIC & ABSENT VALIDATION) -->
+                            <td>
+                                <div class="position-relative">
+                                    <input type="text" class="form-control form-control-sm text-center fw-bold row-mark-input rounded-2" 
+                                           value="{{ r.mark }}" 
+                                           data-max="{{ max_marks }}"
+                                           placeholder="e.g. 84 or AB">
+                                    <div class="mark-error-msg d-none fs-9 text-danger fw-semibold mt-1">
+                                        Invalid (0 - {{ max_marks }} or AB)
+                                    </div>
+                                </div>
+                            </td>
+
+                            <!-- STATUS BADGE -->
+                            <td>
+                                <div class="row-status-container">
+                                    {% if r.status == 'Matched' %}
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded-pill status-badge">
+                                        <i class="fa-solid fa-circle-check me-1"></i> Matched
+                                    </span>
+                                    {% elif r.status == 'Needs Review' %}
+                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1 rounded-pill status-badge">
+                                        <i class="fa-solid fa-triangle-exclamation me-1"></i> Needs Review
+                                    </span>
+                                    {% else %}
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1 rounded-pill status-badge">
+                                        <i class="fa-solid fa-circle-xmark me-1"></i> Not Found
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </td>
+
+                            <!-- DELETE ACTION -->
+                            <td class="pe-4 text-center">
+                                <button type="button" class="btn btn-outline-danger btn-sm rounded-circle p-1 row-delete-btn" 
+                                        style="width: 30px; height: 30px;" title="Delete this row">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- EMPTY STATE IF ALL ROWS DELETED -->
+            <div id="noRowsAlert" class="text-center py-5 d-none">
+                <i class="fa-solid fa-table text-muted fs-1 mb-2 opacity-50"></i>
+                <p class="text-muted mb-3 fs-7">All rows were removed. Click "Add Student Row" to manually add entries or go back.</p>
+                <button type="button" class="btn btn-sm btn-outline-primary" id="addFirstRowBtn">
+                    <i class="fa-solid fa-plus me-1"></i> Add Student Row
+                </button>
+            </div>
+        </div>
+
+        <!-- FOOTER SAVE BAR -->
+        <div class="card-footer bg-light border-top py-3 px-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <div class="fs-8 text-muted">
+                <i class="fa-solid fa-shield-halved text-success me-1"></i>
+                Transactional persistence: updates existing records without duplication; rolls back automatically on error.
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <a href="{{ url_for('marks_upload.upload_page') }}" class="btn btn-outline-secondary btn-sm px-3">
+                    Cancel
+                </a>
+                <button type="button" class="btn btn-campus-orange btn-sm fw-bold px-4 shadow-sm" id="confirmSaveBtn">
+                    <span class="btn-text">
+                        <i class="fa-solid fa-check-double me-1"></i> Confirm & Save All Marks
+                    </span>
+                    <span class="spinner-border spinner-border-sm ms-2 d-none" id="saveSpinner" role="status"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- HIDDEN METADATA -->
+<input type="hidden" id="metaSubjectId" value="{{ subject_id }}">
+<input type="hidden" id="metaTestNumber" value="{{ test_number }}">
+<input type="hidden" id="metaMaxMarks" value="{{ max_marks }}">
+<input type="hidden" id="metaFilename" value="{{ stored_filename }}">
+
+<!-- PASS ELIGIBLE STUDENTS TO JS FOR DYNAMIC ROW ADDITION -->
+<script>
+    window.ELIGIBLE_STUDENTS = [
+        {% for s in eligible_students %}
+        { studentid: {{ s.studentid }}, regno: "{{ s.regno }}", name: "{{ s.name | replace('"', '\\"') }}" }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+    window.MAX_MARKS = {{ max_marks }};
+    window.SAVE_URL = "{{ url_for('marks_upload.save_marks') }}";
+</script>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tableBody = document.getElementById('reviewTableBody');
+    const confirmSaveBtn = document.getElementById('confirmSaveBtn');
+    const confirmSaveTopBtn = document.getElementById('confirmSaveTopBtn');
+    const saveSpinner = document.getElementById('saveSpinner');
+    const addNewRowBtn = document.getElementById('addNewRowBtn');
+    const addFirstRowBtn = document.getElementById('addFirstRowBtn');
+    const noRowsAlert = document.getElementById('noRowsAlert');
+    const maxMarks = window.MAX_MARKS || 100;
+
+    // Validate a single mark input
+    function validateMarkInput(input) {
+        const val = input.value.trim();
+        const errorDiv = input.parentElement.querySelector('.mark-error-msg');
+        
+        if (!val) {
+            // Empty treated as Absent
+            input.classList.remove('is-invalid');
+            input.style.borderColor = '';
+            input.style.backgroundColor = '';
+            if (errorDiv) errorDiv.classList.add('d-none');
+            return true;
+        }
+
+        const upper = val.toUpperCase();
+        if (['AB', 'A', '-', 'ABSENT', 'ABS'].includes(upper)) {
+            input.classList.remove('is-invalid');
+            input.style.borderColor = '';
+            input.style.backgroundColor = '#f8fafc';
+            if (errorDiv) errorDiv.classList.add('d-none');
+            return true;
+        }
+
+        const num = Number(val);
+        if (isNaN(num) || num < 0 || num > maxMarks) {
+            // Highlight in RED
+            input.classList.add('is-invalid');
+            input.style.borderColor = '#dc2626';
+            input.style.backgroundColor = '#fef2f2';
+            if (errorDiv) {
+                errorDiv.textContent = `Must be 0 to ${maxMarks} or AB`;
+                errorDiv.classList.remove('d-none');
+            }
+            return false;
+        }
+
+        // Valid number
+        input.classList.remove('is-invalid');
+        input.style.borderColor = '#10b981';
+        input.style.backgroundColor = '#ffffff';
+        if (errorDiv) errorDiv.classList.add('d-none');
+        return true;
+    }
+
+    // Attach real-time validation to all mark inputs
+    function bindRowEvents(row) {
+        const markInput = row.querySelector('.row-mark-input');
+        const studentSelect = row.querySelector('.row-student-select');
+        const deleteBtn = row.querySelector('.row-delete-btn');
+        const statusContainer = row.querySelector('.row-status-container');
+        const reasonDiv = row.querySelector('.row-reason-text');
+
+        if (markInput) {
+            markInput.addEventListener('input', function() {
+                validateMarkInput(this);
+            });
+            markInput.addEventListener('blur', function() {
+                validateMarkInput(this);
+            });
+            // Initial check
+            validateMarkInput(markInput);
+        }
+
+        if (studentSelect) {
+            studentSelect.addEventListener('change', function() {
+                if (this.value) {
+                    statusContainer.innerHTML = `
+                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded-pill status-badge">
+                            <i class="fa-solid fa-circle-check me-1"></i> Matched
+                        </span>
+                    `;
+                    if (reasonDiv) {
+                        reasonDiv.innerHTML = `<i class="fa-solid fa-user-check me-1 text-success"></i>Manually assigned`;
+                    }
+                } else {
+                    statusContainer.innerHTML = `
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1 rounded-pill status-badge">
+                            <i class="fa-solid fa-circle-xmark me-1"></i> Not Found
+                        </span>
+                    `;
+                    if (reasonDiv) {
+                        reasonDiv.innerHTML = `<i class="fa-solid fa-circle-xmark me-1 text-danger"></i>No student selected`;
+                    }
+                }
+                updateCounters();
+            });
+        }
+
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', function() {
+                row.remove();
+                reindexRows();
+                updateCounters();
+            });
+        }
+    }
+
+    function reindexRows() {
+        const rows = tableBody.querySelectorAll('.review-row');
+        rows.forEach((r, idx) => {
+            const cell = r.querySelector('.row-index-cell');
+            if (cell) cell.textContent = idx + 1;
+        });
+
+        if (rows.length === 0) {
+            noRowsAlert.classList.remove('d-none');
+            document.getElementById('reviewMarksTable').classList.add('d-none');
+        } else {
+            noRowsAlert.classList.add('d-none');
+            document.getElementById('reviewMarksTable').classList.remove('d-none');
+        }
+    }
+
+    function updateCounters() {
+        const rows = tableBody.querySelectorAll('.review-row');
+        let matched = 0, review = 0, notFound = 0;
+
+        rows.forEach(r => {
+            const badge = r.querySelector('.status-badge');
+            if (!badge) return;
+            const text = badge.textContent.trim().toLowerCase();
+            if (text.includes('matched')) matched++;
+            else if (text.includes('review')) review++;
+            else notFound++;
+        });
+
+        document.getElementById('totalRowsCount').textContent = rows.length;
+        document.getElementById('tableRowCountBadge').textContent = rows.length + ' rows';
+        document.getElementById('matchedCountBadge').innerHTML = `<i class="fa-solid fa-check me-1"></i>${matched} Matched`;
+        document.getElementById('reviewCountBadge').innerHTML = `<i class="fa-solid fa-triangle-exclamation me-1"></i>${review} Review`;
+        document.getElementById('notFoundCountBadge').innerHTML = `<i class="fa-solid fa-xmark me-1"></i>${notFound} Not Found`;
+    }
+
+    // Bind all initial rows
+    document.querySelectorAll('.review-row').forEach(bindRowEvents);
+    updateCounters();
+
+    // Add New Row handler
+    function addNewStudentRow() {
+        const currentCount = tableBody.querySelectorAll('.review-row').length;
+        const newIndex = currentCount + 1;
+
+        let optionsHtml = '<option value="" selected>-- Select Student --</option>';
+        if (window.ELIGIBLE_STUDENTS) {
+            window.ELIGIBLE_STUDENTS.forEach(s => {
+                optionsHtml += `<option value="${s.studentid}" data-name="${s.name}" data-regno="${s.regno}">${s.regno} - ${s.name}</option>`;
+            });
+        }
+
+        const tr = document.createElement('tr');
+        tr.className = 'review-row';
+        tr.dataset.rowId = newIndex;
+        tr.innerHTML = `
+            <td class="ps-4 text-muted fw-bold row-index-cell">${newIndex}</td>
+            <td>
+                <input type="text" class="form-control form-control-sm row-extracted-name rounded-2" placeholder="Student name">
+            </td>
+            <td>
+                <select class="form-select form-select-sm row-student-select rounded-2" required>
+                    ${optionsHtml}
+                </select>
+                <div class="fs-9 text-muted mt-1 row-reason-text">
+                    <i class="fa-solid fa-plus me-1 text-primary"></i>Manually added row
+                </div>
+            </td>
+            <td>
+                <div class="position-relative">
+                    <input type="text" class="form-control form-control-sm text-center fw-bold row-mark-input rounded-2" 
+                           placeholder="Mark or AB" data-max="${maxMarks}">
+                    <div class="mark-error-msg d-none fs-9 text-danger fw-semibold mt-1">
+                        Must be 0 to ${maxMarks} or AB
+                    </div>
+                </div>
+            </td>
+            <td>
+                <div class="row-status-container">
+                    <span class="badge bg-secondary-subtle text-secondary border px-2 py-1 rounded-pill status-badge">
+                        <i class="fa-regular fa-clock me-1"></i> Pending
+                    </span>
+                </div>
+            </td>
+            <td class="pe-4 text-center">
+                <button type="button" class="btn btn-outline-danger btn-sm rounded-circle p-1 row-delete-btn" 
+                        style="width: 30px; height: 30px;" title="Delete this row">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </td>
+        `;
+
+        tableBody.appendChild(tr);
+        bindRowEvents(tr);
+        reindexRows();
+        updateCounters();
+    }
+
+    addNewRowBtn.addEventListener('click', addNewStudentRow);
+    if (addFirstRowBtn) addFirstRowBtn.addEventListener('click', addNewStudentRow);
+
+    // CONFIRM & SAVE EXECUTION
+    async function handleConfirmAndSave() {
+        const rows = tableBody.querySelectorAll('.review-row');
+        if (rows.length === 0) {
+            alert('There are no rows to save. Please add at least one student mark row.');
+            return;
+        }
+
+        let hasValidationErrors = false;
+        let unmatchedCount = 0;
+        const payloadRows = [];
+
+        rows.forEach((r, idx) => {
+            const markInput = r.querySelector('.row-mark-input');
+            const studentSelect = r.querySelector('.row-student-select');
+            const extractedNameInput = r.querySelector('.row-extracted-name');
+
+            const isMarkValid = validateMarkInput(markInput);
+            if (!isMarkValid) {
+                hasValidationErrors = true;
+            }
+
+            const studentId = studentSelect ? studentSelect.value : '';
+            if (!studentId) {
+                unmatchedCount++;
+                studentSelect.classList.add('is-invalid');
+                studentSelect.style.borderColor = '#dc2626';
+            } else {
+                studentSelect.classList.remove('is-invalid');
+                studentSelect.style.borderColor = '';
+            }
+
+            const markVal = markInput.value.trim();
+            const upperMark = markVal.toUpperCase();
+            const isAbsent = ['AB', 'A', '-', 'ABSENT', 'ABS', ''].includes(upperMark);
+
+            payloadRows.push({
+                student_id: studentId,
+                mark: isAbsent ? 'AB' : markVal,
+                is_absent: isAbsent,
+                extracted_name: extractedNameInput ? extractedNameInput.value.trim() : ''
+            });
+        });
+
+        if (hasValidationErrors) {
+            alert('Cannot save: One or more marks are invalid (highlighted in red). Please correct the marks before saving.');
+            return;
+        }
+
+        if (unmatchedCount > 0) {
+            alert(`Cannot save: ${unmatchedCount} row(s) have no student selected from the database. Please select the matching student or delete the row(s).`);
+            return;
+        }
+
+        // Confirmation dialog
+        const isConfirmed = confirm(
+            `Are you sure you want to confirm and save marks for ${payloadRows.length} students?\n\n` +
+            `Subject: {{ subject.subject_name }}\nTest Number: {{ test_number }}\nMaximum Marks: ${maxMarks}\n\n` +
+            `Existing entries will be updated without duplicates.`
+        );
+
+        if (!isConfirmed) return;
+
+        // Execute save
+        confirmSaveBtn.disabled = true;
+        if (confirmSaveTopBtn) confirmSaveTopBtn.disabled = true;
+        saveSpinner.classList.remove('d-none');
+        if (window.showLoader) window.showLoader("Saving marks to database and updating data file...");
+
+        try {
+            const response = await fetch(window.SAVE_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    subject_id: document.getElementById('metaSubjectId').value,
+                    test_number: document.getElementById('metaTestNumber').value,
+                    max_marks: document.getElementById('metaMaxMarks').value,
+                    filename: document.getElementById('metaFilename').value,
+                    rows: payloadRows
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                window.location.href = data.redirect_url || "{{ url_for('marks_upload.upload_page') }}";
+            } else {
+                alert('Save Error: ' + (data.error || 'Failed to save marks.'));
+                confirmSaveBtn.disabled = false;
+                if (confirmSaveTopBtn) confirmSaveTopBtn.disabled = false;
+                saveSpinner.classList.add('d-none');
+                if (window.hideLoader) window.hideLoader();
+            }
+        } catch (err) {
+            alert('Network error while saving: ' + err.message);
+            confirmSaveBtn.disabled = false;
+            if (confirmSaveTopBtn) confirmSaveTopBtn.disabled = false;
+            saveSpinner.classList.add('d-none');
+            if (window.hideLoader) window.hideLoader();
+        }
+    }
+
+    confirmSaveBtn.addEventListener('click', handleConfirmAndSave);
+    if (confirmSaveTopBtn) confirmSaveTopBtn.addEventListener('click', handleConfirmAndSave);
+});
+</script>
+{% endblock %}

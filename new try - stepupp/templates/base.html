@@ -107,6 +107,11 @@
                             </a>
                         </li>
                         <li>
+                            <a href="{{ url_for('marks_upload.upload_page') }}" class="sidebar-link-btn {% if request.endpoint in ['marks_upload.upload_page', 'marks_upload.extract_marks'] %}active{% endif %}">
+                                <i class="fa-solid fa-file-arrow-up me-2 text-orange"></i> UPLOAD MARKS
+                            </a>
+                        </li>
+                        <li>
                             <a href="{{ url_for('gallery') }}" class="sidebar-link-btn {% if request.endpoint == 'gallery' %}active{% endif %}">
                                 <i class="fa-solid fa-images me-2"></i> GALLERY
                             </a>
@@ -125,6 +130,11 @@
                         <li>
                             <a href="{{ url_for('staff.marks_page') }}" class="sidebar-link-btn {% if request.endpoint == 'staff.marks_page' %}active{% endif %}">
                                 <i class="fa-solid fa-award me-2"></i> MARKS
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('marks_upload.upload_page') }}" class="sidebar-link-btn {% if request.endpoint in ['marks_upload.upload_page', 'marks_upload.extract_marks'] %}active{% endif %}">
+                                <i class="fa-solid fa-file-arrow-up me-2 text-orange"></i> UPLOAD MARKS
                             </a>
                         </li>
                         <li>
