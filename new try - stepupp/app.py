@@ -26,6 +26,7 @@ from routes.staff import staff_bp
 from routes.student import student_bp
 from routes.csv_upload import csv_bp
 from routes.notifications import notifications_bp
+from routes.marks_upload import marks_bp
 from services.notification_service import get_active_notifications_for_user
 from config.database import fetch_one, fetch_all
 from flask import send_from_directory, flash
@@ -36,6 +37,7 @@ app.register_blueprint(staff_bp)
 app.register_blueprint(student_bp)
 app.register_blueprint(csv_bp)
 app.register_blueprint(notifications_bp)
+app.register_blueprint(marks_bp)
 
 from datetime import timedelta
 import time

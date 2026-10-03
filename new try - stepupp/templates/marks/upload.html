@@ -1,0 +1,357 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Marks{% endblock %}
+{% block breadcrumb %}Upload Marks{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+
+    <!-- HERO HEADER -->
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+        <div>
+            <h2 class="fw-bold text-navy mb-1">
+                <i class="fa-solid fa-file-arrow-up text-orange me-2"></i>Upload Student Marks
+            </h2>
+            <p class="text-muted mb-0 fs-7">
+                Upload internal assessment mark sheets in PDF, JPG, or PNG format. Automatic OCR and table extraction with database matching.
+            </p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <a href="{{ url_for('marks_upload.download_data_file') }}" class="btn btn-outline-secondary btn-sm shadow-sm">
+                <i class="fa-solid fa-file-excel text-success me-1"></i> Download marks_data.xlsx
+            </a>
+            {% if session.get('role') == 'staff' %}
+            <a href="{{ url_for('staff.marks_page') }}" class="btn btn-campus-navy btn-sm">
+                <i class="fa-solid fa-eye me-1"></i> View Portal Marks
+            </a>
+            {% else %}
+            <a href="{{ url_for('hod.dashboard') }}" class="btn btn-campus-navy btn-sm">
+                <i class="fa-solid fa-gauge me-1"></i> Department Dashboard
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- MAIN UPLOAD GRID -->
+    <div class="row g-4 mb-4">
+        
+        <!-- LEFT: UPLOAD FORM -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-bottom py-3 px-4 d-flex align-items-center justify-content-between">
+                    <span class="fw-bold text-navy fs-6">
+                        <i class="fa-solid fa-sliders text-orange me-2"></i>Assessment Details & File Upload
+                    </span>
+                    <span class="badge bg-light text-muted border fs-8">Step 1 of 2</span>
+                </div>
+                <div class="card-body p-4">
+                    <form action="{{ url_for('marks_upload.extract_marks') }}" method="POST" enctype="multipart/form-data" id="marksUploadForm">
+                        
+                        <!-- SUBJECT SELECTION -->
+                        <div class="mb-3">
+                            <label for="subject_id" class="form-label fw-semibold text-navy fs-7">
+                                Subject <span class="text-danger">*</span>
+                            </label>
+                            <select name="subject_id" id="subject_id" class="form-select form-select-lg fs-7 rounded-3" required>
+                                <option value="" disabled selected>-- Select Subject --</option>
+                                {% for sub in subjects %}
+                                <option value="{{ sub.subjectid }}">
+                                    [{{ sub.subject_code }}] {{ sub.subject_name }} &bull; Sem {{ sub.semester }}
+                                    {% if sub.staff_name %}({{ sub.staff_name }}){% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text fs-8 text-muted">
+                                Students will be matched only against the class/semester corresponding to this subject.
+                            </div>
+                        </div>
+
+                        <!-- TEST NUMBER & MAX MARKS ROW -->
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label for="test_number" class="form-label fw-semibold text-navy fs-7">
+                                    Test Number <span class="text-danger">*</span>
+                                </label>
+                                <select name="test_number" id="test_number" class="form-select rounded-3" required>
+                                    <option value="1" selected>Test 1 (Internal Assessment 1)</option>
+                                    <option value="2">Test 2 (Internal Assessment 2)</option>
+                                    <option value="3">Test 3 (Internal Assessment 3)</option>
+                                    <option value="4">Test 4 (Assignment / Quiz)</option>
+                                    <option value="5">Test 5 (Model Examination)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="max_marks" class="form-label fw-semibold text-navy fs-7">
+                                    Maximum Marks <span class="text-danger">*</span>
+                                </label>
+                                <input type="number" name="max_marks" id="max_marks" class="form-control rounded-3" 
+                                       value="100" min="1" max="1000" step="any" required>
+                                <div class="form-text fs-8 text-muted">Common values: 50, 100</div>
+                            </div>
+                        </div>
+
+                        <!-- FILE UPLOAD DROPZONE -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold text-navy fs-7">
+                                Marks Sheet Document <span class="text-danger">*</span>
+                            </label>
+                            
+                            <div class="upload-dropzone border-2 border-dashed rounded-4 p-4 text-center bg-light position-relative" id="dropZoneArea">
+                                <input type="file" name="file" id="marksFileInput" 
+                                       class="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer" 
+                                       accept=".pdf,.jpg,.jpeg,.png" required>
+                                
+                                <div id="dropZonePrompt">
+                                    <div class="upload-icon-circle mx-auto mb-3 bg-white text-orange rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width: 58px; height: 58px; font-size: 24px;">
+                                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                                    </div>
+                                    <h6 class="fw-bold text-navy mb-1">Click to select or drag & drop file here</h6>
+                                    <p class="text-muted fs-8 mb-2">
+                                        Supports <span class="badge bg-white text-dark border">PDF</span> 
+                                        <span class="badge bg-white text-dark border">JPG</span> 
+                                        <span class="badge bg-white text-dark border">JPEG</span> 
+                                        <span class="badge bg-white text-dark border">PNG</span>
+                                    </p>
+                                    <span class="badge bg-secondary-subtle text-secondary px-3 py-1 fs-9 rounded-pill">
+                                        <i class="fa-solid fa-shield-halved me-1"></i> Max File Size: 10 MB
+                                    </span>
+                                </div>
+
+                                <!-- FILE SELECTION PREVIEW CHIP -->
+                                <div id="selectedFileInfo" class="d-none mt-2">
+                                    <div class="d-inline-flex align-items-center gap-2 bg-white px-3 py-2 rounded-pill shadow-sm border">
+                                        <i class="fa-solid fa-file-circle-check text-success fs-5"></i>
+                                        <div class="text-start">
+                                            <div class="fw-bold text-navy fs-8 text-truncate" id="fileNameDisplay" style="max-width: 250px;">filename.pdf</div>
+                                            <div class="text-muted fs-9" id="fileSizeDisplay">0.0 MB</div>
+                                        </div>
+                                        <button type="button" class="btn btn-sm btn-link text-danger p-0 ms-2" id="clearFileBtn" title="Remove file">
+                                            <i class="fa-solid fa-xmark"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SUBMIT BUTTON -->
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-campus-orange py-2 fs-7 fw-bold shadow-sm" id="uploadSubmitBtn">
+                                <span class="btn-text">
+                                    <i class="fa-solid fa-bolt me-2"></i>Extract & Review Marks
+                                </span>
+                                <span class="spinner-border spinner-border-sm ms-2 d-none" id="uploadSpinner" role="status" aria-hidden="true"></span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: GUIDELINES & SPECIFICATION CARD -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
+                <div class="card-header bg-white border-bottom py-3 px-4">
+                    <span class="fw-bold text-navy fs-6">
+                        <i class="fa-solid fa-circle-info text-orange me-2"></i>Extraction & Matching Engine
+                    </span>
+                </div>
+                <div class="card-body p-4">
+                    
+                    <!-- FEATURE 1 -->
+                    <div class="d-flex align-items-start gap-3 mb-3">
+                        <div class="rounded-3 bg-primary-subtle text-primary p-2 fs-6">
+                            <i class="fa-solid fa-file-lines"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold text-navy mb-1 fs-7">Dual PDF Processing</h6>
+                            <p class="text-muted fs-8 mb-0">
+                                Digital PDFs are parsed via <code>pdfplumber</code> table extraction. Scanned PDFs are rendered into high-res images and processed via OpenCV and OCR.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- FEATURE 2 -->
+                    <div class="d-flex align-items-start gap-3 mb-3">
+                        <div class="rounded-3 bg-warning-subtle text-warning p-2 fs-6">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold text-navy mb-1 fs-7">Image Enhancement & Deskew</h6>
+                            <p class="text-muted fs-8 mb-0">
+                                OpenCV applies automatic rotation angle detection, deskew affine transform, grayscale filtering, and Otsu adaptive thresholding.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- FEATURE 3 -->
+                    <div class="d-flex align-items-start gap-3 mb-3">
+                        <div class="rounded-3 bg-success-subtle text-success p-2 fs-6">
+                            <i class="fa-solid fa-magnifying-glass-chart"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold text-navy mb-1 fs-7">Smart Database Matching</h6>
+                            <p class="text-muted fs-8 mb-0">
+                                Matches first by <strong>Register Number</strong> (regno). If absent, runs <strong>RapidFuzz</strong> token sort matching with a 90% threshold against students of the selected semester.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- FEATURE 4 -->
+                    <div class="d-flex align-items-start gap-3 mb-3">
+                        <div class="rounded-3 bg-danger-subtle text-danger p-2 fs-6">
+                            <i class="fa-solid fa-user-xmark"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold text-navy mb-1 fs-7">Absentee Handling</h6>
+                            <p class="text-muted fs-8 mb-0">
+                                Entries denoted as <code>AB</code>, <code>A</code>, <code>-</code>, or blank are flagged as Absent and preserved without setting them to 0.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- FORMAT BOX -->
+                    <div class="p-3 bg-light rounded-3 border mt-3">
+                        <div class="fw-bold text-navy fs-8 mb-1">Supported Line Formats:</div>
+                        <div class="text-muted fs-9 mb-1"><span class="badge bg-secondary-subtle text-dark">Format A</span> <code>911524205001 ABICHETHRA P 84</code></div>
+                        <div class="text-muted fs-9"><span class="badge bg-secondary-subtle text-dark">Format B</span> <code>ABICHETHRA P 84</code> (or <code>AB</code>)</div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- RECENT UPLOADS LOG TABLE -->
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header bg-white border-bottom py-3 px-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div>
+                <span class="fw-bold text-navy fs-6">
+                    <i class="fa-solid fa-clock-rotate-left text-orange me-2"></i>Recent Marks Upload Log
+                </span>
+                <span class="text-muted fs-8 ms-2">Immutable audit records from <code>upload_log</code></span>
+            </div>
+            <a href="{{ url_for('marks_upload.download_data_file') }}" class="btn btn-sm btn-outline-success">
+                <i class="fa-solid fa-download me-1"></i> Export marks_data.xlsx
+            </a>
+        </div>
+        <div class="card-body p-0">
+            {% if recent_uploads and recent_uploads|length > 0 %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 fs-7">
+                    <thead class="table-light text-navy">
+                        <tr>
+                            <th class="ps-4">ID</th>
+                            <th>Subject</th>
+                            <th>Test #</th>
+                            <th>Uploaded File</th>
+                            <th>Rows Saved</th>
+                            <th>Uploaded By</th>
+                            <th class="pe-4 text-end">Date & Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in recent_uploads %}
+                        <tr>
+                            <td class="ps-4 text-muted fw-semibold">#{{ log.id }}</td>
+                            <td>
+                                <span class="fw-bold text-navy">{{ log.subject_name or 'N/A' }}</span>
+                                {% if log.subject_code %}<span class="badge bg-light text-muted border ms-1">{{ log.subject_code }}</span>{% endif %}
+                            </td>
+                            <td><span class="badge bg-primary-subtle text-primary">Test {{ log.test_number }}</span></td>
+                            <td class="text-truncate" style="max-width: 220px;" title="{{ log.filename }}">
+                                <i class="fa-regular fa-file me-1 text-muted"></i>{{ log.filename }}
+                            </td>
+                            <td>
+                                <span class="badge bg-success-subtle text-success fw-bold">
+                                    <i class="fa-solid fa-check me-1"></i>{{ log.rows_saved }} rows
+                                </span>
+                            </td>
+                            <td class="text-muted fs-8">{{ log.uploaded_by }}</td>
+                            <td class="pe-4 text-end text-muted fs-8">
+                                {{ log.uploaded_at.strftime('%d-%b-%Y %I:%M %p') if log.uploaded_at else 'Recent' }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5 text-muted">
+                <i class="fa-solid fa-folder-open fs-2 mb-2 text-secondary opacity-50"></i>
+                <p class="mb-0 fs-7">No mark sheets have been uploaded yet. Upload your first sheet above!</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('marksFileInput');
+    const dropZone = document.getElementById('dropZoneArea');
+    const promptDiv = document.getElementById('dropZonePrompt');
+    const infoDiv = document.getElementById('selectedFileInfo');
+    const nameDisplay = document.getElementById('fileNameDisplay');
+    const sizeDisplay = document.getElementById('fileSizeDisplay');
+    const clearBtn = document.getElementById('clearFileBtn');
+    const uploadForm = document.getElementById('marksUploadForm');
+    const submitBtn = document.getElementById('uploadSubmitBtn');
+    const spinner = document.getElementById('uploadSpinner');
+
+    fileInput.addEventListener('change', function(e) {
+        if (this.files && this.files.length > 0) {
+            const file = this.files[0];
+            const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+
+            if (file.size > 10 * 1024 * 1024) {
+                alert('File size exceeds the 10 MB limit. Please select a smaller file.');
+                this.value = '';
+                return;
+            }
+
+            nameDisplay.textContent = file.name;
+            sizeDisplay.textContent = sizeMB + ' MB';
+            promptDiv.classList.add('d-none');
+            infoDiv.classList.remove('d-none');
+        }
+    });
+
+    clearBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        fileInput.value = '';
+        infoDiv.classList.add('d-none');
+        promptDiv.classList.remove('d-none');
+    });
+
+    // Drag-over styling
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.add('border-primary', 'bg-white');
+        }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.remove('border-primary', 'bg-white');
+        }, false);
+    });
+
+    uploadForm.addEventListener('submit', function() {
+        submitBtn.disabled = true;
+        spinner.classList.remove('d-none');
+        if (window.showLoader) {
+            window.showLoader("Extracting marks from file & matching students...");
+        }
+    });
+});
+</script>
+{% endblock %}
