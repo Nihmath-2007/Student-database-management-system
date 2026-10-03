@@ -84,11 +84,13 @@ def _find_tesseract_cmd():
         r"C:\Program Files\Tesseract-OCR\tesseract.exe",
         r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
         os.path.expandvars(r"%LOCALAPPDATA%\Programs\Tesseract-OCR\tesseract.exe"),
+        r"C:\Tesseract-OCR\tesseract.exe",
+        os.path.join(os.getcwd(), "tesseract-installer.exe"),
         "/usr/bin/tesseract",
         "/usr/local/bin/tesseract"
     ]
     for path in candidates:
-        if os.path.isfile(path):
+        if os.path.isfile(path) and path.endswith("tesseract.exe"):
             return path
     return None
 
@@ -346,12 +348,14 @@ def extract_from_image_ocr(image_input):
     if tess_path:
         pytesseract.pytesseract.tesseract_cmd = tess_path
     else:
-        # Check if pytesseract default works, otherwise raise actionable error
         import shutil
         if not shutil.which("tesseract"):
             raise FileNotFoundError(
-                "Tesseract OCR executable was not found on the system. "
-                "Please install Tesseract OCR or upload a selectable-text PDF / provide a Vision API key."
+                "Tesseract OCR executable was not found on the system.\n\n"
+                "To resolve this, please choose one of the following:\n"
+                "1. Double-click 'install_tesseract.bat' in your project root to run the installer, or run:\n"
+                "   winget install UB-Mannheim.TesseractOCR\n"
+                "2. OR add GEMINI_API_KEY in your .env file to enable Google Gemini Vision AI (ideal for handwritten mark sheets)."
             )
 
     processed_cv = preprocess_image_for_ocr(image_input)
@@ -383,46 +387,155 @@ def extract_from_image_ocr(image_input):
 def extract_with_vision_api(file_path_or_image, api_key=None, provider="gemini"):
     """
     Modular vision / LLM API extractor function for images and scanned PDFs.
-    Allows easy swapping with external vision APIs (Gemini or OpenAI).
+    Uses Google Gemini Vision API to accurately extract handwritten marks sheets and tabular data.
     """
-    key = api_key or os.getenv('GEMINI_API_KEY') or os.getenv('VISION_API_KEY') or os.getenv('OPENAI_API_KEY')
-    if not key:
-        raise ValueError("No Vision/LLM API key provided. Set GEMINI_API_KEY or OPENAI_API_KEY.")
+    import io
+    import json
+    import base64
+    import urllib.request
+    import urllib.error
 
-    # Implementation hook for external vision model
-    # Formulates JSON output: [{"raw_identifier": ..., "raw_name": ..., "raw_regno": ..., "raw_mark": ..., "is_absent": ...}]
-    # Pluggable placeholder that can be invoked whenever API key is supplied by user
-    raise NotImplementedError("Vision API integration is pluggable and ready to connect when API key is provided.")
+    key = api_key or os.getenv('GEMINI_API_KEY') or os.getenv('VISION_API_KEY')
+    if not key:
+        raise ValueError("No Vision API key provided. Set GEMINI_API_KEY in your .env file.")
+
+    # Convert input to JPEG bytes
+    if isinstance(file_path_or_image, str):
+        with open(file_path_or_image, 'rb') as f:
+            img_bytes = f.read()
+    elif isinstance(file_path_or_image, Image.Image):
+        buf = io.BytesIO()
+        file_path_or_image.save(buf, format='JPEG')
+        img_bytes = buf.getvalue()
+    elif hasattr(file_path_or_image, 'read'):
+        img_bytes = file_path_or_image.read()
+    else:
+        raise ValueError("Unsupported input format for Vision API.")
+
+    b64_data = base64.b64encode(img_bytes).decode('utf-8')
+
+    prompt = (
+        "You are an expert academic data extraction system. "
+        "Extract all student marks from this mark statement table. "
+        "Carefully read all rows and parallel/side-by-side tables if present. "
+        "For each student row, extract: \n"
+        "- 'raw_identifier': register number (e.g. '911524205001' or '5001') or student name\n"
+        "- 'raw_regno': the register number digits if available, else null\n"
+        "- 'raw_name': the student name in uppercase\n"
+        "- 'raw_mark': the marks obtained as written (e.g. '46', '48', 'AB', 'A')\n"
+        "- 'cleaned_mark': numerical score as float or int, or null if absent\n"
+        "- 'is_absent': boolean true if absent ('AB', 'A', '-', 'ABSENT'), false otherwise\n\n"
+        "Return ONLY a valid JSON array of these objects."
+    )
+
+    model_name = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={key}"
+    payload = {
+        "contents": [
+            {
+                "parts": [
+                    {"text": prompt},
+                    {
+                        "inline_data": {
+                            "mime_type": "image/jpeg",
+                            "data": b64_data
+                        }
+                    }
+                ]
+            }
+        ],
+        "generationConfig": {
+            "response_mime_type": "application/json",
+            "temperature": 0.1
+        }
+    }
+
+    req_data = json.dumps(payload).encode('utf-8')
+    req = urllib.request.Request(
+        url,
+        data=req_data,
+        headers={"Content-Type": "application/json"},
+        method="POST"
+    )
+
+    try:
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            resp_body = resp.read().decode('utf-8')
+            res_json = json.loads(resp_body)
+            content = res_json['candidates'][0]['content']['parts'][0]['text']
+            clean_content = re.sub(r'^```(?:json)?\s*', '', content.strip())
+            clean_content = re.sub(r'\s*```$', '', clean_content.strip())
+            records = json.loads(clean_content)
+
+            formatted_records = []
+            for r in records:
+                c_mark, is_ab = clean_mark_value(r.get('raw_mark'))
+                reg = str(r.get('raw_regno') or '').strip() or None
+                name = str(r.get('raw_name') or '').strip()
+                ident = str(r.get('raw_identifier') or reg or name).strip()
+                formatted_records.append({
+                    'raw_identifier': ident,
+                    'raw_regno': reg,
+                    'raw_name': name,
+                    'raw_mark': str(r.get('raw_mark', '')),
+                    'cleaned_mark': c_mark if c_mark is not None else r.get('cleaned_mark'),
+                    'is_absent': is_ab or bool(r.get('is_absent')),
+                    'line_text': f"{reg or ''} {name} {r.get('raw_mark', '')}".strip()
+                })
+            return formatted_records
+    except urllib.error.HTTPError as e:
+        err_text = e.read().decode('utf-8', errors='ignore')
+        raise RuntimeError(f"Gemini Vision API error ({e.code}): {err_text}")
+    except Exception as e:
+        raise RuntimeError(f"Vision API extraction failed: {str(e)}")
 
 
 def extract_marks_from_file(file_path, filename):
     """
     Main extraction orchestrator:
     1. For PDF files: First tries selectable-text extraction with pdfplumber.
-    2. If PDF has no text (scanned PDF), renders pages to images and runs OCR.
-    3. For Image files (JPG, JPEG, PNG), applies OpenCV pre-processing and OCR.
+    2. If PDF has no text (scanned PDF), renders pages to images and runs Gemini Vision or OCR.
+    3. For Image files (JPG, JPEG, PNG):
+       - If GEMINI_API_KEY is configured, uses Gemini Vision AI (ideal for handwritten mark sheets).
+       - Otherwise, falls back to OpenCV pre-processing and local Tesseract OCR.
     Returns: list of extracted student mark records.
     """
     ext = os.path.splitext(filename)[1].lower()
+    has_vision_key = bool(os.getenv('GEMINI_API_KEY') or os.getenv('VISION_API_KEY'))
 
     if ext == '.pdf':
         try:
             records = extract_from_pdf_text(file_path)
             if records and len(records) > 0:
                 return records
-            print("PDF has no selectable text table rows; proceeding to OCR image extraction...")
+            print("PDF has no selectable text table rows; proceeding to image OCR / Vision extraction...")
         except Exception as e:
-            print(f"pdfplumber text extraction failed or empty ({e}), falling back to OCR...")
+            print(f"pdfplumber text extraction failed or empty ({e}), falling back to image extraction...")
 
-        # Scanned PDF: convert pages to images then run OCR
+        # Scanned PDF: convert pages to images then run Vision or OCR
         images = convert_pdf_to_images(file_path)
         all_records = []
         for img in images:
+            if has_vision_key:
+                try:
+                    vision_records = extract_with_vision_api(img)
+                    if vision_records:
+                        all_records.extend(vision_records)
+                        continue
+                except Exception as ve:
+                    print(f"Gemini Vision API error ({ve}), falling back to Tesseract OCR...")
             page_records = extract_from_image_ocr(img)
             all_records.extend(page_records)
         return all_records
 
     elif ext in ('.jpg', '.jpeg', '.png'):
+        if has_vision_key:
+            try:
+                vision_records = extract_with_vision_api(file_path)
+                if vision_records:
+                    return vision_records
+            except Exception as ve:
+                print(f"Gemini Vision API error ({ve}), falling back to Tesseract OCR...")
         return extract_from_image_ocr(file_path)
 
     else:

@@ -81,10 +81,16 @@ def upload_page():
         LIMIT 10
     """) or []
 
+    from services.marks_extractor import _find_tesseract_cmd
+    tesseract_ready = bool(_find_tesseract_cmd())
+    vision_ready = bool(os.getenv('GEMINI_API_KEY') or os.getenv('VISION_API_KEY'))
+
     return render_template(
         'marks/upload.html',
         subjects=subjects,
-        recent_uploads=recent_uploads
+        recent_uploads=recent_uploads,
+        tesseract_ready=tesseract_ready,
+        vision_ready=vision_ready
     )
 
 
