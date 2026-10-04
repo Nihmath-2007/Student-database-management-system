@@ -5,11 +5,11 @@
 {% block content %}
 <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3">
     <div>
-        <h1 class="page-title"><i class="fa-solid fa-pen-to-square me-2 text-warning"></i> Master Edit Details Hub</h1>
+        <h1 class="page-title"><i class="fa-solid fa-pen-to-square me-2 text-navy"></i> Master Edit Details Hub</h1>
         <div class="page-subtitle">Centralized administrative console to add, edit, inspect, and update live records across all department entities</div>
     </div>
     <div class="d-flex gap-2">
-        <button class="btn btn-warning text-dark fw-bold px-3 shadow-sm" onclick="openActiveTabAddModal()">
+        <button class="btn btn-navy text-white fw-bold px-3 shadow-sm" onclick="openActiveTabAddModal()">
             <i class="fa-solid fa-plus me-1"></i> <span id="quickAddBtnLabel">Add Record</span>
         </button>
         <button class="btn btn-outline-secondary fs-7" onclick="refreshActiveTab()">
@@ -55,7 +55,7 @@
     </div>
     <div class="col-xl-2 col-md-4 col-sm-6">
         <div class="kpi-card text-center p-3 h-100" style="cursor: pointer;" onclick="switchEditTab('marks')" title="Click to edit marks">
-            <div class="kpi-icon mx-auto mb-2 text-warning" style="background: rgba(255, 193, 7, 0.15);">
+            <div class="kpi-icon mx-auto mb-2 text-navy" style="background: rgba(11, 26, 48, 0.1);">
                 <i class="fa-solid fa-award"></i>
             </div>
             <div class="kpi-value fs-4" id="statMarksCount">--</div>
@@ -126,19 +126,19 @@
     <!-- TAB 1: STUDENT DETAILS -->
     <!-- ========================================== -->
     <div class="tab-pane fade show active" id="tabStudentsPane" role="tabpanel">
-        <div class="analytics-card mb-3 p-3 bg-white shadow-sm border-start border-4 border-warning">
+        <div class="analytics-card mb-3 p-3 bg-white shadow-sm border-start border-4 border-navy" style="border-left-color: var(--msec-navy) !important;">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
                 <div>
                     <h5 class="fw-bold text-navy mb-0">
-                        <i class="fa-solid fa-users text-warning me-2"></i> All Enrolled Students &amp; Live Search
+                        <i class="fa-solid fa-users text-navy me-2"></i> All Enrolled Students &amp; Live Search
                     </h5>
                     <div class="text-muted fs-8">Search a particular student or edit live student details in MySQL database</div>
                 </div>
                 <div class="d-flex align-items-center gap-2">
-                    <span class="badge bg-warning text-dark px-3 py-2 fw-bold fs-7 shadow-sm" id="studentTotalBadge">
+                    <span class="badge bg-navy text-white px-3 py-2 fw-bold fs-7 shadow-sm" id="studentTotalBadge">
                         Loading students...
                     </span>
-                    <button class="btn btn-warning text-dark fw-bold px-3 shadow-sm" onclick="openAddStudentModal()">
+                    <button class="btn btn-navy text-white fw-bold px-3 shadow-sm" onclick="openAddStudentModal()">
                         <i class="fa-solid fa-user-plus me-1"></i> Add Student
                     </button>
                 </div>
@@ -148,7 +148,7 @@
             <div class="row g-2 align-items-center">
                 <div class="col-lg-8 col-md-7">
                     <div class="input-group input-group-lg shadow-sm">
-                        <span class="input-group-text bg-white text-warning border-end-0 fs-6">
+                        <span class="input-group-text bg-white text-navy border-end-0 fs-6">
                             <i class="fa-solid fa-magnifying-glass"></i>
                         </span>
                         <input type="text" id="studentSearchInput" class="form-control border-start-0 border-end-0 fs-7" placeholder="Search a particular student by Name, Register No, Email..." oninput="filterStudents()">
@@ -184,7 +184,7 @@
                         </tr>
                     </thead>
                     <tbody id="studentsTableBody">
-                        <tr><td colspan="6" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading student records...</td></tr>
+                        <tr><td colspan="6" class="text-center py-4 text-muted"><div class="spinner-border text-navy spinner-border-sm me-2"></div> Loading student records...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -209,7 +209,7 @@
                 </div>
                 <input type="hidden" id="staffDeptFilter" value="All">
                 <div class="col-md-3 text-end">
-                    <button class="btn btn-warning text-dark fw-bold w-100" onclick="openAddStaffModal()">
+                    <button class="btn btn-navy text-white fw-bold w-100" onclick="openAddStaffModal()">
                         <i class="fa-solid fa-user-plus me-1"></i> Add Faculty
                     </button>
                 </div>
@@ -230,7 +230,7 @@
                         </tr>
                     </thead>
                     <tbody id="staffTableBody">
-                        <tr><td colspan="6" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading faculty directory...</td></tr>
+                        <tr><td colspan="6" class="text-center py-4 text-muted"><div class="spinner-border text-navy spinner-border-sm me-2"></div> Loading faculty directory...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -267,7 +267,7 @@
                     </select>
                 </div>
                 <div class="col-md-2 text-end">
-                    <button class="btn btn-warning text-dark fw-bold w-100" onclick="openAddSubjectModal()">
+                    <button class="btn btn-navy text-white fw-bold w-100" onclick="openAddSubjectModal()">
                         <i class="fa-solid fa-plus me-1"></i> Add Subject
                     </button>
                 </div>
@@ -288,7 +288,7 @@
                         </tr>
                     </thead>
                     <tbody id="subjectsTableBody">
-                        <tr><td colspan="6" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading subjects...</td></tr>
+                        <tr><td colspan="6" class="text-center py-4 text-muted"><div class="spinner-border text-navy spinner-border-sm me-2"></div> Loading subjects...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -324,7 +324,7 @@
                     </select>
                 </div>
                 <div class="col-md-2 text-end">
-                    <button class="btn btn-warning text-dark fw-bold w-100" onclick="openAddMarkModal()">
+                    <button class="btn btn-navy text-white fw-bold w-100" onclick="openAddMarkModal()">
                         <i class="fa-solid fa-plus me-1"></i> Add Mark
                     </button>
                 </div>
@@ -344,7 +344,7 @@
                         </tr>
                     </thead>
                     <tbody id="marksTableBody">
-                        <tr><td colspan="5" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading student directory for internal marks...</td></tr>
+                        <tr><td colspan="5" class="text-center py-4 text-muted"><div class="spinner-border text-navy spinner-border-sm me-2"></div> Loading student directory for internal marks...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -384,7 +384,7 @@
                     </select>
                 </div>
                 <div class="col-md-2 text-end">
-                    <button class="btn btn-warning text-dark fw-bold w-100" onclick="openAddAttModal()">
+                    <button class="btn btn-navy text-white fw-bold w-100" onclick="openAddAttModal()">
                         <i class="fa-solid fa-plus me-1"></i> Add Entry
                     </button>
                 </div>
@@ -407,7 +407,7 @@
                         </tr>
                     </thead>
                     <tbody id="attendanceTableBody">
-                        <tr><td colspan="8" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading attendance records...</td></tr>
+                        <tr><td colspan="8" class="text-center py-4 text-muted"><div class="spinner-border text-navy spinner-border-sm me-2"></div> Loading attendance records...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -451,7 +451,7 @@
                     </select>
                 </div>
                 <div class="col-md-3 text-end">
-                    <button class="btn btn-warning text-dark fw-bold w-100" onclick="openAddTimetableModal()">
+                    <button class="btn btn-navy text-white fw-bold w-100" onclick="openAddTimetableModal()">
                         <i class="fa-solid fa-plus me-1"></i> Add Timetable Slot
                     </button>
                 </div>
@@ -473,7 +473,7 @@
                         </tr>
                     </thead>
                     <tbody id="timetableTableBody">
-                        <tr><td colspan="7" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading timetable schedule...</td></tr>
+                        <tr><td colspan="7" class="text-center py-4 text-muted"><div class="spinner-border text-navy spinner-border-sm me-2"></div> Loading timetable schedule...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -495,7 +495,7 @@
         <div class="modal-content border-0 shadow">
             <div class="modal-header bg-navy text-white">
                 <h5 class="modal-title fw-bold" id="studentModalTitle">
-                    <i class="fa-solid fa-user-pen text-warning me-2"></i> Edit Student Details
+                    <i class="fa-solid fa-user-pen text-white me-2"></i> Edit Student Details
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -541,7 +541,7 @@
                 </div>
                 <div class="modal-footer bg-light">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" id="saveStudentBtn" class="btn btn-warning text-dark fw-bold px-4">
+                    <button type="submit" id="saveStudentBtn" class="btn btn-navy text-white fw-bold px-4">
                         <i class="fa-solid fa-check me-1"></i> Save Student Details
                     </button>
                 </div>
@@ -556,7 +556,7 @@
         <div class="modal-content border-0 shadow">
             <div class="modal-header bg-navy text-white">
                 <h5 class="modal-title fw-bold" id="staffModalTitle">
-                    <i class="fa-solid fa-user-pen text-warning me-2"></i> Edit Faculty Details
+                    <i class="fa-solid fa-user-pen text-white me-2"></i> Edit Faculty Details
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -602,7 +602,7 @@
                 </div>
                 <div class="modal-footer bg-light">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" id="saveStaffBtn" class="btn btn-warning text-dark fw-bold px-4">
+                    <button type="submit" id="saveStaffBtn" class="btn btn-navy text-white fw-bold px-4">
                         <i class="fa-solid fa-check me-1"></i> Save Faculty Details
                     </button>
                 </div>
@@ -617,7 +617,7 @@
         <div class="modal-content border-0 shadow">
             <div class="modal-header bg-navy text-white">
                 <h5 class="modal-title fw-bold" id="subjectModalTitle">
-                    <i class="fa-solid fa-book-pen text-warning me-2"></i> Edit Subject Details
+                    <i class="fa-solid fa-book-pen text-white me-2"></i> Edit Subject Details
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -661,7 +661,7 @@
                 </div>
                 <div class="modal-footer bg-light">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" id="saveSubjectBtn" class="btn btn-warning text-dark fw-bold px-4">
+                    <button type="submit" id="saveSubjectBtn" class="btn btn-navy text-white fw-bold px-4">
                         <i class="fa-solid fa-check me-1"></i> Save Subject Details
                     </button>
                 </div>
@@ -678,7 +678,7 @@
             <div class="modal-header bg-navy text-white py-3">
                 <div>
                     <h5 class="modal-title fw-bold mb-0">
-                        <i class="fa-solid fa-award text-warning me-2"></i> Edit Student Internal Marks
+                        <i class="fa-solid fa-award text-white me-2"></i> Edit Student Internal Marks
                     </h5>
                     <div class="text-white-50 fs-8 mt-1">Select semester and test number to update all 6 curriculum subjects simultaneously</div>
                 </div>
@@ -700,10 +700,10 @@
                 </div>
 
                 <!-- Selectors: Semester and Internal Test -->
-                <div class="row g-3 mb-3 p-3 bg-warning-subtle rounded-3 border border-warning-subtle align-items-center">
+                <div class="row g-3 mb-3 p-3 bg-light rounded-3 border align-items-center">
                     <div class="col-md-6">
-                        <label class="form-label fw-bold fs-7 text-dark mb-1">
-                            <i class="fa-solid fa-layer-group text-warning me-1"></i> Select Semester:
+                        <label class="form-label fw-bold fs-7 text-navy mb-1">
+                            <i class="fa-solid fa-layer-group text-navy me-1"></i> Select Semester:
                         </label>
                         <select id="editDetailBulkMarkSem" class="form-select fw-semibold" onchange="loadEditDetailBulkSubjectsForStudent()">
                             <option value="1">Semester 1</option>
@@ -717,8 +717,8 @@
                         </select>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label fw-bold fs-7 text-dark mb-1">
-                            <i class="fa-solid fa-file-signature text-warning me-1"></i> Select Internal Test:
+                        <label class="form-label fw-bold fs-7 text-navy mb-1">
+                            <i class="fa-solid fa-file-signature text-navy me-1"></i> Select Internal Test:
                         </label>
                         <select id="editDetailBulkMarkTest" class="form-select fw-semibold" onchange="loadEditDetailBulkSubjectsForStudent()">
                             <option value="1" selected>Internal Assessment 1 (IA-1)</option>
@@ -731,7 +731,7 @@
                 <!-- 6 Subjects Container -->
                 <div class="card border shadow-none mb-2">
                     <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
-                        <span class="fw-bold fs-7 text-navy"><i class="fa-solid fa-book-open me-1 text-warning"></i> All 6 Subjects Internal Marks</span>
+                        <span class="fw-bold fs-7 text-navy"><i class="fa-solid fa-book-open me-1 text-navy"></i> All 6 Subjects Internal Marks</span>
                         <span class="fs-8 text-muted" id="editDetailBulkSubjectsStatus">Loading subjects...</span>
                     </div>
                     <div class="card-body p-0">
@@ -747,7 +747,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="editDetailBulkSubjectsTableBody">
-                                    <tr><td colspan="5" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Loading 6 curriculum subjects...</td></tr>
+                                    <tr><td colspan="5" class="text-center py-4 text-muted"><div class="spinner-border text-navy spinner-border-sm me-2"></div> Loading 6 curriculum subjects...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -760,7 +760,7 @@
             </div>
             <div class="modal-footer bg-light py-3">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" id="editDetailSaveBulkMarksBtn" class="btn btn-warning text-dark fw-bold px-4" onclick="submitEditDetailBulkMarks()">
+                <button type="button" id="editDetailSaveBulkMarksBtn" class="btn btn-navy text-white fw-bold px-4" onclick="submitEditDetailBulkMarks()">
                     <i class="fa-solid fa-floppy-disk me-1"></i> Save All 6 Marks
                 </button>
             </div>
@@ -774,7 +774,7 @@
         <div class="modal-content border-0 shadow">
             <div class="modal-header bg-navy text-white">
                 <h5 class="modal-title fw-bold" id="attModalTitle">
-                    <i class="fa-solid fa-calendar-pen text-warning me-2"></i> Edit Attendance Record
+                    <i class="fa-solid fa-calendar-pen text-white me-2"></i> Edit Attendance Record
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -814,7 +814,7 @@
                 </div>
                 <div class="modal-footer bg-light">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" id="saveAttBtn" class="btn btn-warning text-dark fw-bold px-4">
+                    <button type="submit" id="saveAttBtn" class="btn btn-navy text-white fw-bold px-4">
                         <i class="fa-solid fa-check me-1"></i> Save Attendance
                     </button>
                 </div>
@@ -829,7 +829,7 @@
         <div class="modal-content border-0 shadow">
             <div class="modal-header bg-navy text-white">
                 <h5 class="modal-title fw-bold" id="ttModalTitle">
-                    <i class="fa-solid fa-calendar-pen text-warning me-2"></i> Edit Timetable Slot
+                    <i class="fa-solid fa-calendar-pen text-white me-2"></i> Edit Timetable Slot
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -897,7 +897,7 @@
                 </div>
                 <div class="modal-footer bg-light">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" id="saveTtBtn" class="btn btn-warning text-dark fw-bold px-4">
+                    <button type="submit" id="saveTtBtn" class="btn btn-navy text-white fw-bold px-4">
                         <i class="fa-solid fa-check me-1"></i> Save Timetable Slot
                     </button>
                 </div>
@@ -1215,7 +1215,7 @@
                 </td>
                 <td><span class="badge bg-secondary-subtle text-secondary">${s.year || 'Third year'}</span></td>
                 <td class="text-center">
-                    <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-semibold" onclick="openEditStudentModal(${s.studentid})" title="Edit Student Details">
+                    <button type="button" class="btn btn-sm btn-outline-navy fw-semibold" onclick="openEditStudentModal(${s.studentid})" title="Edit Student Details">
                         <i class="fa-solid fa-pen-to-square me-1"></i> Edit Student
                     </button>
                 </td>
@@ -1244,7 +1244,7 @@
         const studentPerPage = 100;
 
         if (!list.length) {
-            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-muted"><i class="fa-solid fa-user-slash fs-3 mb-2 d-block text-warning"></i>No student records found matching filters.<br><button class="btn btn-sm btn-outline-secondary mt-2" onclick="clearStudentSearch()">Clear Filters</button></td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-muted"><i class="fa-solid fa-user-slash fs-3 mb-2 d-block text-navy"></i>No student records found matching filters.<br><button class="btn btn-sm btn-outline-secondary mt-2" onclick="clearStudentSearch()">Clear Filters</button></td></tr>`;
             countText.innerText = '0 records found';
             document.getElementById('studentsPagination').innerHTML = '';
             return;
@@ -1273,7 +1273,7 @@
     function openAddStudentModal() {
         document.getElementById('studentForm').reset();
         document.getElementById('studentEditId').value = '';
-        document.getElementById('studentModalTitle').innerHTML = '<i class="fa-solid fa-user-plus text-warning me-2"></i> Add New Student';
+        document.getElementById('studentModalTitle').innerHTML = '<i class="fa-solid fa-user-plus text-white me-2"></i> Add New Student';
         document.getElementById('formStudentRegNo').removeAttribute('readonly');
         studentModal.show();
     }
@@ -1290,7 +1290,7 @@
         document.getElementById('formStudentSection').value = s.section || 'A';
         document.getElementById('formStudentEmail').value = s.email || '';
         document.getElementById('formStudentPhone').value = s.phone || '';
-        document.getElementById('studentModalTitle').innerHTML = '<i class="fa-solid fa-user-pen text-warning me-2"></i> Edit Student Details';
+        document.getElementById('studentModalTitle').innerHTML = '<i class="fa-solid fa-user-pen text-white me-2"></i> Edit Student Details';
         studentModal.show();
     }
 
@@ -1429,7 +1429,7 @@
                 </td>
                 <td><span class="badge bg-light text-dark border">${st.designation || 'Faculty'}</span></td>
                 <td class="text-center">
-                    <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-semibold" onclick="openEditStaffModal(${st.staff_id})" title="Edit Faculty Details">
+                    <button type="button" class="btn btn-sm btn-outline-navy fw-semibold" onclick="openEditStaffModal(${st.staff_id})" title="Edit Faculty Details">
                         <i class="fa-solid fa-pen-to-square me-1"></i> Edit Faculty
                     </button>
                 </td>
@@ -1455,7 +1455,7 @@
         document.getElementById('staffForm').reset();
         document.getElementById('staffEditId').value = '';
         document.getElementById('formStaffDept').value = 'Information Technology';
-        document.getElementById('staffModalTitle').innerHTML = '<i class="fa-solid fa-user-plus text-warning me-2"></i> Add New Faculty Member';
+        document.getElementById('staffModalTitle').innerHTML = '<i class="fa-solid fa-user-plus text-white me-2"></i> Add New Faculty Member';
         document.getElementById('formStaffCode').removeAttribute('readonly');
         staffModal.show();
     }
@@ -1472,7 +1472,7 @@
         document.getElementById('formStaffEmail').value = st.email || '';
         document.getElementById('formStaffPhone').value = st.phone || '';
         document.getElementById('formStaffRole').value = st.role || 'staff';
-        document.getElementById('staffModalTitle').innerHTML = '<i class="fa-solid fa-user-pen text-warning me-2"></i> Edit Faculty Details';
+        document.getElementById('staffModalTitle').innerHTML = '<i class="fa-solid fa-user-pen text-white me-2"></i> Edit Faculty Details';
         staffModal.show();
     }
 
@@ -1608,7 +1608,7 @@
                 <td><div class="fw-semibold text-dark">${escapeHtml(sub.subject_name)}</div></td>
                 <td><span class="badge bg-secondary-subtle text-secondary">Sem ${sub.semester || 5} (${sub.credits || 3} Credits)</span></td>
                 <td class="text-center">
-                    <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-semibold" onclick="openEditSubjectModal('${sub.subject_code}')" title="Edit Subject Details">
+                    <button type="button" class="btn btn-sm btn-outline-navy fw-semibold" onclick="openEditSubjectModal('${sub.subject_code}')" title="Edit Subject Details">
                         <i class="fa-solid fa-pen-to-square me-1"></i> Edit Subject
                     </button>
                 </td>
@@ -1628,7 +1628,7 @@
         document.getElementById('subjectForm').reset();
         document.getElementById('subjectEditCode').value = '';
         document.getElementById('formSubjectDept').value = 'Information Technology';
-        document.getElementById('subjectModalTitle').innerHTML = '<i class="fa-solid fa-book-medical text-warning me-2"></i> Add New Subject';
+        document.getElementById('subjectModalTitle').innerHTML = '<i class="fa-solid fa-book-medical text-white me-2"></i> Add New Subject';
         document.getElementById('formSubjectCode').removeAttribute('readonly');
         subjectModal.show();
     }
@@ -1644,7 +1644,7 @@
         document.getElementById('formSubjectSem').value = sub.semester || 5;
         document.getElementById('formSubjectCredits').value = sub.credits || 3;
         document.getElementById('formSubjectStaff').value = sub.staff_id || '';
-        document.getElementById('subjectModalTitle').innerHTML = '<i class="fa-solid fa-book-pen text-warning me-2"></i> Edit Subject Details';
+        document.getElementById('subjectModalTitle').innerHTML = '<i class="fa-solid fa-book-pen text-white me-2"></i> Edit Subject Details';
         subjectModal.show();
     }
 
@@ -1789,7 +1789,7 @@
                     </td>
                     <td><span class="badge bg-primary-subtle text-primary fw-semibold">${escapeHtml(s.year || 'Third year')} (Sem 5)</span></td>
                     <td class="text-center">
-                        <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-semibold" onclick="openEditDetailBulkMarkModal(${s.studentid}, '${escapeHtml(s.name)}', '${escapeHtml(s.regno)}', '${escapeHtml(s.department || 'Information Technology')}', '${escapeHtml(s.year || 'Third year')}')" title="Edit 6-Subject Internal Marks">
+                        <button type="button" class="btn btn-sm btn-outline-navy fw-semibold" onclick="openEditDetailBulkMarkModal(${s.studentid}, '${escapeHtml(s.name)}', '${escapeHtml(s.regno)}', '${escapeHtml(s.department || 'Information Technology')}', '${escapeHtml(s.year || 'Third year')}')" title="Edit 6-Subject Internal Marks">
                             <i class="fa-solid fa-pen-to-square me-1"></i> Edit Marks
                         </button>
                     </td>
@@ -1830,7 +1830,7 @@
         const tbody = document.getElementById('editDetailBulkSubjectsTableBody');
         const statusEl = document.getElementById('editDetailBulkSubjectsStatus');
 
-        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted"><div class="spinner-border text-warning spinner-border-sm me-2"></div> Fetching 6 subjects for Semester ${sem} (Assessment ${test})...</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted"><div class="spinner-border text-navy spinner-border-sm me-2"></div> Fetching 6 subjects for Semester ${sem} (Assessment ${test})...</td></tr>`;
         statusEl.innerText = 'Loading curriculum subjects...';
 
         try {
@@ -2048,7 +2048,7 @@
                     <td><div class="fw-semibold text-dark">${escapeHtml(a.student_name || '--')}</div></td>
                     <td><span class="badge bg-light text-dark border">${a.subject_code} - ${escapeHtml(a.subject_name || '')}</span></td>
                     <td class="text-center">
-                        <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-semibold" onclick="openEditAttModal(${a.id}, '${a.status}', '${a.hours || 1}', '${a.date}')" title="Edit Attendance Details">
+                        <button type="button" class="btn btn-sm btn-outline-navy fw-semibold" onclick="openEditAttModal(${a.id}, '${a.status}', '${a.hours || 1}', '${a.date}')" title="Edit Attendance Details">
                             <i class="fa-solid fa-pen-to-square me-1"></i> Edit Entry
                         </button>
                     </td>
@@ -2074,7 +2074,7 @@
         document.getElementById('attForm').reset();
         document.getElementById('attEditId').value = '';
         document.getElementById('formAttDate').value = new Date().toISOString().split('T')[0];
-        document.getElementById('attModalTitle').innerHTML = '<i class="fa-solid fa-plus text-warning me-2"></i> Add Attendance Record';
+        document.getElementById('attModalTitle').innerHTML = '<i class="fa-solid fa-plus text-white me-2"></i> Add Attendance Record';
         document.getElementById('attStudentSelectorWrap').style.display = 'block';
         document.getElementById('attSubjectSelectorWrap').style.display = 'block';
         attModal.show();
@@ -2085,7 +2085,7 @@
         document.getElementById('formAttStatus').value = currentStatus;
         document.getElementById('formAttHours').value = hours || 1;
         document.getElementById('formAttDate').value = date || '';
-        document.getElementById('attModalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square text-warning me-2"></i> Edit Attendance Details';
+        document.getElementById('attModalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square text-white me-2"></i> Edit Attendance Details';
         document.getElementById('attStudentSelectorWrap').style.display = 'none';
         document.getElementById('attSubjectSelectorWrap').style.display = 'none';
         attModal.show();
@@ -2211,7 +2211,7 @@
                 </td>
                 <td><div class="fs-8"><i class="fa-solid fa-chalkboard-user me-1 text-muted"></i> ${t.staff_name || 'Unassigned'}</div></td>
                 <td class="text-center">
-                    <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-semibold" onclick="openEditTimetableModal(${t.id})" title="Edit Slot Details">
+                    <button type="button" class="btn btn-sm btn-outline-navy fw-semibold" onclick="openEditTimetableModal(${t.id})" title="Edit Slot Details">
                         <i class="fa-solid fa-pen-to-square me-1"></i> Edit Slot
                     </button>
                 </td>
@@ -2232,7 +2232,7 @@
         document.getElementById('ttEditId').value = '';
         document.getElementById('formTtYear').value = document.getElementById('ttYearFilter').value;
         document.getElementById('formTtSection').value = document.getElementById('ttSectionFilter').value;
-        document.getElementById('ttModalTitle').innerHTML = '<i class="fa-solid fa-plus text-warning me-2"></i> Add Timetable Slot';
+        document.getElementById('ttModalTitle').innerHTML = '<i class="fa-solid fa-plus text-white me-2"></i> Add Timetable Slot';
         ttModal.show();
     }
 
@@ -2247,7 +2247,7 @@
         document.getElementById('formTtSubject').value = slot.subject_code;
         document.getElementById('formTtStaff').value = slot.staff_id || '';
         document.getElementById('formTtRoom').value = slot.room || '';
-        document.getElementById('ttModalTitle').innerHTML = '<i class="fa-solid fa-calendar-pen text-warning me-2"></i> Edit Timetable Slot Details';
+        document.getElementById('ttModalTitle').innerHTML = '<i class="fa-solid fa-calendar-pen text-white me-2"></i> Edit Timetable Slot Details';
         ttModal.show();
     }
 

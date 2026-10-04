@@ -29,19 +29,31 @@
                     <i class="fa-solid fa-chart-bar me-2 text-teal"></i>
                     Student Marks: <span id="staffAnalyticsSelectedSubName">Loading...</span>
                 </h3>
-                <!-- 4-Color Legend -->
+                <!-- Grade Breakdown Matching Legend -->
                 <div class="d-flex align-items-center gap-3 flex-wrap fs-8 fw-semibold text-secondary" id="staffAnalyticsLegend">
                     <span class="d-flex align-items-center gap-1">
-                        <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background-color:#10b981;"></span>
-                        <span>75%+ (High)</span>
+                        <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background-color:#16a34a;"></span>
+                        <span>O (&ge;90%)</span>
                     </span>
                     <span class="d-flex align-items-center gap-1">
-                        <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background-color:#f59e0b;"></span>
-                        <span>50–75% (Average)</span>
+                        <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background-color:#2563eb;"></span>
+                        <span>A+ (80-89%)</span>
                     </span>
                     <span class="d-flex align-items-center gap-1">
-                        <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background-color:#ef4444;"></span>
-                        <span>Below 40% (Fail)</span>
+                        <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background-color:#0284c7;"></span>
+                        <span>A (70-79%)</span>
+                    </span>
+                    <span class="d-flex align-items-center gap-1">
+                        <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background-color:#d97706;"></span>
+                        <span>B+ (60-69%)</span>
+                    </span>
+                    <span class="d-flex align-items-center gap-1">
+                        <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background-color:#ca8a04;"></span>
+                        <span>B (50-59%)</span>
+                    </span>
+                    <span class="d-flex align-items-center gap-1">
+                        <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background-color:#dc2626;"></span>
+                        <span>RA (&lt;50%)</span>
                     </span>
                     <span class="d-flex align-items-center gap-1">
                         <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background-color:#9ca3af;"></span>
@@ -246,8 +258,8 @@
                 ? Math.round((studentsWithMarks.reduce((acc, s) => acc + s.percentage, 0) / studentsWithMarks.length) * 10) / 10
                 : (parseFloat(data.average_marks) || 0);
 
-            // Prepare colors and values
-            // Green for 75%+, amber for 50-75% (and >=40%), red below 40%, gray for missing marks
+            // Prepare colors and values using exact Grade Breakdown color palette:
+            // O: #16a34a, A+: #2563eb, A: #0284c7, B+: #d97706, B: #ca8a04, RA (<50%): #dc2626, No data: #9ca3af
             const bgColors = [];
             const borderColors = [];
             const chartValues = [];
@@ -257,17 +269,29 @@
                     bgColors.push('#9ca3af');
                     borderColors.push('#6b7280');
                     chartValues.push(3); // Small visible gray stub so it renders visibly without blank gaps
-                } else if (s.percentage >= 75) {
-                    bgColors.push('#10b981');
-                    borderColors.push('#059669');
+                } else if (s.percentage >= 90) {
+                    bgColors.push('#16a34a'); // O (>=90%)
+                    borderColors.push('#15803d');
                     chartValues.push(s.percentage);
-                } else if (s.percentage >= 40) {
-                    bgColors.push('#f59e0b');
-                    borderColors.push('#d97706');
+                } else if (s.percentage >= 80) {
+                    bgColors.push('#2563eb'); // A+ (80-89%)
+                    borderColors.push('#1d4ed8');
+                    chartValues.push(s.percentage);
+                } else if (s.percentage >= 70) {
+                    bgColors.push('#0284c7'); // A (70-79%)
+                    borderColors.push('#0369a1');
+                    chartValues.push(s.percentage);
+                } else if (s.percentage >= 60) {
+                    bgColors.push('#d97706'); // B+ (60-69%)
+                    borderColors.push('#b45309');
+                    chartValues.push(s.percentage);
+                } else if (s.percentage >= 50) {
+                    bgColors.push('#ca8a04'); // B (50-59%)
+                    borderColors.push('#a16207');
                     chartValues.push(s.percentage);
                 } else {
-                    bgColors.push('#ef4444');
-                    borderColors.push('#dc2626');
+                    bgColors.push('#dc2626'); // RA (<50%)
+                    borderColors.push('#b91c1c');
                     chartValues.push(s.percentage);
                 }
             });
@@ -344,8 +368,8 @@
                                 ctx.restore();
                             };
 
-                            // 1. Pass Mark (40%)
-                            drawHLine(40, 'Pass Mark (40%)', '#dc2626', '#fef2f2', '#b91c1c', false);
+                            // 1. Pass Mark (50%) - aligned with RA (<50%) and Grade B (>=50%)
+                            drawHLine(50, 'Pass Mark (50%)', '#dc2626', '#fef2f2', '#b91c1c', false);
 
                             // 2. Class Average
                             if (classAvg > 0) {
@@ -403,11 +427,13 @@
                                             if (!s.hasData) {
                                                 return [
                                                     'Marks: No data',
+                                                    'Grade: N/A',
                                                     'Rank: N/A'
                                                 ];
                                             }
                                             return [
                                                 `Marks: ${s.percentage}%`,
+                                                `Grade: ${getGrade(s.percentage)}`,
                                                 `Rank: #${s.rank}`
                                             ];
                                         }
