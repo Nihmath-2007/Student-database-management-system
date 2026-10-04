@@ -282,7 +282,7 @@ def save_marks():
 
         student_info = student_map[student_id]
         mark_input = str(r.get('mark', '')).strip()
-        is_absent = r.get('is_absent', False) or mark_input.upper() in ('AB', 'A', '-', 'ABSENT', 'ABS')
+        is_absent = r.get('is_absent', False) or mark_input.upper() in ('AB', 'A', '-', 'ABSENT', 'ABS', 'NULL', 'NONE', '')
 
         marks_obtained = None
         if not is_absent:

@@ -179,6 +179,7 @@ def get_student_details(student_id):
         max_m = float(row['max_marks'] or 100.0)
         score_pct = round((marks_obt / max_m) * 100.0, 1) if max_m > 0 else 0.0
         
+        is_ab = row['marks_obtained'] is None
         if sub_name not in subjects_summary:
             subjects_summary[sub_name] = {
                 'subject_id': row['subject_id'],
@@ -189,7 +190,8 @@ def get_student_details(student_id):
                 'marks_obtained': marks_obt,
                 'max_marks': max_m,
                 'percentage': score_pct,
-                'status': 'Pass' if score_pct >= 50 else 'Fail'
+                'is_absent': is_ab,
+                'status': 'Absent' if is_ab else ('Pass' if score_pct >= 50 else 'Fail')
             }
         else:
             subjects_summary[sub_name]['marks_obtained'] = (subjects_summary[sub_name]['marks_obtained'] + marks_obt) / 2.0

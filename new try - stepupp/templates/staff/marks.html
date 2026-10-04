@@ -81,13 +81,15 @@
                 <tr>
                     <td class="font-monospace fw-bold">${m.regno}</td>
                     <td class="fw-semibold">${m.name}</td>
-                    <td class="fw-bold">${m.marks_obtained}</td>
+                    <td class="fw-bold">${m.marks_obtained !== null && m.marks_obtained !== undefined ? m.marks_obtained : '<span class="badge bg-danger-subtle text-danger fw-bold">Absent</span>'}</td>
                     <td>${m.max_marks}</td>
-                    <td><span class="fw-bold text-navy">${m.percentage}%</span></td>
+                    <td><span class="fw-bold text-navy">${m.marks_obtained !== null && m.marks_obtained !== undefined ? `${m.percentage}%` : '-'}</span></td>
                     <td>
-                        ${m.percentage >= 50 
-                            ? `<span class="badge-status badge-pass">Pass</span>` 
-                            : `<span class="badge-status badge-fail">Fail / RA</span>`}
+                        ${m.marks_obtained === null || m.marks_obtained === undefined
+                            ? `<span class="badge-status badge-fail">Absent</span>`
+                            : (m.percentage >= 50 
+                                ? `<span class="badge-status badge-pass">Pass</span>` 
+                                : `<span class="badge-status badge-fail">Fail / RA</span>`)}
                     </td>
                 </tr>
             `).join('');

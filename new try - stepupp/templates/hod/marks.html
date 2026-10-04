@@ -488,11 +488,11 @@
                     <td>
                         <span class="badge bg-light text-dark border">Test ${m.test_number}</span>
                     </td>
-                    <td class="fw-bold">${m.marks_obtained} <span class="text-muted fs-8">/ ${m.max_marks}</span></td>
+                    <td class="fw-bold">${m.marks_obtained !== null && m.marks_obtained !== undefined ? `${m.marks_obtained} <span class="text-muted fs-8">/ ${m.max_marks}</span>` : '<span class="badge bg-danger-subtle text-danger fw-bold">Absent</span>'}</td>
                     <td>
-                        <div class="fw-bold fs-7 ${isPass ? 'text-success' : 'text-danger'}">${m.percentage}%</div>
+                        <div class="fw-bold fs-7 ${m.marks_obtained !== null && m.marks_obtained !== undefined ? (isPass ? 'text-success' : 'text-danger') : 'text-muted'}">${m.marks_obtained !== null && m.marks_obtained !== undefined ? `${m.percentage}%` : '-'}</div>
                     </td>
-                    <td>${statusBadge}</td>
+                    <td>${m.marks_obtained === null || m.marks_obtained === undefined ? '<span class="badge bg-secondary-subtle text-secondary px-2 py-1 rounded-pill">Absent</span>' : statusBadge}</td>
                     <td class="text-center">
                         <div class="btn-group btn-group-sm" role="group">
                             <button type="button" class="btn btn-outline-warning text-dark" title="Edit Mark" onclick="openEditMarkModal(${m.id}, ${m.student_id}, ${m.subject_id}, ${m.test_number}, ${m.marks_obtained}, ${m.max_marks})">

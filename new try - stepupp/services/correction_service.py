@@ -648,7 +648,12 @@ def get_student_marks_with_query_status(student_id):
     results = []
     for r in rows:
         row_dict = dict(r)
-        row_dict['status'] = 'Pass' if float(row_dict.get('percentage') or 0.0) >= 50.0 else 'Fail'
+        if row_dict.get('marks_obtained') is None:
+            row_dict['status'] = 'Absent'
+            row_dict['is_absent'] = True
+        else:
+            row_dict['status'] = 'Pass' if float(row_dict.get('percentage') or 0.0) >= 50.0 else 'Fail'
+            row_dict['is_absent'] = False
         if row_dict.get('query_id'):
             age = calculate_age_info(row_dict['query_created_at'], row_dict['query_status'])
             row_dict['age_info'] = age
@@ -964,3 +969,29 @@ def get_all_audit_logs(limit=100, table_filter=None, search=None):
     for r in rows:
         r['age_info'] = calculate_age_info(r['changed_at'], 'Logged')
     return rows
+
+
+def clear_resolved_queries_for_staff(staff_id=None):
+    """
+    Clears all 'Approved' and 'Rejected' queries assigned to staff_id (or all resolved if staff_id is None).
+    """
+    if staff_id:
+        execute("""
+            DELETE FROM mark_correction_requests 
+            WHERE status IN ('Approved', 'Rejected') 
+              AND (staff_id = %s OR mark_id IN (
+                  SELECT m.id FROM internal_marks m 
+                  JOIN subjects s ON m.subject_id = s.subjectid 
+                  WHERE s.staff_id = %s
+              ))
+        """, (staff_id, staff_id))
+    else:
+        execute("DELETE FROM mark_correction_requests WHERE status IN ('Approved', 'Rejected')")
+
+
+def clear_queries_for_student(student_id):
+    """
+    Clears all queries raised by student_id.
+    """
+    execute("DELETE FROM mark_correction_requests WHERE student_id = %s", (student_id,))
+

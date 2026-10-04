@@ -7,7 +7,10 @@
         <h1 class="page-title"><i class="fa-solid fa-clipboard-check me-2 text-warning"></i> Assigned Subject Mark Correction Requests</h1>
         <div class="page-subtitle">Review, verify, and resolve student mark queries with automated score correction and immutable audit logging</div>
     </div>
-    <div>
+    <div class="d-flex align-items-center gap-2">
+        <button type="button" class="btn btn-outline-danger btn-sm fw-bold" onclick="clearStaffResolvedQueries()">
+            <i class="fa-solid fa-trash-can me-1"></i> Clear Accepted & Rejected
+        </button>
         <a href="{{ url_for('staff.marks_page') }}" class="btn btn-outline-secondary btn-sm fw-bold">
             <i class="fa-solid fa-award me-1"></i> View Subject Marks
         </a>
@@ -62,12 +65,12 @@
     </div>
     <div class="col-md-3 col-12">
         <div class="kpi-card">
-            <div class="kpi-icon-box kpi-icon-purple">
-                <i class="fa-solid fa-shield-check"></i>
+            <div class="kpi-icon-box kpi-icon-red">
+                <i class="fa-solid fa-circle-xmark"></i>
             </div>
             <div>
-                <div class="kpi-label">Status Flow</div>
-                <div class="small fw-bold text-navy mt-1">Raised &rarr; Review &rarr; Resolve</div>
+                <div class="kpi-label">Rejected</div>
+                <div class="kpi-value text-danger" id="kpiRejected">0</div>
             </div>
         </div>
     </div>
@@ -283,12 +286,37 @@
                 document.getElementById('kpiPending').textContent = data.stats.pending || 0;
                 document.getElementById('kpiOverdue').textContent = data.stats.overdue || 0;
                 document.getElementById('kpiApproved').textContent = data.stats.approved || 0;
+                const rejEl = document.getElementById('kpiRejected');
+                if (rejEl) rejEl.textContent = data.stats.rejected || 0;
             }
 
             renderStaffTable();
         } catch (e) {
             console.error('Error loading staff queries:', e);
             document.getElementById('staffQueriesTableBody').innerHTML = `<tr><td colspan="7" class="text-center py-4 text-danger">Error loading requests.</td></tr>`;
+        }
+    }
+
+    async function clearStaffResolvedQueries() {
+        if (!confirm('Are you sure you want to clear all accepted (Approved) and rejected queries? The cards will reset to 0.')) {
+            return;
+        }
+
+        try {
+            const res = await fetch('/staff/api/queries/clear-resolved', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await res.json();
+            if (data.success) {
+                await loadStaffQueries();
+                alert('Accepted and rejected queries cleared successfully.');
+            } else {
+                alert(data.error || 'Failed to clear queries.');
+            }
+        } catch (err) {
+            console.error('Error clearing queries:', err);
+            alert('An error occurred while clearing queries.');
         }
     }
 

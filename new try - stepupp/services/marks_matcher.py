@@ -1,5 +1,4 @@
 import re
-<<<<<<< HEAD
 try:
     from rapidfuzz import fuzz
 except ImportError:
@@ -14,9 +13,6 @@ except ImportError:
             t2 = " ".join(sorted(str(s2).split()))
             return difflib.SequenceMatcher(None, t1, t2).ratio() * 100
     fuzz = FuzzFallback()
-=======
-from rapidfuzz import fuzz
->>>>>>> 0428c9a (Update project)
 from config.database import fetch_all, fetch_one
 
 def normalize_text(text):
@@ -235,8 +231,7 @@ def match_extracted_rows_to_students(extracted_rows, subject_id, threshold=90.0)
             'row_id': index,
             'extracted_name': row.get('raw_name') or row.get('raw_identifier') or '',
             'extracted_regno': row.get('raw_regno') or '',
-            'raw_identifier': row.get('raw_identifier') or '',
-            'mark': 'AB' if is_absent else (mark_val if mark_val is not None else row.get('raw_mark', '')),
+            'mark': 'Absent' if (is_absent or mark_val is None and (not row.get('raw_mark') or str(row.get('raw_mark')).strip().lower() in ('null', 'none', 'ab', 'abs', 'absent', '-'))) else (mark_val if mark_val is not None else row.get('raw_mark', '')),
             'cleaned_mark': mark_val,
             'is_absent': is_absent,
             'status': status,

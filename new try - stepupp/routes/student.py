@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, jsonify, session, request
 from routes.auth import role_required, login_required
 from services.database_service import get_student_details
-from services.correction_service import get_student_marks_with_query_status, get_student_queries, raise_mark_correction_query
+from services.correction_service import get_student_marks_with_query_status, get_student_queries, raise_mark_correction_query, clear_queries_for_student
 from services.cache_service import api_cache
 from db import fetch_all
 
@@ -121,6 +121,21 @@ def api_student_queries():
     queries = get_student_queries(student_id)
     api_cache.set(cache_key, queries, ttl=30)
     return jsonify({'queries': queries})
+
+
+@student_bp.route('/api/queries/clear', methods=['POST'])
+@role_required('student')
+def api_student_clear_queries():
+    student_id = session.get('student_id')
+    if not student_id:
+        return jsonify({'error': 'Student session not found.'}), 400
+    clear_queries_for_student(student_id)
+    api_cache.delete(f"stud_mq_{student_id}")
+    api_cache.delete(f"stud_queries_{student_id}")
+    api_cache.invalidate('staff_queries')
+    api_cache.invalidate('hod_queries')
+    return jsonify({'success': True, 'message': 'All recent queries cleared successfully.'})
+
 
 
 @student_bp.route('/api/queries/raise', methods=['POST'])
