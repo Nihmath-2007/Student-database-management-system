@@ -47,7 +47,9 @@ function renderHodDashboard(data) {
 
     // 2. Render Subject Marks Bar Chart (short form names for maximum spacing)
     const subAnalytics = data.subject_analytics || [];
-    const labels = subAnalytics.map(s => shortenSubjectName(s.subject_name));
+    const getShort = (name) => (window.getSubjectShortName ? window.getSubjectShortName(name) : (shortenSubjectName ? shortenSubjectName(name) : name));
+    const labels = subAnalytics.map(s => s.short_name || getShort(s.subject_name));
+    const fullNames = subAnalytics.map(s => s.subject_name);
     const marks = subAnalytics.map(s => s.avg_marks);
 
     const canvasMarks = document.getElementById('subjectMarksChart');
@@ -65,20 +67,41 @@ function renderHodDashboard(data) {
                     borderColor: '#e04713',
                     borderWidth: 1,
                     borderRadius: 6,
-                    barPercentage: 0.4,
-                    categoryPercentage: 0.6,
-                    maxBarThickness: 32
+                    barPercentage: 0.45,
+                    categoryPercentage: 0.65,
+                    maxBarThickness: 36
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { display: false }
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#131d3b',
+                        titleColor: '#ffffff',
+                        bodyColor: '#f1f5f9',
+                        borderColor: '#f25822',
+                        borderWidth: 1,
+                        padding: 10,
+                        cornerRadius: 6,
+                        callbacks: {
+                            title: function(items) {
+                                if (!items.length) return '';
+                                const idx = items[0].dataIndex;
+                                const code = subAnalytics[idx]?.subject_code ? ` (${subAnalytics[idx].subject_code})` : '';
+                                return (fullNames[idx] || labels[idx]) + code;
+                            },
+                            label: function(item) {
+                                return `Avg Marks: ${item.raw}%`;
+                            }
+                        }
+                    }
                 },
                 scales: {
                     x: {
                         ticks: {
+                            autoSkip: false,
                             maxRotation: 0,
                             minRotation: 0,
                             font: { weight: '600', size: 11 }

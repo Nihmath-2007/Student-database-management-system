@@ -53,9 +53,36 @@
     <div class="row g-4 mt-1">
         <div class="col-lg-12">
             <div class="p-3 border rounded bg-light">
-                <h4 class="h6 fw-bold text-navy mb-3">Student-Wise Average Performance & Marks</h4>
-                <div style="height: 320px;">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                    <h4 class="h6 fw-bold text-navy mb-0" id="staffMarksChartHeading">
+                        Student Marks: <span id="staffSelectedSubjectName">Loading...</span>
+                    </h4>
+                    <!-- 4-Color Legend -->
+                    <div class="d-flex align-items-center gap-3 flex-wrap fs-8 fw-semibold text-secondary" id="staffChartLegend">
+                        <span class="d-flex align-items-center gap-1">
+                            <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background-color:#10b981;"></span>
+                            <span>75%+ (High)</span>
+                        </span>
+                        <span class="d-flex align-items-center gap-1">
+                            <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background-color:#f59e0b;"></span>
+                            <span>50–75% (Average)</span>
+                        </span>
+                        <span class="d-flex align-items-center gap-1">
+                            <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background-color:#ef4444;"></span>
+                            <span>Below 40% (Fail)</span>
+                        </span>
+                        <span class="d-flex align-items-center gap-1">
+                            <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background-color:#9ca3af;"></span>
+                            <span>No data</span>
+                        </span>
+                    </div>
+                </div>
+                <div style="height: 340px; position: relative;">
                     <canvas id="staffStudentMarksBar"></canvas>
+                    <div id="staffChartEmptyState" class="d-none text-center py-5 text-muted">
+                        <i class="fa-solid fa-chart-simple fs-2 mb-2 text-secondary"></i>
+                        <p class="mb-0 fw-semibold">No student marks recorded for this subject yet.</p>
+                    </div>
                 </div>
             </div>
         </div>

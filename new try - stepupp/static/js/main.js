@@ -1,7 +1,81 @@
-/* 
-   MSEC Academic Analytics Portal - Global Application & Wave Menu Loader Script
-   Wave Loader component design by JkHuger (Uiverse.io)
-*/
+// Global Universal Subject Short Names Dictionary & Helper
+window.SUBJECT_SHORT_NAMES = {
+    // Semester 5 (Current active semester)
+    'Cloud computing': 'Cloud Comp',
+    'Cloud Computing': 'Cloud Comp',
+    'Distributed Computing': 'Dist Comp',
+    'Embedded System and IOT': 'IoT & Embed',
+    'Embedded Systems and IoT': 'IoT & Embed',
+    'Foundations of Data Science': 'Data Sci',
+    'Full Stack Web Development': 'Full Stack',
+    'Full Stack Web Development Laboratory': 'FSWD Lab',
+    'UI&UX designing': 'UI/UX',
+    'UI&UX Designing': 'UI/UX',
+    'UI/UX': 'UI/UX',
+    
+    // Semester 4
+    'Database Management System': 'DBMS',
+    'Database Management Systems Laboratory': 'DBMS Lab',
+    'Computer Networks': 'CN',
+    'Object Oriented Software Engineering': 'OOSE',
+    'Artificial Intelligence and Machine Learning': 'AI & ML',
+    'Environment science and Sustainability': 'EVS',
+    'Web programming': 'Web Prog',
+    
+    // Semester 3
+    'Operating System': 'OS',
+    'Data Structure and Algorithm': 'DSA',
+    'Data Structure and Algorithm Laboratory': 'DSA Lab',
+    'Digital Principles of Computer Organisation': 'DPCO',
+    'Object Oriented Software Programming': 'OOSP',
+    'Object Oriented Software Programming Laboratory': 'OOSP Lab',
+    'Professional Development': 'Prof Dev',
+    'Discrete Mathematics': 'Discrete Maths',
+    
+    // Semester 2
+    'Basic Electrical and Electronics Engineering': 'BEEE',
+    'Programming in C': 'C Prog',
+    'Programming in C Laboratory': 'C Prog Lab',
+    'Engineering Graphics': 'Graphics',
+    'Engineering Practice Laboratory': 'EP Lab',
+    'Professional English II': 'English II',
+    'Tamils and Technology': 'Tamil II',
+    'Statistics and Numerical Methods': 'Maths II',
+    'Physics for Information Science': 'Info Physics',
+    
+    // Semester 1
+    'Engineering Chemistry': 'Chemistry',
+    'Engineering Physics': 'Physics',
+    'Chemistry and Physics Lab': 'Chem/Phys Lab',
+    'Professional English I': 'English I',
+    'Professional English I Laboratory': 'Eng I Lab',
+    'Heritage of Tamil': 'Tamil I',
+    'Matrices and Calculus': 'Maths I',
+    'Problem solving and Python Programming': 'Python',
+    'Problem solving and Python Programming Laboratory': 'Python Lab',
+    'Communication Laboratory': 'Comm Lab'
+};
+
+window.getSubjectShortName = function(name) {
+    if (!name) return '';
+    const clean = String(name).trim();
+    if (window.SUBJECT_SHORT_NAMES[clean]) {
+        return window.SUBJECT_SHORT_NAMES[clean];
+    }
+    const lower = clean.toLowerCase();
+    for (const [k, v] of Object.entries(window.SUBJECT_SHORT_NAMES)) {
+        if (k.toLowerCase() === lower) return v;
+    }
+    if (clean.length > 13) {
+        const words = clean.split(/\s+/).filter(w => !['and', '&', 'of', 'in', 'the', 'for'].includes(w.toLowerCase()));
+        if (words.length > 1) {
+            return words.map(w => w[0].toUpperCase()).join('');
+        }
+    }
+    return clean;
+};
+
+window.shortenSubjectName = window.getSubjectShortName;
 
 // High-Performance Debounced Wave Loader API
 let _waveLoaderTimer = null;

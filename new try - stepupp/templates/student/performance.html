@@ -67,28 +67,47 @@
             const data = await res.json();
             const subjects = data.subjects || [];
 
-            const subNames = subjects.map(s => s.subject_name);
+            const subShortLabels = subjects.map(s => s.short_name || (window.getSubjectShortName ? window.getSubjectShortName(s.subject_name) : s.subject_name));
+            const subFullNames = subjects.map(s => s.subject_name);
             const subMarks = subjects.map(s => s.percentage);
 
             // Bar Chart
             new Chart(document.getElementById('perfMarksBar').getContext('2d'), {
                 type: 'bar',
                 data: {
-                    labels: subNames,
+                    labels: subShortLabels,
                     datasets: [{
                         label: 'Marks (%)',
                         data: subMarks,
                         backgroundColor: '#002147',
                         borderRadius: 6,
-                        barPercentage: 0.4,
-                        categoryPercentage: 0.6
+                        barPercentage: 0.45,
+                        categoryPercentage: 0.65
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                title: function(items) {
+                                    if (!items.length) return '';
+                                    const idx = items[0].dataIndex;
+                                    return subFullNames[idx] || subShortLabels[idx];
+                                }
+                            }
+                        }
+                    },
                     scales: {
-                        x: { ticks: { maxRotation: 0, minRotation: 0 } },
+                        x: {
+                            ticks: {
+                                autoSkip: false,
+                                maxRotation: 0,
+                                minRotation: 0,
+                                font: { weight: '600', size: 11 }
+                            }
+                        },
                         y: { min: 0, max: 100, ticks: { callback: v => v + '%' } }
                     }
                 }
@@ -113,17 +132,23 @@
 
             // Populate Table
             const tbody = document.getElementById('perfTableBody');
-            tbody.innerHTML = subjects.map((s, i) => `
+            tbody.innerHTML = subjects.map((s, i) => {
+                const shortN = s.short_name || (window.getSubjectShortName ? window.getSubjectShortName(s.subject_name) : s.subject_name);
+                return `
                 <tr>
                     <td class="font-monospace fw-bold">${s.subject_code}</td>
-                    <td class="fw-semibold">${s.subject_name}</td>
+                    <td class="fw-semibold">
+                        <span class="fw-bold text-navy">${shortN}</span>
+                        <div class="text-muted smaller">${s.subject_name}</div>
+                    </td>
                     <td>Semester ${s.semester}</td>
                     <td>${s.staff_name || 'Faculty'}</td>
                     <td class="fw-bold">${s.marks_obtained !== null && s.marks_obtained !== undefined ? `${s.marks_obtained} / ${s.max_marks}` : '<span class="badge bg-danger-subtle text-danger">Absent</span>'}</td>
                     <td><span class="fw-bold text-navy">${s.marks_obtained !== null && s.marks_obtained !== undefined ? `${s.percentage}%` : '-'}</span></td>
                     <td><span class="badge-status ${s.percentage >= 75 ? 'badge-normal' : (s.percentage >= 50 ? 'badge-pass' : 'badge-at-risk')}">Rank #${i+1}</span></td>
                 </tr>
-            `).join('');
+            `;
+            }).join('');
 
         } catch (e) {
             console.error('Error loading performance:', e);

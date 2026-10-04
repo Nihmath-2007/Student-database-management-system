@@ -127,7 +127,7 @@ def import_students_from_excel(excel_path=None):
         if students_to_update:
             cursor.executemany(f"UPDATE students SET name = {p}, dob = {p} WHERE studentid = {p}", students_to_update)
         if students_to_insert:
-            cursor.executemany(f"INSERT INTO students (studentid, regno, name, dob, department, year, email, section) VALUES ({p}, {p}, {p}, {p}, 'IT', 'Third year', '', 'A')", students_to_insert)
+            cursor.executemany(f"INSERT INTO students (studentid, regno, name, dob, department, year, email, section) VALUES ({p}, {p}, {p}, {p}, 'Information Technology', 'Third year', '', 'A')", students_to_insert)
 
         print(f"Executing batch operations: updating {len(users_to_update)} users, inserting {len(users_to_insert)} users...", flush=True)
         if users_to_update:

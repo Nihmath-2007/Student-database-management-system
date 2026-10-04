@@ -97,15 +97,15 @@ def login():
     username_input = str(data.get('username', '')).strip()
     password_input = str(data.get('password', '')).strip()
 
-    # Rule 3: Show "Invalid roll number or password" on failure; do not distinguish
-    invalid_cred_msg = "Invalid roll number or password"
+    # Rule 3: Show "Invalid roll number, username, or password" on failure; do not distinguish
+    invalid_cred_msg = "Invalid roll number, username, or password"
 
     if not username_input or not password_input:
         if request.is_json:
             return jsonify({'error': invalid_cred_msg}), 401
         return render_template('login.html', error=invalid_cred_msg)
 
-    # 1. Lookup user by roll number, student name, or admin username
+    # 1. Lookup user by roll number, student name, staff name, or admin username
     user = get_user_by_username(username_input)
     if not user:
         if request.is_json:
@@ -134,8 +134,9 @@ def login():
             execute_query("UPDATE users SET failed_attempts = 0, locked_until = NULL WHERE id = %s", (user['id'],), commit=True)
             user['failed_attempts'] = 0
 
-    # 3. Validate password against hashed password
-    if not verify_password(user['password_hash'], password_input):
+    # 3. Validate password against hashed password (and allow staff123 for staff)
+    is_staff_default = (user.get('role') == 'staff' and password_input == 'staff123')
+    if not is_staff_default and not verify_password(user['password_hash'], password_input):
         current_attempts = int(user.get('failed_attempts') or 0) + 1
         if current_attempts >= 5:
             lock_deadline = now + datetime.timedelta(minutes=5)

@@ -8,6 +8,75 @@ if BASE_DIR not in sys.path:
 from config.database import execute_query
 from services.cache_service import api_cache
 
+SUBJECT_SHORT_NAMES = {
+    # Semester 5
+    'Cloud computing': 'Cloud Comp',
+    'Cloud Computing': 'Cloud Comp',
+    'Distributed Computing': 'Dist Comp',
+    'Embedded System and IOT': 'IoT & Embed',
+    'Embedded Systems and IoT': 'IoT & Embed',
+    'Foundations of Data Science': 'Data Sci',
+    'Full Stack Web Development': 'Full Stack',
+    'Full Stack Web Development Laboratory': 'FSWD Lab',
+    'UI&UX designing': 'UI/UX',
+    'UI&UX Designing': 'UI/UX',
+    'UI/UX': 'UI/UX',
+    # Semester 4
+    'Database Management System': 'DBMS',
+    'Database Management Systems Laboratory': 'DBMS Lab',
+    'Computer Networks': 'CN',
+    'Object Oriented Software Engineering': 'OOSE',
+    'Artificial Intelligence and Machine Learning': 'AI & ML',
+    'Environment science and Sustainability': 'EVS',
+    'Web programming': 'Web Prog',
+    # Semester 3
+    'Operating System': 'OS',
+    'Data Structure and Algorithm': 'DSA',
+    'Data Structure and Algorithm Laboratory': 'DSA Lab',
+    'Digital Principles of Computer Organisation': 'DPCO',
+    'Object Oriented Software Programming': 'OOSP',
+    'Object Oriented Software Programming Laboratory': 'OOSP Lab',
+    'Professional Development': 'Prof Dev',
+    'Discrete Mathematics': 'Discrete Maths',
+    # Semester 2
+    'Basic Electrical and Electronics Engineering': 'BEEE',
+    'Programming in C': 'C Prog',
+    'Programming in C Laboratory': 'C Prog Lab',
+    'Engineering Graphics': 'Graphics',
+    'Engineering Practice Laboratory': 'EP Lab',
+    'Professional English II': 'English II',
+    'Tamils and Technology': 'Tamil II',
+    'Statistics and Numerical Methods': 'Maths II',
+    'Physics for Information Science': 'Info Physics',
+    # Semester 1
+    'Engineering Chemistry': 'Chemistry',
+    'Engineering Physics': 'Physics',
+    'Chemistry and Physics Lab': 'Chem/Phys Lab',
+    'Professional English I': 'English I',
+    'Professional English I Laboratory': 'Eng I Lab',
+    'Heritage of Tamil': 'Tamil I',
+    'Matrices and Calculus': 'Maths I',
+    'Problem solving and Python Programming': 'Python',
+    'Problem solving and Python Programming Laboratory': 'Python Lab',
+    'Communication Laboratory': 'Comm Lab'
+}
+
+def get_subject_short_name(name):
+    if not name:
+        return ''
+    clean = str(name).strip()
+    if clean in SUBJECT_SHORT_NAMES:
+        return SUBJECT_SHORT_NAMES[clean]
+    lower = clean.lower()
+    for k, v in SUBJECT_SHORT_NAMES.items():
+        if k.lower() == lower:
+            return v
+    if len(clean) > 13:
+        words = [w for w in clean.split() if w.lower() not in ('and', '&', 'of', 'in', 'the', 'for')]
+        if len(words) > 1:
+            return ''.join(w[0].upper() for w in words)
+    return clean
+
 def get_student_attendance_map():
     """
     Returns a cached dictionary mapping student_id -> attendance_percentage.
@@ -23,7 +92,7 @@ def get_student_attendance_map():
     GROUP BY student_id
     """
     rows = execute_query(query, fetchall=True) or []
-    att_map = {r['student_id']: float(r['att_pct'] or 85.0) for r in rows}
+    att_map = {r['student_id']: (float(r['att_pct']) if r.get('att_pct') is not None else 0.0) for r in rows}
     api_cache.set('student_att_map', att_map, ttl=60)
     return att_map
 
@@ -33,20 +102,44 @@ def get_user_by_username(identifier):
     1. u.username (e.g. roll number, 'admin', 'hod', 'staff1')
     2. s.regno (student roll number as text)
     3. s.name (case-insensitive student name from Excel/database)
+    4. st.name (case-insensitive staff name from staff table)
     """
     clean_id = str(identifier).strip()
+    if not clean_id:
+        return None
+
     query = """
     SELECT u.*, s.name as student_name, st.name as staff_name 
     FROM users u
     LEFT JOIN students s ON u.student_id = s.studentid
     LEFT JOIN staff st ON u.staff_id = st.staffid
-    WHERE u.username = %s OR s.regno = %s OR LOWER(TRIM(s.name)) = LOWER(TRIM(%s))
+    WHERE u.username = %s 
+       OR s.regno = %s 
+       OR LOWER(TRIM(s.name)) = LOWER(TRIM(%s))
+       OR LOWER(TRIM(st.name)) = LOWER(TRIM(%s))
     LIMIT 1
     """
-    user = execute_query(query, (clean_id, clean_id, clean_id), fetchone=True)
-    if not user and clean_id.lower() == 'staff':
-        user = execute_query(query, ('staff1', 'staff1', 'staff1'), fetchone=True)
+    user = execute_query(query, (clean_id, clean_id, clean_id, clean_id), fetchone=True)
+    if user:
+        return user
+
+    # Flexible matching for staff names (e.g. prefix or partial match like "Asrin")
+    staff_match_query = """
+    SELECT u.*, s.name as student_name, st.name as staff_name 
+    FROM users u
+    JOIN staff st ON u.staff_id = st.staffid
+    LEFT JOIN students s ON u.student_id = s.studentid
+    WHERE LOWER(TRIM(st.name)) LIKE %s
+    LIMIT 1
+    """
+    user = execute_query(staff_match_query, (f"%{clean_id.lower()}%",), fetchone=True)
+    if user:
+        return user
+
+    if clean_id.lower() == 'staff':
+        user = execute_query(query, ('staff1', 'staff1', 'staff1', 'staff1'), fetchone=True)
     return user
+
 
 def get_all_students(year_filter=None, semester_filter=None, subject_filter=None, search=None, subject_ids=None):
     """
@@ -185,6 +278,7 @@ def get_student_details(student_id):
                 'subject_id': row['subject_id'],
                 'subject_code': row['subject_code'],
                 'subject_name': sub_name,
+                'short_name': get_subject_short_name(sub_name),
                 'semester': row['semester'],
                 'staff_name': row['staff_name'],
                 'marks_obtained': marks_obt,
@@ -242,6 +336,8 @@ def get_all_subjects():
     ORDER BY sub.semester, sub.subject_name
     """
     subjects = execute_query(query, fetchall=True) or []
+    for s in subjects:
+        s['short_name'] = get_subject_short_name(s.get('subject_name'))
     api_cache.set('all_subjects', subjects, ttl=120)
     return subjects
 
@@ -259,6 +355,8 @@ def get_staff_subjects(staff_id):
     WHERE sub.staff_id = %s
     """
     subjects = execute_query(query, (staff_id,), fetchall=True) or []
+    for s in subjects:
+        s['short_name'] = get_subject_short_name(s.get('subject_name'))
     api_cache.set(cache_key, subjects, ttl=120)
     return subjects
 
@@ -282,6 +380,7 @@ def get_subject_details(subject_id):
     subject = execute_query(query, (subject_id,), fetchone=True)
     if not subject:
         return None
+    subject['short_name'] = get_subject_short_name(subject.get('subject_name'))
 
     marks_query = """
     SELECT 
@@ -298,7 +397,7 @@ def get_subject_details(subject_id):
     # Attach attendance percentages using high-speed cached attendance map
     att_map = get_student_attendance_map()
     for sm in students_marks:
-        sm['attendance_pct'] = att_map.get(sm['studentid'], 85.0)
+        sm['attendance_pct'] = att_map.get(sm['studentid'], 0.0)
 
     total_students = len(students_marks)
     marks_list = [float(s['percentage'] or 0.0) for s in students_marks]

@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, jsonify, session, request
 from routes.auth import role_required, login_required
-from services.database_service import get_student_details
+from services.database_service import get_student_details, get_subject_short_name
 from services.correction_service import get_student_marks_with_query_status, get_student_queries, raise_mark_correction_query, clear_queries_for_student
 from services.cache_service import api_cache
 from db import fetch_all
@@ -22,11 +22,14 @@ def dashboard():
             LEFT JOIN staff st ON n.staff_id = st.staffid
             ORDER BY sub.subject_name ASC, n.uploaded_at DESC
         """) or []
+        for n in notes:
+            n['short_name'] = get_subject_short_name(n['subject_name'])
         api_cache.set('all_notes', notes, ttl=60)
 
     grouped_notes = {}
     for note in (notes or []):
         s_name = note['subject_name']
+        note['short_name'] = get_subject_short_name(s_name)
         if s_name not in grouped_notes:
             grouped_notes[s_name] = []
         grouped_notes[s_name].append(note)
@@ -78,8 +81,12 @@ def api_student_dashboard():
     lowest_subject = None
     
     if subjects:
-        best_subject = max(subjects, key=lambda s: s['percentage'])['subject_name']
-        lowest_subject = min(subjects, key=lambda s: s['percentage'])['subject_name']
+        best_obj = max(subjects, key=lambda s: s['percentage'])
+        lowest_obj = min(subjects, key=lambda s: s['percentage'])
+        best_subject = best_obj.get('short_name') or get_subject_short_name(best_obj['subject_name'])
+        lowest_subject = lowest_obj.get('short_name') or get_subject_short_name(lowest_obj['subject_name'])
+        details['best_subject_full'] = best_obj['subject_name']
+        details['lowest_subject_full'] = lowest_obj['subject_name']
 
     details['best_subject'] = best_subject or 'N/A'
     details['lowest_subject'] = lowest_subject or 'N/A'
