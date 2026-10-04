@@ -24,11 +24,37 @@
 <div class="row g-4 mb-4" id="staffAnalyticsChartsContainer">
     <div class="col-lg-8">
         <div class="analytics-card h-100">
-            <div class="card-title-bar">
-                <h3><i class="fa-solid fa-chart-bar me-2 text-teal"></i> Student-Wise Internal 1 Marks</h3>
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                <h3 class="h6 fw-bold text-navy mb-0">
+                    <i class="fa-solid fa-chart-bar me-2 text-teal"></i>
+                    Student Marks: <span id="staffAnalyticsSelectedSubName">Loading...</span>
+                </h3>
+                <!-- 4-Color Legend -->
+                <div class="d-flex align-items-center gap-3 flex-wrap fs-8 fw-semibold text-secondary" id="staffAnalyticsLegend">
+                    <span class="d-flex align-items-center gap-1">
+                        <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background-color:#10b981;"></span>
+                        <span>75%+ (High)</span>
+                    </span>
+                    <span class="d-flex align-items-center gap-1">
+                        <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background-color:#f59e0b;"></span>
+                        <span>50–75% (Average)</span>
+                    </span>
+                    <span class="d-flex align-items-center gap-1">
+                        <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background-color:#ef4444;"></span>
+                        <span>Below 40% (Fail)</span>
+                    </span>
+                    <span class="d-flex align-items-center gap-1">
+                        <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background-color:#9ca3af;"></span>
+                        <span>No data</span>
+                    </span>
+                </div>
             </div>
-            <div style="height: 300px;">
+            <div style="height: 320px; position: relative;">
                 <canvas id="staffAnalyticsMarksChart"></canvas>
+                <div id="staffAnalyticsEmptyState" class="d-none text-center py-5 text-muted">
+                    <i class="fa-solid fa-chart-simple fs-2 mb-2 text-secondary"></i>
+                    <p class="mb-0 fw-semibold">No student marks recorded for this subject yet.</p>
+                </div>
             </div>
         </div>
     </div>
@@ -62,6 +88,7 @@
                 <tr>
                     <th>Register No</th>
                     <th>Student Name</th>
+                    <th>Attendance %</th>
                     <th>Internal 1 Marks</th>
                     <th>Max Marks</th>
                     <th>Percentage</th>
@@ -70,7 +97,7 @@
                 </tr>
             </thead>
             <tbody id="subStudentsTableBody">
-                <tr><td colspan="7" class="text-center py-4 text-muted">Select a subject above to view records.</td></tr>
+                <tr><td colspan="8" class="text-center py-4 text-muted">Select a subject above to view records.</td></tr>
             </tbody>
         </table>
     </div>
@@ -116,19 +143,34 @@
         const subId = document.getElementById('subPageSelect').value;
         if (!subId) return;
 
+        // Update card header with selected subject name
+        const sel = document.getElementById('subPageSelect');
+        const selectedOption = sel ? sel.options[sel.selectedIndex] : null;
+        let subjectName = 'Subject';
+        if (selectedOption) {
+            const txt = selectedOption.text;
+            subjectName = txt.includes(' - ') ? txt.split(' - ').slice(1).join(' - ').replace(/\s*\(Sem\s*\d+\)$/i, '') : txt;
+        }
+        const headingNameEl = document.getElementById('staffAnalyticsSelectedSubName');
+        if (headingNameEl) {
+            headingNameEl.textContent = subjectName || 'Subject';
+        }
+
         try {
             const res = await fetch(`/staff/api/subject/${subId}`);
             const data = await res.json();
             const studentMarks = data.student_marks || [];
 
-            // Render Table
+            // Render Table (with real Attendance %)
             const tbody = document.getElementById('subStudentsTableBody');
             tbody.innerHTML = studentMarks.map(m => {
                 const grade = getGrade(m.percentage);
+                const attPct = m.attendance_pct !== null && m.attendance_pct !== undefined ? parseFloat(m.attendance_pct) : 0.0;
                 return `
                     <tr>
                         <td class="font-monospace fw-bold">${m.regno}</td>
                         <td class="fw-semibold">${m.name}</td>
+                        <td class="fw-bold ${attPct < 75 ? 'text-coral' : 'text-teal'}">${attPct.toFixed(1)}%</td>
                         <td class="fw-bold">${m.marks_obtained !== null && m.marks_obtained !== undefined ? m.marks_obtained : '<span class="badge bg-danger-subtle text-danger">Absent</span>'}</td>
                         <td>${m.max_marks}</td>
                         <td><span class="fw-bold text-navy">${m.marks_obtained !== null && m.marks_obtained !== undefined ? `${m.percentage}%` : '-'}</span></td>
@@ -144,35 +186,270 @@
                 `;
             }).join('');
 
-            // Data for Charts
-            const studentNames = studentMarks.map(m => m.name.split(' ')[0]);
-            const marksData = studentMarks.map(m => m.percentage);
+            // 1. Group student marks: ONE bar per student sorted from highest to lowest
+            const studentMap = new Map();
 
-            // 1. Student Marks Bar Chart
-            const ctx1 = document.getElementById('staffAnalyticsMarksChart').getContext('2d');
-            if (marksChart) marksChart.destroy();
-            marksChart = new Chart(ctx1, {
-                type: 'bar',
-                data: {
-                    labels: studentNames,
-                    datasets: [{
-                        label: 'Internal 1 Marks (%)',
-                        data: marksData,
-                        backgroundColor: '#002147',
-                        borderRadius: 6,
-                        barPercentage: 0.45,
-                        categoryPercentage: 0.6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: { ticks: { maxRotation: 0, minRotation: 0 } },
-                        y: { min: 0, max: 100, ticks: { callback: v => v + '%' } }
-                    }
+            studentMarks.forEach(m => {
+                const sId = m.studentid;
+                if (!studentMap.has(sId)) {
+                    studentMap.set(sId, {
+                        id: sId,
+                        name: m.name,
+                        regno: m.regno,
+                        scores: []
+                    });
+                }
+                const student = studentMap.get(sId);
+                if (m.marks_obtained !== null && m.marks_obtained !== undefined && m.percentage !== null && m.percentage !== undefined && !isNaN(parseFloat(m.percentage))) {
+                    student.scores.push(parseFloat(m.percentage));
                 }
             });
+
+            const studentsWithMarks = [];
+            const studentsNoData = [];
+
+            studentMap.forEach(s => {
+                if (s.scores.length > 0) {
+                    const sum = s.scores.reduce((a, b) => a + b, 0);
+                    s.percentage = Math.round((sum / s.scores.length) * 10) / 10;
+                    s.hasData = true;
+                    studentsWithMarks.push(s);
+                } else {
+                    s.percentage = null;
+                    s.hasData = false;
+                    studentsNoData.push(s);
+                }
+            });
+
+            // Sort students with marks from highest to lowest marks
+            studentsWithMarks.sort((a, b) => b.percentage - a.percentage);
+
+            // Assign ranks to students with marks
+            let currentRank = 1;
+            for (let i = 0; i < studentsWithMarks.length; i++) {
+                if (i > 0 && studentsWithMarks[i].percentage < studentsWithMarks[i - 1].percentage) {
+                    currentRank = i + 1;
+                }
+                studentsWithMarks[i].rank = currentRank;
+            }
+
+            // Students with missing marks have rank 'N/A'
+            studentsNoData.forEach(s => {
+                s.rank = 'N/A';
+            });
+
+            // Combined: sorted marks first, then missing marks shown as gray bars at the end
+            const sortedStudents = [...studentsWithMarks, ...studentsNoData];
+
+            // Compute class average from students who have marks
+            const classAvg = studentsWithMarks.length > 0
+                ? Math.round((studentsWithMarks.reduce((acc, s) => acc + s.percentage, 0) / studentsWithMarks.length) * 10) / 10
+                : (parseFloat(data.average_marks) || 0);
+
+            // Prepare colors and values
+            // Green for 75%+, amber for 50-75% (and >=40%), red below 40%, gray for missing marks
+            const bgColors = [];
+            const borderColors = [];
+            const chartValues = [];
+
+            sortedStudents.forEach(s => {
+                if (!s.hasData || s.percentage === null) {
+                    bgColors.push('#9ca3af');
+                    borderColors.push('#6b7280');
+                    chartValues.push(3); // Small visible gray stub so it renders visibly without blank gaps
+                } else if (s.percentage >= 75) {
+                    bgColors.push('#10b981');
+                    borderColors.push('#059669');
+                    chartValues.push(s.percentage);
+                } else if (s.percentage >= 40) {
+                    bgColors.push('#f59e0b');
+                    borderColors.push('#d97706');
+                    chartValues.push(s.percentage);
+                } else {
+                    bgColors.push('#ef4444');
+                    borderColors.push('#dc2626');
+                    chartValues.push(s.percentage);
+                }
+            });
+
+            const chartLabels = sortedStudents.map(s => s.name);
+            const canvasM = document.getElementById('staffAnalyticsMarksChart');
+            const emptyStateEl = document.getElementById('staffAnalyticsEmptyState');
+
+            if (canvasM) {
+                if (sortedStudents.length === 0) {
+                    if (emptyStateEl) emptyStateEl.classList.remove('d-none');
+                    canvasM.style.display = 'none';
+                    if (marksChart) {
+                        marksChart.destroy();
+                        marksChart = null;
+                    }
+                } else {
+                    if (emptyStateEl) emptyStateEl.classList.add('d-none');
+                    canvasM.style.display = 'block';
+
+                    const ctx1 = canvasM.getContext('2d');
+                    if (marksChart) marksChart.destroy();
+
+                    // Reference lines plugin for Pass Mark (40%) and Class Average
+                    const referenceLinesPlugin = {
+                        id: 'staffAnalyticsRefLines',
+                        afterDatasetsDraw(chart) {
+                            const { ctx, chartArea, scales } = chart;
+                            if (!chartArea || !scales || !scales.y) return;
+                            const { left, right, top, bottom } = chartArea;
+                            const y = scales.y;
+
+                            const drawHLine = (val, text, strokeColor, bgColor, textColor, alignRight) => {
+                                if (val === null || val === undefined || isNaN(val) || val < 0 || val > 100) return;
+                                const yPixel = y.getPixelForValue(val);
+                                if (yPixel < top || yPixel > bottom) return;
+
+                                ctx.save();
+                                ctx.beginPath();
+                                ctx.setLineDash([5, 4]);
+                                ctx.strokeStyle = strokeColor;
+                                ctx.lineWidth = 1.5;
+                                ctx.moveTo(left, yPixel);
+                                ctx.lineTo(right, yPixel);
+                                ctx.stroke();
+                                ctx.setLineDash([]);
+
+                                ctx.font = '600 11px system-ui, -apple-system, sans-serif';
+                                const metrics = ctx.measureText(text);
+                                const padX = 7;
+                                const pillW = metrics.width + padX * 2;
+                                const pillH = 18;
+                                const pillX = alignRight ? (right - pillW - 6) : (left + 6);
+                                const pillY = yPixel - (pillH / 2);
+
+                                ctx.fillStyle = bgColor;
+                                ctx.strokeStyle = strokeColor;
+                                ctx.lineWidth = 1;
+
+                                if (ctx.roundRect) {
+                                    ctx.beginPath();
+                                    ctx.roundRect(pillX, pillY, pillW, pillH, 4);
+                                    ctx.fill();
+                                    ctx.stroke();
+                                } else {
+                                    ctx.fillRect(pillX, pillY, pillW, pillH);
+                                    ctx.strokeRect(pillX, pillY, pillW, pillH);
+                                }
+
+                                ctx.fillStyle = textColor;
+                                ctx.textBaseline = 'middle';
+                                ctx.textAlign = 'left';
+                                ctx.fillText(text, pillX + padX, yPixel);
+                                ctx.restore();
+                            };
+
+                            // 1. Pass Mark (40%)
+                            drawHLine(40, 'Pass Mark (40%)', '#dc2626', '#fef2f2', '#b91c1c', false);
+
+                            // 2. Class Average
+                            if (classAvg > 0) {
+                                drawHLine(classAvg, `Class Average (${classAvg}%)`, '#2563eb', '#eff6ff', '#1d4ed8', true);
+                            }
+                        }
+                    };
+
+                    marksChart = new Chart(ctx1, {
+                        type: 'bar',
+                        data: {
+                            labels: chartLabels,
+                            datasets: [{
+                                label: 'Marks (%)',
+                                data: chartValues,
+                                backgroundColor: bgColors,
+                                borderColor: borderColors,
+                                borderWidth: 1,
+                                borderRadius: 3,
+                                maxBarThickness: 28,
+                                categoryPercentage: 0.85,
+                                barPercentage: 0.95
+                            }]
+                        },
+                        plugins: [referenceLinesPlugin],
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: {
+                                mode: 'index',
+                                intersect: false
+                            },
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    backgroundColor: '#131d3b',
+                                    titleColor: '#ffffff',
+                                    bodyColor: '#f1f5f9',
+                                    borderColor: '#ff4f01',
+                                    borderWidth: 1,
+                                    padding: 10,
+                                    cornerRadius: 6,
+                                    displayColors: false,
+                                    callbacks: {
+                                        title: function(items) {
+                                            if (!items.length) return '';
+                                            const idx = items[0].dataIndex;
+                                            const s = sortedStudents[idx];
+                                            return s ? `${s.name} (${s.regno})` : '';
+                                        },
+                                        label: function(item) {
+                                            const idx = item.dataIndex;
+                                            const s = sortedStudents[idx];
+                                            if (!s) return '';
+                                            if (!s.hasData) {
+                                                return [
+                                                    'Marks: No data',
+                                                    'Rank: N/A'
+                                                ];
+                                            }
+                                            return [
+                                                `Marks: ${s.percentage}%`,
+                                                `Rank: #${s.rank}`
+                                            ];
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    ticks: {
+                                        display: false // Hide per-bar x-axis student names to prevent clutter
+                                    },
+                                    grid: {
+                                        display: false
+                                    }
+                                },
+                                y: {
+                                    min: 0,
+                                    max: 100,
+                                    ticks: {
+                                        stepSize: 10,
+                                        callback: function(val) {
+                                            return val + '%';
+                                        }
+                                    },
+                                    title: {
+                                        display: true,
+                                        text: 'Marks (%)',
+                                        color: '#64748b',
+                                        font: {
+                                            weight: 'bold',
+                                            size: 11
+                                        }
+                                    },
+                                    grid: {
+                                        color: 'rgba(0, 0, 0, 0.06)'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            }
 
             // 2. Grade Breakdown Doughnut Chart
             const gradeCounts = { 'O': 0, 'A+': 0, 'A': 0, 'B+': 0, 'B': 0, 'RA': 0 };

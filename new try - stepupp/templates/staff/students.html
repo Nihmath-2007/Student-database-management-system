@@ -92,10 +92,10 @@
             <tr>
                 <td class="font-monospace fw-bold">${s.regno}</td>
                 <td class="fw-semibold">${s.name}</td>
-                <td><span class="badge bg-light text-dark font-monospace">${s.department || 'IT'}</span></td>
+                <td><span class="badge bg-light text-dark font-monospace">${s.department || 'Information Technology'}</span></td>
                 <td>Year ${s.year}</td>
-                <td>Sem 4</td>
-                <td class="fw-bold ${s.attendance_percentage < 75 ? 'text-coral' : 'text-teal'}">${s.attendance_percentage}%</td>
+                <td>Sem 5</td>
+                <td class="fw-bold ${parseFloat(s.attendance_percentage || 0) < 75 ? 'text-coral' : 'text-teal'}">${parseFloat(s.attendance_percentage || 0).toFixed(1)}%</td>
                 <td class="fw-bold text-navy">${s.avg_marks}%</td>
                 <td>
                     ${s.at_risk 

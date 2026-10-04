@@ -145,6 +145,7 @@
             <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom flex-wrap gap-2">
                 <div class="d-flex align-items-center gap-2">
                     <span class="badge-status badge-pass fw-bold">{{ subject_notes[0].subject_code if subject_notes else '' }}</span>
+                    <span class="badge bg-navy text-white fw-bold">{{ subject_notes[0].short_name if subject_notes else '' }}</span>
                     <h4 class="h6 fw-bold text-navy mb-0">{{ subject_name }}</h4>
                 </div>
                 <span class="text-muted fs-8 fw-semibold">
@@ -168,7 +169,8 @@
                             {% for note in subject_notes %}
                             <tr>
                                 <td>
-                                    <span class="fw-semibold text-navy">{{ note.subject_name }}</span>
+                                    <span class="fw-bold text-navy">{{ note.short_name or note.subject_name }}</span>
+                                    <span class="text-muted fs-8 d-block">{{ note.subject_name }}</span>
                                 </td>
                                 <td>
                                     <div class="fw-bold text-navy">{{ note.title }}</div>

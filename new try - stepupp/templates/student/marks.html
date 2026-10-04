@@ -282,8 +282,8 @@
                     <tr>
                         <td>
                             <div class="font-monospace fw-bold text-navy">${m.subject_code}</div>
-                            <div class="fw-semibold small text-dark">${m.subject_name}</div>
-                            <div class="text-muted smaller">Semester ${m.semester}</div>
+                            <div class="fw-bold text-dark">${m.short_name || (window.getSubjectShortName ? window.getSubjectShortName(m.subject_name) : m.subject_name)}</div>
+                            <div class="text-muted smaller">${m.subject_name} &bull; Sem ${m.semester}</div>
                         </td>
                         <td>
                             <span class="badge bg-light text-dark border">Test ${m.test_number}</span>

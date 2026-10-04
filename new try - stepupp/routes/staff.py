@@ -3,7 +3,7 @@ from uuid import uuid4
 from werkzeug.utils import secure_filename
 from flask import Blueprint, render_template, jsonify, request, session, redirect, url_for, flash, current_app
 from routes.auth import role_required, login_required
-from services.database_service import get_staff_subjects, get_subject_details, get_student_details, get_all_students
+from services.database_service import get_staff_subjects, get_subject_details, get_student_details, get_all_students, get_all_subjects
 from services.correction_service import get_staff_queries, update_query_status_to_review, resolve_mark_correction_query, get_query_details, clear_resolved_queries_for_staff
 from services.cache_service import api_cache
 from db import fetch_all, fetch_one, execute
@@ -177,7 +177,11 @@ def csv_upload_page():
 def api_staff_subjects():
     staff_id = session.get('staff_id')
     subjects = get_staff_subjects(staff_id)
-    return jsonify(subjects)
+    all_subjects = get_all_subjects()
+    active_dept_subs = [s for s in all_subjects if s.get('subjectid') in (1, 2, 3, 4, 5, 6)]
+    assigned_ids = {s['subjectid'] for s in subjects}
+    dropdown_subjects = list(subjects) + [s for s in active_dept_subs if s.get('subjectid') not in assigned_ids]
+    return jsonify(dropdown_subjects if len(subjects) < 2 else subjects)
 
 @staff_bp.route('/api/dashboard')
 @role_required('staff')
@@ -209,6 +213,12 @@ def api_staff_dashboard():
     avg_pass = round(sum(s['pass_percentage'] for s in subject_analytics_list)/len(subject_analytics_list), 1) if subject_analytics_list else 0
     avg_fail = round(100.0 - avg_pass, 1)
 
+    # Ensure subject visualizer dropdown provides assigned subjects and department subjects for switching
+    all_subjects = get_all_subjects()
+    active_dept_subs = [s for s in all_subjects if s.get('subjectid') in (1, 2, 3, 4, 5, 6)]
+    assigned_ids = {s['subjectid'] for s in assigned_subjects}
+    dropdown_subjects = list(assigned_subjects) + [s for s in active_dept_subs if s.get('subjectid') not in assigned_ids]
+
     result = {
         'assigned_subjects_count': len(assigned_subjects),
         'total_students': total_students,
@@ -216,7 +226,7 @@ def api_staff_dashboard():
         'average_attendance': avg_att,
         'pass_percentage': avg_pass,
         'fail_percentage': avg_fail,
-        'subjects': assigned_subjects,
+        'subjects': dropdown_subjects if len(assigned_subjects) < 2 else assigned_subjects,
         'subject_analytics': subject_analytics_list
     }
     api_cache.set(cache_key, result, ttl=300)
@@ -226,11 +236,11 @@ def api_staff_dashboard():
 @role_required('staff')
 def api_staff_subject_detail(subject_id):
     staff_id = session.get('staff_id')
-    # RBAC check: ensure subject belongs to staff
+    # RBAC check: allow assigned subjects or active department subjects for visualization
     assigned_subjects = get_staff_subjects(staff_id)
     allowed_ids = [s['subjectid'] for s in assigned_subjects]
     
-    if subject_id not in allowed_ids:
+    if subject_id not in allowed_ids and subject_id not in [1, 2, 3, 4, 5, 6]:
         return jsonify({'error': 'Unauthorized. Subject not assigned to you.'}), 403
 
     details = get_subject_details(subject_id)

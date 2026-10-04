@@ -140,10 +140,15 @@
                 const pct = s.percentage;
                 const grade = pct >= 90 ? 'O' : (pct >= 80 ? 'A+' : (pct >= 70 ? 'A' : (pct >= 60 ? 'B+' : (pct >= 50 ? 'B' : 'RA'))));
 
+                const shortN = s.short_name || (window.getSubjectShortName ? window.getSubjectShortName(s.subject_name) : s.subject_name);
+
                 return `
                     <tr>
                         <td class="font-monospace fw-bold">${s.subject_code}</td>
-                        <td class="fw-semibold">${s.subject_name}</td>
+                        <td class="fw-semibold">
+                            <span class="fw-bold text-navy">${shortN}</span>
+                            <div class="text-muted smaller">${s.subject_name}</div>
+                        </td>
                         <td>Sem ${s.semester}</td>
                         <td>${s.staff_name || 'Faculty'}</td>
                         <td>${s.marks_obtained !== null && s.marks_obtained !== undefined ? `${s.marks_obtained}/100` : '<span class="badge bg-danger-subtle text-danger">Absent</span>'}</td>
@@ -154,23 +159,49 @@
             }).join('');
 
             // Chart 1: Subject-Wise Marks Bar Chart
-            const subNames = subjects.map(s => s.subject_name);
+            const subShortLabels = subjects.map(s => s.short_name || (window.getSubjectShortName ? window.getSubjectShortName(s.subject_name) : s.subject_name));
+            const subFullNames = subjects.map(s => s.subject_name);
             const subMarks = subjects.map(s => s.percentage);
 
             new Chart(document.getElementById('hodStuMarksBarChart').getContext('2d'), {
                 type: 'bar',
                 data: {
-                    labels: subNames,
+                    labels: subShortLabels,
                     datasets: [{
                         label: 'Internal 1 Marks Obtained (%)',
                         data: subMarks,
                         backgroundColor: '#002147',
                         borderRadius: 6,
-                        barPercentage: 0.4,
-                        categoryPercentage: 0.6
+                        barPercentage: 0.45,
+                        categoryPercentage: 0.65
                     }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, scales: { x: { ticks: { maxRotation: 0, minRotation: 0 } }, y: { min: 0, max: 100 } } }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                title: function(items) {
+                                    if (!items.length) return '';
+                                    const idx = items[0].dataIndex;
+                                    return subFullNames[idx] || subShortLabels[idx];
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                autoSkip: false,
+                                maxRotation: 0,
+                                minRotation: 0,
+                                font: { weight: '600', size: 11 }
+                            }
+                        },
+                        y: { min: 0, max: 100 }
+                    }
+                }
             });
 
         } catch (e) {
