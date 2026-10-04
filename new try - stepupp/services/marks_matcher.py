@@ -1,4 +1,5 @@
 import re
+<<<<<<< HEAD
 try:
     from rapidfuzz import fuzz
 except ImportError:
@@ -13,6 +14,9 @@ except ImportError:
             t2 = " ".join(sorted(str(s2).split()))
             return difflib.SequenceMatcher(None, t1, t2).ratio() * 100
     fuzz = FuzzFallback()
+=======
+from rapidfuzz import fuzz
+>>>>>>> 0428c9a (Update project)
 from config.database import fetch_all, fetch_one
 
 def normalize_text(text):

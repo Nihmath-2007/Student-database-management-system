@@ -1,9 +1,13 @@
 import os
 import re
+<<<<<<< HEAD
 try:
     import cv2
 except ImportError:
     cv2 = None
+=======
+import cv2
+>>>>>>> 0428c9a (Update project)
 import numpy as np
 from PIL import Image
 
@@ -15,9 +19,12 @@ def preprocess_image_for_ocr(img_input):
     3. Calculates deskew angle and rotates
     4. Applies Otsu / Adaptive thresholding
     """
+<<<<<<< HEAD
     if cv2 is None:
         raise ImportError("OpenCV ('cv2') is required for OCR image processing. Please install it using 'pip install opencv-python'.")
 
+=======
+>>>>>>> 0428c9a (Update project)
     # 1. Convert input to cv2 numpy array (BGR)
     if isinstance(img_input, str):
         cv_img = cv2.imread(img_input)
@@ -84,13 +91,20 @@ def _find_tesseract_cmd():
         r"C:\Program Files\Tesseract-OCR\tesseract.exe",
         r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
         os.path.expandvars(r"%LOCALAPPDATA%\Programs\Tesseract-OCR\tesseract.exe"),
+<<<<<<< HEAD
         r"C:\Tesseract-OCR\tesseract.exe",
         os.path.join(os.getcwd(), "tesseract-installer.exe"),
+=======
+>>>>>>> 0428c9a (Update project)
         "/usr/bin/tesseract",
         "/usr/local/bin/tesseract"
     ]
     for path in candidates:
+<<<<<<< HEAD
         if os.path.isfile(path) and path.endswith("tesseract.exe"):
+=======
+        if os.path.isfile(path):
+>>>>>>> 0428c9a (Update project)
             return path
     return None
 
@@ -348,6 +362,7 @@ def extract_from_image_ocr(image_input):
     if tess_path:
         pytesseract.pytesseract.tesseract_cmd = tess_path
     else:
+<<<<<<< HEAD
         import shutil
         if not shutil.which("tesseract"):
             raise FileNotFoundError(
@@ -356,6 +371,14 @@ def extract_from_image_ocr(image_input):
                 "1. Double-click 'install_tesseract.bat' in your project root to run the installer, or run:\n"
                 "   winget install UB-Mannheim.TesseractOCR\n"
                 "2. OR add GEMINI_API_KEY in your .env file to enable Google Gemini Vision AI (ideal for handwritten mark sheets)."
+=======
+        # Check if pytesseract default works, otherwise raise actionable error
+        import shutil
+        if not shutil.which("tesseract"):
+            raise FileNotFoundError(
+                "Tesseract OCR executable was not found on the system. "
+                "Please install Tesseract OCR or upload a selectable-text PDF / provide a Vision API key."
+>>>>>>> 0428c9a (Update project)
             )
 
     processed_cv = preprocess_image_for_ocr(image_input)
@@ -387,6 +410,7 @@ def extract_from_image_ocr(image_input):
 def extract_with_vision_api(file_path_or_image, api_key=None, provider="gemini"):
     """
     Modular vision / LLM API extractor function for images and scanned PDFs.
+<<<<<<< HEAD
     Uses Google Gemini Vision API to accurately extract handwritten marks sheets and tabular data.
     """
     import io
@@ -488,12 +512,25 @@ def extract_with_vision_api(file_path_or_image, api_key=None, provider="gemini")
         raise RuntimeError(f"Gemini Vision API error ({e.code}): {err_text}")
     except Exception as e:
         raise RuntimeError(f"Vision API extraction failed: {str(e)}")
+=======
+    Allows easy swapping with external vision APIs (Gemini or OpenAI).
+    """
+    key = api_key or os.getenv('GEMINI_API_KEY') or os.getenv('VISION_API_KEY') or os.getenv('OPENAI_API_KEY')
+    if not key:
+        raise ValueError("No Vision/LLM API key provided. Set GEMINI_API_KEY or OPENAI_API_KEY.")
+
+    # Implementation hook for external vision model
+    # Formulates JSON output: [{"raw_identifier": ..., "raw_name": ..., "raw_regno": ..., "raw_mark": ..., "is_absent": ...}]
+    # Pluggable placeholder that can be invoked whenever API key is supplied by user
+    raise NotImplementedError("Vision API integration is pluggable and ready to connect when API key is provided.")
+>>>>>>> 0428c9a (Update project)
 
 
 def extract_marks_from_file(file_path, filename):
     """
     Main extraction orchestrator:
     1. For PDF files: First tries selectable-text extraction with pdfplumber.
+<<<<<<< HEAD
     2. If PDF has no text (scanned PDF), renders pages to images and runs Gemini Vision or OCR.
     3. For Image files (JPG, JPEG, PNG):
        - If GEMINI_API_KEY is configured, uses Gemini Vision AI (ideal for handwritten mark sheets).
@@ -502,12 +539,20 @@ def extract_marks_from_file(file_path, filename):
     """
     ext = os.path.splitext(filename)[1].lower()
     has_vision_key = bool(os.getenv('GEMINI_API_KEY') or os.getenv('VISION_API_KEY'))
+=======
+    2. If PDF has no text (scanned PDF), renders pages to images and runs OCR.
+    3. For Image files (JPG, JPEG, PNG), applies OpenCV pre-processing and OCR.
+    Returns: list of extracted student mark records.
+    """
+    ext = os.path.splitext(filename)[1].lower()
+>>>>>>> 0428c9a (Update project)
 
     if ext == '.pdf':
         try:
             records = extract_from_pdf_text(file_path)
             if records and len(records) > 0:
                 return records
+<<<<<<< HEAD
             print("PDF has no selectable text table rows; proceeding to image OCR / Vision extraction...")
         except Exception as e:
             print(f"pdfplumber text extraction failed or empty ({e}), falling back to image extraction...")
@@ -524,11 +569,22 @@ def extract_marks_from_file(file_path, filename):
                         continue
                 except Exception as ve:
                     print(f"Gemini Vision API error ({ve}), falling back to Tesseract OCR...")
+=======
+            print("PDF has no selectable text table rows; proceeding to OCR image extraction...")
+        except Exception as e:
+            print(f"pdfplumber text extraction failed or empty ({e}), falling back to OCR...")
+
+        # Scanned PDF: convert pages to images then run OCR
+        images = convert_pdf_to_images(file_path)
+        all_records = []
+        for img in images:
+>>>>>>> 0428c9a (Update project)
             page_records = extract_from_image_ocr(img)
             all_records.extend(page_records)
         return all_records
 
     elif ext in ('.jpg', '.jpeg', '.png'):
+<<<<<<< HEAD
         if has_vision_key:
             try:
                 vision_records = extract_with_vision_api(file_path)
@@ -536,6 +592,8 @@ def extract_marks_from_file(file_path, filename):
                     return vision_records
             except Exception as ve:
                 print(f"Gemini Vision API error ({ve}), falling back to Tesseract OCR...")
+=======
+>>>>>>> 0428c9a (Update project)
         return extract_from_image_ocr(file_path)
 
     else:

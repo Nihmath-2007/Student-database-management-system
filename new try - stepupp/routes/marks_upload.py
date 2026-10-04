@@ -92,6 +92,7 @@ def upload_page():
         tesseract_ready=tesseract_ready,
         vision_ready=vision_ready
     )
+ 
 
 
 @marks_bp.route('/extract', methods=['POST'])
