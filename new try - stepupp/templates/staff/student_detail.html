@@ -141,7 +141,7 @@
                         <td class="fw-semibold">${s.subject_name}</td>
                         <td>Sem ${s.semester}</td>
                         <td>${s.staff_name || 'Faculty'}</td>
-                        <td>${s.marks_obtained || pct}/100</td>
+                        <td>${s.marks_obtained !== null && s.marks_obtained !== undefined ? `${s.marks_obtained}/100` : '<span class="badge bg-danger-subtle text-danger">Absent</span>'}</td>
                         <td class="fw-bold text-navy">${pct}%</td>
                         <td><span class="badge-status ${pct >= 50 ? 'badge-normal' : 'badge-at-risk'}">${grade}</span></td>
                     </tr>

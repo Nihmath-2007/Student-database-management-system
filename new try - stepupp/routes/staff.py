@@ -4,7 +4,7 @@ from werkzeug.utils import secure_filename
 from flask import Blueprint, render_template, jsonify, request, session, redirect, url_for, flash, current_app
 from routes.auth import role_required, login_required
 from services.database_service import get_staff_subjects, get_subject_details, get_student_details, get_all_students
-from services.correction_service import get_staff_queries, update_query_status_to_review, resolve_mark_correction_query, get_query_details
+from services.correction_service import get_staff_queries, update_query_status_to_review, resolve_mark_correction_query, get_query_details, clear_resolved_queries_for_staff
 from services.cache_service import api_cache
 from db import fetch_all, fetch_one, execute
 
@@ -310,6 +310,18 @@ def api_staff_queries():
     }
     api_cache.set(cache_key, res, ttl=20)
     return jsonify(res)
+
+
+@staff_bp.route('/api/queries/clear-resolved', methods=['POST'])
+@role_required('staff')
+def api_staff_clear_resolved():
+    staff_id = session.get('staff_id')
+    clear_resolved_queries_for_staff(staff_id)
+    api_cache.invalidate('staff_queries')
+    api_cache.invalidate('hod_queries')
+    api_cache.invalidate('stud_queries')
+    api_cache.invalidate('stud_mq')
+    return jsonify({'success': True, 'message': 'Resolved queries cleared successfully.'})
 
 
 @staff_bp.route('/api/query/<int:query_id>/review', methods=['POST'])

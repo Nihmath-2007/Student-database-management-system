@@ -32,48 +32,11 @@
         </div>
     </div>
 
-<<<<<<< HEAD
-    <!-- OCR & VISION ENGINE STATUS BANNER -->
-    {% if not tesseract_ready and not vision_ready %}
-    <div class="alert alert-warning border-0 shadow-sm rounded-4 d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4 p-3">
-        <div class="d-flex align-items-center gap-3">
-            <div class="rounded-circle bg-warning text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; font-size: 16px;">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-            </div>
-            <div>
-                <h6 class="fw-bold mb-0 text-dark fs-7">Image OCR Engine Setup Required</h6>
-                <p class="mb-0 fs-8 text-muted">
-                    To extract marks from JPG/PNG photos or scanned PDFs: run <code>install_tesseract.bat</code> in the project folder, or set <code>GEMINI_API_KEY</code> in <code>.env</code> for AI handwriting recognition. Selectable-text PDFs work automatically.
-                </p>
-            </div>
-        </div>
-        <span class="badge bg-white text-dark border px-3 py-2 fs-8 rounded-pill">
-            <i class="fa-solid fa-lightbulb text-warning me-1"></i> Installer Ready
-        </span>
-    </div>
-    {% elif vision_ready %}
-    <div class="alert alert-success border-0 shadow-sm rounded-4 d-flex align-items-center gap-3 mb-4 p-3 bg-success-subtle text-success-emphasis">
-        <i class="fa-solid fa-wand-magic-sparkles text-success fs-5"></i>
-        <div class="fs-8">
-            <strong>Google Gemini Vision AI Active:</strong> High-precision recognition enabled for handwritten mark sheets and multi-column tables.
-        </div>
-    </div>
-    {% elif tesseract_ready %}
-    <div class="alert alert-info border-0 shadow-sm rounded-4 d-flex align-items-center gap-3 mb-4 p-3 bg-info-subtle text-info-emphasis">
-        <i class="fa-solid fa-circle-check text-info fs-5"></i>
-        <div class="fs-8">
-            <strong>Local Tesseract OCR Engine Ready:</strong> Image and scanned document processing is enabled.
-        </div>
-    </div>
-    {% endif %}
-
-=======
->>>>>>> 0428c9a (Update project)
     <!-- MAIN UPLOAD GRID -->
     <div class="row g-4 mb-4">
         
-        <!-- LEFT: UPLOAD FORM -->
-        <div class="col-lg-7">
+        <!-- UPLOAD FORM -->
+        <div class="col-12 col-xl-9 mx-auto">
             <div class="card border-0 shadow-sm rounded-4 h-100">
                 <div class="card-header bg-white border-bottom py-3 px-4 d-flex align-items-center justify-content-between">
                     <span class="fw-bold text-navy fs-6">
@@ -183,80 +146,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- RIGHT: GUIDELINES & SPECIFICATION CARD -->
-        <div class="col-lg-5">
-            <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
-                <div class="card-header bg-white border-bottom py-3 px-4">
-                    <span class="fw-bold text-navy fs-6">
-                        <i class="fa-solid fa-circle-info text-orange me-2"></i>Extraction & Matching Engine
-                    </span>
-                </div>
-                <div class="card-body p-4">
-                    
-                    <!-- FEATURE 1 -->
-                    <div class="d-flex align-items-start gap-3 mb-3">
-                        <div class="rounded-3 bg-primary-subtle text-primary p-2 fs-6">
-                            <i class="fa-solid fa-file-lines"></i>
-                        </div>
-                        <div>
-                            <h6 class="fw-bold text-navy mb-1 fs-7">Dual PDF Processing</h6>
-                            <p class="text-muted fs-8 mb-0">
-                                Digital PDFs are parsed via <code>pdfplumber</code> table extraction. Scanned PDFs are rendered into high-res images and processed via OpenCV and OCR.
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- FEATURE 2 -->
-                    <div class="d-flex align-items-start gap-3 mb-3">
-                        <div class="rounded-3 bg-warning-subtle text-warning p-2 fs-6">
-                            <i class="fa-solid fa-wand-magic-sparkles"></i>
-                        </div>
-                        <div>
-                            <h6 class="fw-bold text-navy mb-1 fs-7">Image Enhancement & Deskew</h6>
-                            <p class="text-muted fs-8 mb-0">
-                                OpenCV applies automatic rotation angle detection, deskew affine transform, grayscale filtering, and Otsu adaptive thresholding.
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- FEATURE 3 -->
-                    <div class="d-flex align-items-start gap-3 mb-3">
-                        <div class="rounded-3 bg-success-subtle text-success p-2 fs-6">
-                            <i class="fa-solid fa-magnifying-glass-chart"></i>
-                        </div>
-                        <div>
-                            <h6 class="fw-bold text-navy mb-1 fs-7">Smart Database Matching</h6>
-                            <p class="text-muted fs-8 mb-0">
-                                Matches first by <strong>Register Number</strong> (regno). If absent, runs <strong>RapidFuzz</strong> token sort matching with a 90% threshold against students of the selected semester.
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- FEATURE 4 -->
-                    <div class="d-flex align-items-start gap-3 mb-3">
-                        <div class="rounded-3 bg-danger-subtle text-danger p-2 fs-6">
-                            <i class="fa-solid fa-user-xmark"></i>
-                        </div>
-                        <div>
-                            <h6 class="fw-bold text-navy mb-1 fs-7">Absentee Handling</h6>
-                            <p class="text-muted fs-8 mb-0">
-                                Entries denoted as <code>AB</code>, <code>A</code>, <code>-</code>, or blank are flagged as Absent and preserved without setting them to 0.
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- FORMAT BOX -->
-                    <div class="p-3 bg-light rounded-3 border mt-3">
-                        <div class="fw-bold text-navy fs-8 mb-1">Supported Line Formats:</div>
-                        <div class="text-muted fs-9 mb-1"><span class="badge bg-secondary-subtle text-dark">Format A</span> <code>911524205001 ABICHETHRA P 84</code></div>
-                        <div class="text-muted fs-9"><span class="badge bg-secondary-subtle text-dark">Format B</span> <code>ABICHETHRA P 84</code> (or <code>AB</code>)</div>
-                    </div>
-
-                </div>
-            </div>
-        </div>
-
     </div>
 
     <!-- RECENT UPLOADS LOG TABLE -->

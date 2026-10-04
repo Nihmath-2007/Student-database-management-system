@@ -160,11 +160,11 @@
                             <td>
                                 <div class="position-relative">
                                     <input type="text" class="form-control form-control-sm text-center fw-bold row-mark-input rounded-2" 
-                                           value="{{ r.mark }}" 
+                                           value="{{ 'Absent' if r.is_absent or r.mark in (None, 'null', 'NULL', 'None') else r.mark }}" 
                                            data-max="{{ max_marks }}"
-                                           placeholder="e.g. 84 or AB">
+                                           placeholder="e.g. 84 or Absent">
                                     <div class="mark-error-msg d-none fs-9 text-danger fw-semibold mt-1">
-                                        Invalid (0 - {{ max_marks }} or AB)
+                                        Invalid (0 - {{ max_marks }} or Absent)
                                     </div>
                                 </div>
                             </td>
@@ -278,7 +278,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const upper = val.toUpperCase();
-        if (['AB', 'A', '-', 'ABSENT', 'ABS'].includes(upper)) {
+        if (['AB', 'A', '-', 'ABSENT', 'ABS', 'NULL', 'NONE'].includes(upper)) {
             input.classList.remove('is-invalid');
             input.style.borderColor = '';
             input.style.backgroundColor = '#f8fafc';
@@ -293,7 +293,7 @@ document.addEventListener('DOMContentLoaded', function() {
             input.style.borderColor = '#dc2626';
             input.style.backgroundColor = '#fef2f2';
             if (errorDiv) {
-                errorDiv.textContent = `Must be 0 to ${maxMarks} or AB`;
+                errorDiv.textContent = `Must be 0 to ${maxMarks} or Absent`;
                 errorDiv.classList.remove('d-none');
             }
             return false;
@@ -495,11 +495,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const markVal = markInput.value.trim();
             const upperMark = markVal.toUpperCase();
-            const isAbsent = ['AB', 'A', '-', 'ABSENT', 'ABS', ''].includes(upperMark);
+            const isAbsent = ['AB', 'A', '-', 'ABSENT', 'ABS', '', 'NULL', 'NONE'].includes(upperMark);
 
             payloadRows.push({
                 student_id: studentId,
-                mark: isAbsent ? 'AB' : markVal,
+                mark: isAbsent ? 'Absent' : markVal,
                 is_absent: isAbsent,
                 extracted_name: extractedNameInput ? extractedNameInput.value.trim() : ''
             });
