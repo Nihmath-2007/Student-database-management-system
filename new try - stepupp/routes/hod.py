@@ -122,13 +122,15 @@ def api_hod_students():
     subject = request.args.get('subject')
     search = request.args.get('search')
     status = request.args.get('status')
+    attendance_filter = request.args.get('attendance_filter')
+    marks_filter = request.args.get('marks_filter')
     page = request.args.get('page')
     per_page = request.args.get('per_page')
     paginate = request.args.get('paginate') in ('1', 'true', 'yes') or page is not None
     simple = request.args.get('simple') in ('1', 'true', 'yes')
     refresh = request.args.get('refresh') in ('1', 'true', 'yes')
 
-    cache_key = f"students_{simple}_{paginate}_{page}_{per_page}_{year}_{department}_{subject}_{search}_{status}"
+    cache_key = f"students_{simple}_{paginate}_{page}_{per_page}_{year}_{department}_{subject}_{search}_{status}_{attendance_filter}_{marks_filter}"
     if not refresh:
         cached = api_cache.get(cache_key)
         if cached is not None:
@@ -160,7 +162,16 @@ def api_hod_students():
     if paginate:
         p = int(page or 1)
         pp = int(per_page or 20)
-        res = erp_get_students(search=search, department=department, year=year, status=status, page=p, per_page=pp)
+        res = erp_get_students(
+            search=search, 
+            department=department, 
+            year=year, 
+            status=status, 
+            attendance_filter=attendance_filter, 
+            marks_filter=marks_filter, 
+            page=p, 
+            per_page=pp
+        )
         api_cache.set(cache_key, res, ttl=45)
         return jsonify(res)
     else:

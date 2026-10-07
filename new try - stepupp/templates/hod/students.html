@@ -3,6 +3,111 @@
 {% block breadcrumb %}Student Management{% endblock %}
 
 {% block content %}
+<style>
+    .quick-chip {
+        border-radius: 50rem;
+        font-size: 0.78rem;
+        font-weight: 600;
+        padding: 5px 12px;
+        transition: all 0.2s ease-in-out;
+        border: 1px solid #dee2e6;
+        background-color: #ffffff;
+        color: #495057;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        text-decoration: none;
+        user-select: none;
+    }
+    .quick-chip:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+    .quick-chip.active {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    }
+    .quick-chip.active#chip-all {
+        background-color: #0b1a30 !important;
+        color: #ffffff !important;
+        border-color: #0b1a30 !important;
+    }
+    .quick-chip.active#chip-both-low {
+        background-color: #dc2626 !important;
+        color: #ffffff !important;
+        border-color: #dc2626 !important;
+    }
+    .quick-chip.active#chip-both-low .badge {
+        background-color: #ffffff !important;
+        color: #dc2626 !important;
+    }
+    .quick-chip.active#chip-low-att {
+        background-color: #d97706 !important;
+        color: #ffffff !important;
+        border-color: #d97706 !important;
+    }
+    .quick-chip.active#chip-low-att .badge {
+        background-color: #ffffff !important;
+        color: #d97706 !important;
+    }
+    .quick-chip.active#chip-low-marks {
+        background-color: #e11d48 !important;
+        color: #ffffff !important;
+        border-color: #e11d48 !important;
+    }
+    .quick-chip.active#chip-low-marks .badge {
+        background-color: #ffffff !important;
+        color: #e11d48 !important;
+    }
+    .quick-chip.active#chip-backlogs {
+        background-color: #475569 !important;
+        color: #ffffff !important;
+        border-color: #475569 !important;
+    }
+    .quick-chip.active#chip-normal {
+        background-color: #059669 !important;
+        color: #ffffff !important;
+        border-color: #059669 !important;
+    }
+    .quick-chip.active#chip-top {
+        background-color: #2563eb !important;
+        color: #ffffff !important;
+        border-color: #2563eb !important;
+    }
+    .row-critical-risk {
+        background-color: rgba(220, 38, 38, 0.04) !important;
+        border-left: 3px solid #dc2626 !important;
+    }
+    .row-critical-risk:hover {
+        background-color: rgba(220, 38, 38, 0.08) !important;
+    }
+    .row-warning-risk {
+        border-left: 3px solid #f59e0b !important;
+    }
+    .fs-9 {
+        font-size: 0.70rem;
+    }
+    .active-filter-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #f1f5f9;
+        border: 1px solid #cbd5e1;
+        border-radius: 50rem;
+        padding: 3px 10px;
+        font-size: 0.75rem;
+        color: #334155;
+    }
+    .active-filter-tag .tag-close-btn {
+        cursor: pointer;
+        color: #64748b;
+        font-size: 0.75rem;
+        transition: color 0.15s;
+    }
+    .active-filter-tag .tag-close-btn:hover {
+        color: #dc2626;
+    }
+</style>
+
 <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3">
     <div>
         <h1 class="page-title"><i class="fa-solid fa-user-graduate me-2 text-warning"></i> Student Management System</h1>
@@ -21,20 +126,64 @@
 <!-- ALERT BANNER -->
 <div id="alertContainer"></div>
 
-<!-- FILTERS CARD -->
-<div class="analytics-card mb-4">
+<!-- FILTERS & RISK CLASSIFICATION CARD -->
+<div class="analytics-card mb-4 shadow-sm border-0">
     <input type="hidden" id="deptFilter" value="All">
-    <div class="row g-3 align-items-center">
-        <div class="col-md-5">
-            <label class="form-label fw-semibold fs-7 text-secondary">Search Student</label>
+
+    <!-- Quick Filter Action Chips / Badges with live counts -->
+    <div class="pb-3 mb-3 border-bottom">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-navy text-white px-2 py-1 fs-8 text-uppercase"><i class="fa-solid fa-bolt me-1 text-warning"></i> Quick Filters</span>
+                <span class="fs-8 text-secondary">Click to immediately filter students by academic risk or performance category:</span>
+            </div>
+            <div class="fs-8 text-muted fw-semibold" id="quickFilterSummaryText">Showing all enrolled students</div>
+        </div>
+        <div class="d-flex flex-wrap gap-2 align-items-center" id="quickFilterChipsContainer">
+            <button type="button" class="btn btn-sm btn-outline-dark quick-chip active" id="chip-all" onclick="applyQuickFilter('All')">
+                <i class="fa-solid fa-users me-1"></i> All Students <span class="badge bg-secondary ms-1 rounded-pill" id="chipCount-all">0</span>
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-danger quick-chip fw-bold" id="chip-both-low" onclick="applyQuickFilter('Both Low')">
+                <i class="fa-solid fa-triangle-exclamation me-1 text-danger"></i> Low Attendance &amp; Low Marks <span class="badge bg-danger text-white ms-1 rounded-pill" id="chipCount-both-low">0</span>
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-warning text-dark quick-chip fw-semibold" id="chip-low-att" onclick="applyQuickFilter('Low Attendance')">
+                <i class="fa-solid fa-clock-rotate-left me-1 text-warning"></i> Low Attendance (&lt;75%) <span class="badge bg-warning text-dark ms-1 rounded-pill" id="chipCount-low-att">0</span>
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-danger quick-chip fw-semibold" id="chip-low-marks" onclick="applyQuickFilter('Low Marks')">
+                <i class="fa-solid fa-arrow-trend-down me-1 text-danger"></i> Low Marks (&lt;50%) <span class="badge bg-danger text-white ms-1 rounded-pill" id="chipCount-low-marks">0</span>
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary quick-chip" id="chip-backlogs" onclick="applyQuickFilter('Failed Subjects')">
+                <i class="fa-solid fa-circle-xmark me-1 text-danger"></i> Has Failed Subject(s) <span class="badge bg-secondary ms-1 rounded-pill" id="chipCount-backlogs">0</span>
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-success quick-chip fw-semibold" id="chip-normal" onclick="applyQuickFilter('Normal')">
+                <i class="fa-solid fa-circle-check me-1 text-success"></i> Satisfactory <span class="badge bg-success text-white ms-1 rounded-pill" id="chipCount-normal">0</span>
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-primary quick-chip" id="chip-top" onclick="applyQuickFilter('Top Performers')">
+                <i class="fa-solid fa-trophy me-1 text-primary"></i> High Achievers <span class="badge bg-primary text-white ms-1 rounded-pill" id="chipCount-top">0</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Granular Filter Controls Grid -->
+    <div class="row g-3 align-items-end">
+        <div class="col-lg-3 col-md-6">
+            <label class="form-label fw-semibold fs-7 text-secondary mb-1">
+                <i class="fa-solid fa-magnifying-glass me-1 text-muted"></i> Search Student
+            </label>
             <div class="input-group">
-                <span class="input-group-text bg-light"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                <input type="text" id="searchInput" class="form-control" placeholder="Search by Reg No, Name, Email..." oninput="handleSearchDebounced()">
+                <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-search text-muted"></i></span>
+                <input type="text" id="searchInput" class="form-control border-start-0" placeholder="Reg No, Name, or Email..." oninput="handleSearchDebounced()">
+                <button class="btn btn-outline-secondary border-start-0" type="button" id="clearSearchBtn" style="display:none;" onclick="clearSearchInput()" title="Clear search">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
         </div>
-        <div class="col-md-3">
-            <label class="form-label fw-semibold fs-7 text-secondary">Academic Year</label>
-            <select id="yearFilter" class="form-select" onchange="filterStudents()">
+
+        <div class="col-lg-2 col-md-6">
+            <label class="form-label fw-semibold fs-7 text-secondary mb-1">
+                <i class="fa-solid fa-graduation-cap me-1 text-muted"></i> Academic Year
+            </label>
+            <select id="yearFilter" class="form-select" onchange="syncAndFilterStudents()">
                 <option value="All">All Academic Years</option>
                 <option value="First year">First Year</option>
                 <option value="Second year">Second Year</option>
@@ -42,21 +191,70 @@
                 <option value="Final year">Final Year</option>
             </select>
         </div>
-        <div class="col-md-2">
-            <label class="form-label fw-semibold fs-7 text-secondary">Performance Status</label>
-            <select id="statusFilter" class="form-select" onchange="filterStudents()">
-                <option value="All">All Statuses</option>
-                <option value="Normal">Satisfactory Only</option>
-                <option value="At Risk">At Risk Only</option>
-                <option value="Top Rank">Top Rank to Bottom</option>
-                <option value="Bottom Rank">Bottom Rank to Top</option>
+
+        <div class="col-lg-3 col-md-6">
+            <label class="form-label fw-semibold fs-7 text-secondary mb-1">
+                <i class="fa-solid fa-sliders me-1 text-muted"></i> Performance &amp; Risk Filter
+            </label>
+            <select id="statusFilter" class="form-select fw-semibold" onchange="syncAndFilterStudents()">
+                <option value="All">All Statuses (Show All)</option>
+                <option value="Both Low" class="text-danger fw-bold">🚨 Low Attendance &amp; Low Marks (Critical)</option>
+                <option value="Low Attendance" class="text-warning-emphasis">⚠️ Low Attendance Only (&lt; 75%)</option>
+                <option value="Low Marks" class="text-danger">📉 Low Marks Only (&lt; 50%)</option>
+                <option value="At Risk" class="text-danger">⚡ At Risk (Low Att OR Low Marks)</option>
+                <option value="Failed Subjects" class="text-danger">❌ Has Failed Subject(s) / Backlogs</option>
+                <option value="Normal" class="text-success">✅ Satisfactory / Normal (Att ≥ 75% &amp; Marks ≥ 50%)</option>
+                <option value="Top Performers" class="text-primary">🌟 High Achievers (Att ≥ 85% &amp; Marks ≥ 75%)</option>
+                <option value="Top Rank">🏆 Rank: Highest Marks to Lowest</option>
+                <option value="Bottom Rank">🔻 Rank: Lowest Marks to Highest</option>
             </select>
         </div>
-        <div class="col-md-2 text-end">
-            <button class="btn btn-outline-secondary w-100 mt-4 fs-7" onclick="resetFilters()">
-                <i class="fa-solid fa-rotate-left me-1"></i> Reset
-            </button>
+
+        <div class="col-lg-2 col-md-3 col-sm-6">
+            <label class="form-label fw-semibold fs-7 text-secondary mb-1">
+                <i class="fa-solid fa-calendar-check me-1 text-muted"></i> Attendance Level
+            </label>
+            <select id="attendanceRangeFilter" class="form-select" onchange="syncAndFilterStudents()">
+                <option value="All">All Attendance</option>
+                <option value="<75" class="text-danger">Low Attendance (&lt; 75%)</option>
+                <option value="<60" class="text-danger fw-bold">Severe Shortage (&lt; 60%)</option>
+                <option value="75-85">Satisfactory (75% - 85%)</option>
+                <option value="≥85" class="text-success">High Attendance (≥ 85%)</option>
+            </select>
         </div>
+
+        <div class="col-lg-2 col-md-3 col-sm-6">
+            <div class="d-flex gap-2">
+                <div class="flex-grow-1">
+                    <label class="form-label fw-semibold fs-7 text-secondary mb-1">
+                        <i class="fa-solid fa-award me-1 text-muted"></i> Marks Level
+                    </label>
+                    <select id="marksRangeFilter" class="form-select" onchange="syncAndFilterStudents()">
+                        <option value="All">All Marks</option>
+                        <option value="<50" class="text-danger">Failing Marks (&lt; 50%)</option>
+                        <option value="<40" class="text-danger fw-bold">Severe Low (&lt; 40%)</option>
+                        <option value="50-75">Average (50% - 75%)</option>
+                        <option value="≥75" class="text-success">High Marks (≥ 75%)</option>
+                        <option value="hasFailed" class="text-danger">Failed in Subject(s)</option>
+                    </select>
+                </div>
+                <div class="align-self-end">
+                    <button class="btn btn-outline-secondary fs-7 px-3" onclick="resetFilters()" title="Reset all filters">
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Filters Tags & Quick Summary Banner -->
+    <div id="activeFiltersBar" class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-3 pt-3 border-top" style="display:none !important;">
+        <div class="d-flex align-items-center flex-wrap gap-2" id="activeFilterTagsContainer">
+            <span class="fs-8 fw-semibold text-secondary">Active Filters:</span>
+        </div>
+        <button type="button" class="btn btn-link btn-sm text-danger p-0 text-decoration-none fs-8 fw-semibold" onclick="resetFilters()">
+            <i class="fa-solid fa-xmark me-1"></i> Clear all filters
+        </button>
     </div>
 </div>
 
@@ -217,6 +415,7 @@
             if (res.ok) {
                 const data = await res.json();
                 allStudentsData = data.students || [];
+                updateQuickChipCounts();
                 filterStudents();
             } else {
                 tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-danger"><i class="fa-solid fa-triangle-exclamation me-1"></i> Failed to load students from database.</td></tr>`;
@@ -227,16 +426,139 @@
         }
     }
 
+    function updateQuickChipCounts() {
+        let bothLow = 0, lowAtt = 0, lowMarks = 0, backlogs = 0, normal = 0, top = 0;
+        allStudentsData.forEach(s => {
+            const att = parseFloat(s.attendance_percentage) || 0.0;
+            const avg = parseFloat(s.avg_marks) || 0.0;
+            const failed = parseInt(s.failed_subjects) || 0;
+            
+            const isLowAtt = att < 75.0;
+            const isLowMarks = avg < 50.0;
+            
+            if (isLowAtt && isLowMarks) bothLow++;
+            if (isLowAtt) lowAtt++;
+            if (isLowMarks) lowMarks++;
+            if (failed > 0) backlogs++;
+            if (att >= 75.0 && avg >= 50.0 && failed === 0) normal++;
+            if (att >= 85.0 && avg >= 75.0 && failed === 0) top++;
+        });
+
+        const elAll = document.getElementById('chipCount-all');
+        const elBoth = document.getElementById('chipCount-both-low');
+        const elLowAtt = document.getElementById('chipCount-low-att');
+        const elLowMarks = document.getElementById('chipCount-low-marks');
+        const elBacklogs = document.getElementById('chipCount-backlogs');
+        const elNormal = document.getElementById('chipCount-normal');
+        const elTop = document.getElementById('chipCount-top');
+
+        if (elAll) elAll.innerText = allStudentsData.length;
+        if (elBoth) elBoth.innerText = bothLow;
+        if (elLowAtt) elLowAtt.innerText = lowAtt;
+        if (elLowMarks) elLowMarks.innerText = lowMarks;
+        if (elBacklogs) elBacklogs.innerText = backlogs;
+        if (elNormal) elNormal.innerText = normal;
+        if (elTop) elTop.innerText = top;
+    }
+
+    function applyQuickFilter(type) {
+        document.querySelectorAll('.quick-chip').forEach(c => c.classList.remove('active'));
+
+        const statusSelect = document.getElementById('statusFilter');
+        const attSelect = document.getElementById('attendanceRangeFilter');
+        const marksSelect = document.getElementById('marksRangeFilter');
+
+        if (type === 'All') {
+            statusSelect.value = 'All';
+            if (attSelect) attSelect.value = 'All';
+            if (marksSelect) marksSelect.value = 'All';
+            const btn = document.getElementById('chip-all');
+            if (btn) btn.classList.add('active');
+        } else if (type === 'Both Low') {
+            statusSelect.value = 'Both Low';
+            const btn = document.getElementById('chip-both-low');
+            if (btn) btn.classList.add('active');
+        } else if (type === 'Low Attendance') {
+            statusSelect.value = 'Low Attendance';
+            const btn = document.getElementById('chip-low-att');
+            if (btn) btn.classList.add('active');
+        } else if (type === 'Low Marks') {
+            statusSelect.value = 'Low Marks';
+            const btn = document.getElementById('chip-low-marks');
+            if (btn) btn.classList.add('active');
+        } else if (type === 'Failed Subjects') {
+            statusSelect.value = 'Failed Subjects';
+            const btn = document.getElementById('chip-backlogs');
+            if (btn) btn.classList.add('active');
+        } else if (type === 'Normal') {
+            statusSelect.value = 'Normal';
+            const btn = document.getElementById('chip-normal');
+            if (btn) btn.classList.add('active');
+        } else if (type === 'Top Performers') {
+            statusSelect.value = 'Top Performers';
+            const btn = document.getElementById('chip-top');
+            if (btn) btn.classList.add('active');
+        }
+
+        filterStudents();
+    }
+
+    function syncAndFilterStudents() {
+        const status = document.getElementById('statusFilter').value;
+        const attRange = document.getElementById('attendanceRangeFilter') ? document.getElementById('attendanceRangeFilter').value : 'All';
+        const marksRange = document.getElementById('marksRangeFilter') ? document.getElementById('marksRangeFilter').value : 'All';
+
+        document.querySelectorAll('.quick-chip').forEach(c => c.classList.remove('active'));
+        if (status === 'Both Low') {
+            const btn = document.getElementById('chip-both-low');
+            if (btn) btn.classList.add('active');
+        } else if (status === 'Low Attendance' || attRange === '<75') {
+            const btn = document.getElementById('chip-low-att');
+            if (btn) btn.classList.add('active');
+        } else if (status === 'Low Marks' || marksRange === '<50') {
+            const btn = document.getElementById('chip-low-marks');
+            if (btn) btn.classList.add('active');
+        } else if (status === 'Failed Subjects' || marksRange === 'hasFailed') {
+            const btn = document.getElementById('chip-backlogs');
+            if (btn) btn.classList.add('active');
+        } else if (status === 'Normal') {
+            const btn = document.getElementById('chip-normal');
+            if (btn) btn.classList.add('active');
+        } else if (status === 'Top Performers') {
+            const btn = document.getElementById('chip-top');
+            if (btn) btn.classList.add('active');
+        } else if (status === 'All' && attRange === 'All' && marksRange === 'All') {
+            const btn = document.getElementById('chip-all');
+            if (btn) btn.classList.add('active');
+        }
+
+        filterStudents();
+    }
+
     function handleSearchDebounced() {
+        const searchVal = document.getElementById('searchInput').value.trim();
+        const clearBtn = document.getElementById('clearSearchBtn');
+        if (clearBtn) {
+            clearBtn.style.display = searchVal ? 'block' : 'none';
+        }
         clearTimeout(searchDebounceTimer);
         searchDebounceTimer = setTimeout(filterStudents, 250);
     }
 
-    function filterStudents() {
-        const search = document.getElementById('searchInput').value.toLowerCase().trim();
+    function clearSearchInput() {
+        document.getElementById('searchInput').value = '';
+        const clearBtn = document.getElementById('clearSearchBtn');
+        if (clearBtn) clearBtn.style.display = 'none';
+        filterStudents();
+    }
+
+    function getFilteredStudents() {
+        const search = (document.getElementById('searchInput').value || '').toLowerCase().trim();
         const dept = document.getElementById('deptFilter') ? document.getElementById('deptFilter').value : 'All';
         const year = document.getElementById('yearFilter').value;
         const status = document.getElementById('statusFilter').value;
+        const attRange = document.getElementById('attendanceRangeFilter') ? document.getElementById('attendanceRangeFilter').value : 'All';
+        const marksRange = document.getElementById('marksRangeFilter') ? document.getElementById('marksRangeFilter').value : 'All';
 
         let filtered = allStudentsData.filter(s => {
             const matchesSearch = !search || 
@@ -244,31 +566,193 @@
                 (s.regno && s.regno.toLowerCase().includes(search)) ||
                 (s.email && s.email.toLowerCase().includes(search));
 
-            const matchesDept = !dept || dept === 'All' || s.department === dept || (dept === 'Information Technology' && (s.department === 'IT' || s.department === 'Information Technology'));
+            const matchesDept = !dept || dept === 'All' || s.department === dept || 
+                (dept === 'Information Technology' && (s.department === 'IT' || s.department === 'Information Technology'));
             const matchesYear = year === 'All' || s.year === year;
 
-            let matchesStatus = true;
-            if (status === 'At Risk') matchesStatus = s.at_risk;
-            if (status === 'Normal') matchesStatus = !s.at_risk;
+            const att = parseFloat(s.attendance_percentage) || 0.0;
+            const avg = parseFloat(s.avg_marks) || 0.0;
+            const failed = parseInt(s.failed_subjects) || 0;
+            const isLowAtt = att < 75.0;
+            const isLowMarks = avg < 50.0;
+            const isBothLow = isLowAtt && isLowMarks;
 
-            return matchesSearch && matchesDept && matchesYear && matchesStatus;
+            // Status Filter Check
+            let matchesStatus = true;
+            if (status === 'Both Low') {
+                matchesStatus = isBothLow;
+            } else if (status === 'Low Attendance') {
+                matchesStatus = isLowAtt;
+            } else if (status === 'Low Marks') {
+                matchesStatus = isLowMarks;
+            } else if (status === 'Failed Subjects') {
+                matchesStatus = (failed > 0);
+            } else if (status === 'At Risk') {
+                matchesStatus = s.at_risk || isLowAtt || isLowMarks || failed > 0;
+            } else if (status === 'Normal') {
+                matchesStatus = !s.at_risk && !isLowAtt && !isLowMarks;
+            } else if (status === 'Top Performers') {
+                matchesStatus = (att >= 85.0 && avg >= 75.0 && failed === 0);
+            }
+
+            // Attendance Range Filter Check
+            let matchesAtt = true;
+            if (attRange === '<75') matchesAtt = (att < 75.0);
+            else if (attRange === '<60') matchesAtt = (att < 60.0);
+            else if (attRange === '75-85') matchesAtt = (att >= 75.0 && att <= 85.0);
+            else if (attRange === '≥85') matchesAtt = (att >= 85.0);
+
+            // Marks Range Filter Check
+            let matchesMarks = true;
+            if (marksRange === '<50') matchesMarks = (avg < 50.0);
+            else if (marksRange === '<40') matchesMarks = (avg < 40.0);
+            else if (marksRange === '50-75') matchesMarks = (avg >= 50.0 && avg <= 75.0);
+            else if (marksRange === '≥75') matchesMarks = (avg >= 75.0);
+            else if (marksRange === 'hasFailed') matchesMarks = (failed > 0);
+
+            return matchesSearch && matchesDept && matchesYear && matchesStatus && matchesAtt && matchesMarks;
         });
 
+        // Rank Sorting
         if (status === 'Top Rank') {
             filtered.sort((a, b) => (parseFloat(b.avg_marks) || 0) - (parseFloat(a.avg_marks) || 0));
         } else if (status === 'Bottom Rank') {
             filtered.sort((a, b) => (parseFloat(a.avg_marks) || 0) - (parseFloat(b.avg_marks) || 0));
         }
 
+        return filtered;
+    }
+
+    function filterStudents() {
+        const filtered = getFilteredStudents();
+        updateActiveFiltersDisplay();
         currentPage = 1;
         renderPaginatedStudents(filtered);
     }
 
+    function updateActiveFiltersDisplay() {
+        const search = (document.getElementById('searchInput').value || '').trim();
+        const year = document.getElementById('yearFilter').value;
+        const status = document.getElementById('statusFilter').value;
+        const attRange = document.getElementById('attendanceRangeFilter') ? document.getElementById('attendanceRangeFilter').value : 'All';
+        const marksRange = document.getElementById('marksRangeFilter') ? document.getElementById('marksRangeFilter').value : 'All';
+
+        const tagsContainer = document.getElementById('activeFilterTagsContainer');
+        const activeBar = document.getElementById('activeFiltersBar');
+        const summaryText = document.getElementById('quickFilterSummaryText');
+
+        let tagsHtml = '<span class="fs-8 fw-semibold text-secondary"><i class="fa-solid fa-filter me-1 text-muted"></i> Active Filters:</span>';
+        let hasActiveFilters = false;
+
+        if (status !== 'All') {
+            hasActiveFilters = true;
+            let statusLabel = status;
+            if (status === 'Both Low') statusLabel = '🚨 Low Attendance & Low Marks';
+            else if (status === 'Low Attendance') statusLabel = '⚠️ Low Attendance (<75%)';
+            else if (status === 'Low Marks') statusLabel = '📉 Low Marks (<50%)';
+            else if (status === 'Failed Subjects') statusLabel = '❌ Has Failed Subject(s)';
+            else if (status === 'Top Performers') statusLabel = '🌟 High Achievers';
+            tagsHtml += `
+                <span class="active-filter-tag">
+                    <span>${statusLabel}</span>
+                    <i class="fa-solid fa-circle-xmark tag-close-btn ms-1" onclick="removeFilter('status')" title="Remove filter"></i>
+                </span>
+            `;
+        }
+
+        if (year !== 'All') {
+            hasActiveFilters = true;
+            tagsHtml += `
+                <span class="active-filter-tag">
+                    <span>Year: ${year}</span>
+                    <i class="fa-solid fa-circle-xmark tag-close-btn ms-1" onclick="removeFilter('year')" title="Remove filter"></i>
+                </span>
+            `;
+        }
+
+        if (attRange !== 'All') {
+            hasActiveFilters = true;
+            let attLabel = attRange === '<75' ? 'Attendance < 75%' : (attRange === '<60' ? 'Attendance < 60%' : attRange);
+            tagsHtml += `
+                <span class="active-filter-tag">
+                    <span>${attLabel}</span>
+                    <i class="fa-solid fa-circle-xmark tag-close-btn ms-1" onclick="removeFilter('att')" title="Remove filter"></i>
+                </span>
+            `;
+        }
+
+        if (marksRange !== 'All') {
+            hasActiveFilters = true;
+            let marksLabel = marksRange === '<50' ? 'Marks < 50%' : (marksRange === '<40' ? 'Marks < 40%' : marksRange);
+            tagsHtml += `
+                <span class="active-filter-tag">
+                    <span>${marksLabel}</span>
+                    <i class="fa-solid fa-circle-xmark tag-close-btn ms-1" onclick="removeFilter('marks')" title="Remove filter"></i>
+                </span>
+            `;
+        }
+
+        if (search) {
+            hasActiveFilters = true;
+            tagsHtml += `
+                <span class="active-filter-tag">
+                    <span>Search: "${search}"</span>
+                    <i class="fa-solid fa-circle-xmark tag-close-btn ms-1" onclick="removeFilter('search')" title="Remove filter"></i>
+                </span>
+            `;
+        }
+
+        if (tagsContainer) tagsContainer.innerHTML = tagsHtml;
+        if (activeBar) {
+            activeBar.style.setProperty('display', hasActiveFilters ? 'flex' : 'none', 'important');
+        }
+
+        if (summaryText) {
+            if (status === 'Both Low') {
+                summaryText.innerHTML = '<span class="text-danger fw-bold"><i class="fa-solid fa-triangle-exclamation me-1"></i> Filtering Critical Risk Students (Low Attendance &amp; Low Marks)</span>';
+            } else if (status === 'Low Attendance') {
+                summaryText.innerHTML = '<span class="text-warning-emphasis fw-bold"><i class="fa-solid fa-clock-rotate-left me-1"></i> Filtering Students with Attendance Below 75%</span>';
+            } else if (status === 'Low Marks') {
+                summaryText.innerHTML = '<span class="text-danger fw-bold"><i class="fa-solid fa-arrow-trend-down me-1"></i> Filtering Students with Average Marks Below 50%</span>';
+            } else if (hasActiveFilters) {
+                summaryText.innerHTML = '<span class="text-navy fw-semibold"><i class="fa-solid fa-filter me-1 text-primary"></i> Custom Filter Applied</span>';
+            } else {
+                summaryText.innerText = 'Showing all enrolled students';
+            }
+        }
+    }
+
+    function removeFilter(key) {
+        if (key === 'status') {
+            document.getElementById('statusFilter').value = 'All';
+        } else if (key === 'year') {
+            document.getElementById('yearFilter').value = 'All';
+        } else if (key === 'att') {
+            if (document.getElementById('attendanceRangeFilter')) document.getElementById('attendanceRangeFilter').value = 'All';
+        } else if (key === 'marks') {
+            if (document.getElementById('marksRangeFilter')) document.getElementById('marksRangeFilter').value = 'All';
+        } else if (key === 'search') {
+            clearSearchInput();
+            return;
+        }
+        syncAndFilterStudents();
+    }
+
     function resetFilters() {
         document.getElementById('searchInput').value = '';
+        const clearBtn = document.getElementById('clearSearchBtn');
+        if (clearBtn) clearBtn.style.display = 'none';
+
         if (document.getElementById('deptFilter')) document.getElementById('deptFilter').value = 'All';
         document.getElementById('yearFilter').value = 'All';
         document.getElementById('statusFilter').value = 'All';
+        if (document.getElementById('attendanceRangeFilter')) document.getElementById('attendanceRangeFilter').value = 'All';
+        if (document.getElementById('marksRangeFilter')) document.getElementById('marksRangeFilter').value = 'All';
+
+        document.querySelectorAll('.quick-chip').forEach(c => c.classList.remove('active'));
+        const chipAll = document.getElementById('chip-all');
+        if (chipAll) chipAll.classList.add('active');
+
         filterStudents();
     }
 
@@ -287,24 +771,60 @@
 
     function renderStudentsTable(students, totalCount) {
         const tbody = document.getElementById('studentsTableBody');
-        document.getElementById('studentsCountText').innerText = `Showing ${students.length} of ${totalCount} students`;
+        const countText = document.getElementById('studentsCountText');
+        if (countText) {
+            countText.innerHTML = `Showing <strong>${students.length}</strong> of <strong>${totalCount}</strong> matching students (Total: ${allStudentsData.length})`;
+        }
 
         if (!students || students.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="8" class="text-center py-5 text-muted">No students matching the selected criteria found.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center py-5 text-muted">
+                <i class="fa-solid fa-filter-circle-xmark fs-2 text-secondary mb-2 d-block"></i>
+                <div class="fw-semibold">No students matching the selected criteria found.</div>
+                <div class="fs-8 mt-1"><a href="javascript:void(0)" onclick="resetFilters()" class="text-decoration-none">Reset all filters</a> to view all students.</div>
+            </td></tr>`;
             return;
         }
 
         let html = '';
         students.forEach(s => {
-            const statusBadge = s.at_risk 
-                ? `<span class="badge-status badge-at-risk"><i class="fa-solid fa-triangle-exclamation me-1"></i> At Risk</span>`
-                : `<span class="badge-status badge-normal"><i class="fa-solid fa-circle-check me-1"></i> Normal</span>`;
-
             const attPct = parseFloat(s.attendance_percentage) || 0.0;
             const avgM = parseFloat(s.avg_marks) || 0.0;
+            const failed = parseInt(s.failed_subjects) || 0;
+
+            const isLowAtt = attPct < 75.0;
+            const isLowMarks = avgM < 50.0;
+            const isBothLow = isLowAtt && isLowMarks;
+
+            let statusBadge = '';
+            let rowClass = '';
+
+            if (isBothLow) {
+                rowClass = 'row-critical-risk';
+                statusBadge = `<span class="badge bg-danger text-white px-2 py-1 fs-8 fw-bold shadow-sm" title="Critical Academic Alert: Low Attendance (<75%) AND Low Marks (<50%)"><i class="fa-solid fa-triangle-exclamation me-1"></i> Low Att &amp; Marks</span>`;
+            } else if (isLowAtt) {
+                rowClass = 'row-warning-risk';
+                statusBadge = `<span class="badge bg-warning text-dark px-2 py-1 fs-8 fw-semibold" title="Attendance Shortage: Attendance is below 75%"><i class="fa-solid fa-clock-rotate-left me-1"></i> Low Attendance</span>`;
+            } else if (isLowMarks) {
+                rowClass = 'row-warning-risk';
+                statusBadge = `<span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1 fs-8 fw-semibold" title="Academic Concern: Average score is below 50%"><i class="fa-solid fa-arrow-trend-down me-1"></i> Low Marks</span>`;
+            } else if (failed > 0) {
+                statusBadge = `<span class="badge bg-secondary-subtle text-dark border px-2 py-1 fs-8 fw-semibold" title="${failed} internal subjects failed"><i class="fa-solid fa-circle-xmark text-danger me-1"></i> ${failed} Backlog(s)</span>`;
+            } else if (s.at_risk) {
+                statusBadge = `<span class="badge-status badge-at-risk"><i class="fa-solid fa-triangle-exclamation me-1"></i> At Risk</span>`;
+            } else {
+                statusBadge = `<span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 fs-8 fw-semibold"><i class="fa-solid fa-circle-check me-1"></i> Satisfactory</span>`;
+            }
+
+            const attBarColor = attPct < 60 ? 'bg-danger' : (attPct < 75 ? 'bg-warning' : 'bg-success');
+            const attTextColor = attPct < 75 ? 'text-danger' : 'text-dark';
+            const attWarningPill = attPct < 75 ? `<span class="badge bg-danger-subtle text-danger border border-danger-subtle fs-9 px-1 ms-1" title="Shortage (<75%)">Low</span>` : '';
+
+            const marksTextColor = avgM < 50 ? 'text-danger fw-bold' : 'text-dark fw-bold';
+            const marksFailPill = avgM < 50 ? `<span class="badge bg-danger text-white fs-9 ms-1" title="Score < 50%">Fail</span>` : '';
+            const backlogPill = failed > 0 ? `<span class="badge bg-danger-subtle text-danger border border-danger-subtle fs-9 ms-1" title="${failed} subject(s) failed">${failed} F</span>` : '';
 
             html += `
-                <tr id="studentRow-${s.studentid}">
+                <tr id="studentRow-${s.studentid}" class="${rowClass}">
                     <td class="font-monospace fw-bold text-navy">${s.regno || '---'}</td>
                     <td>
                         <div class="fw-semibold text-dark">${s.name}</div>
@@ -317,14 +837,21 @@
                         <div class="fs-8"><i class="fa-solid fa-phone text-muted me-1"></i> ${s.phone || '<span class="text-muted">Not registered</span>'}</div>
                     </td>
                     <td>
-                        <div class="d-flex align-items-center gap-2" style="min-width: 110px;">
+                        <div class="d-flex align-items-center gap-2" style="min-width: 120px;">
                             <div class="progress flex-grow-1" style="height: 6px;">
-                                <div class="progress-bar ${attPct < 75 ? 'bg-danger' : 'bg-success'}" style="width: ${attPct}%"></div>
+                                <div class="progress-bar ${attBarColor}" style="width: ${Math.min(attPct, 100)}%"></div>
                             </div>
-                            <span class="fw-bold fs-7">${attPct}%</span>
+                            <span class="fw-bold fs-7 ${attTextColor}">${attPct}%</span>
+                            ${attWarningPill}
                         </div>
                     </td>
-                    <td class="fw-bold fs-7 text-dark">${avgM}%</td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <span class="fs-7 ${marksTextColor}">${avgM}%</span>
+                            ${marksFailPill}
+                            ${backlogPill}
+                        </div>
+                    </td>
                     <td>${statusBadge}</td>
                     <td class="text-center">
                         <div class="btn-group btn-group-sm" role="group">
@@ -381,24 +908,7 @@
 
     function goToPage(page) {
         currentPage = page;
-        const search = document.getElementById('searchInput').value.toLowerCase().trim();
-        const dept = document.getElementById('deptFilter') ? document.getElementById('deptFilter').value : 'All';
-        const year = document.getElementById('yearFilter').value;
-        const status = document.getElementById('statusFilter').value;
-
-        let filtered = allStudentsData.filter(s => {
-            const matchesSearch = !search || 
-                (s.name && s.name.toLowerCase().includes(search)) || 
-                (s.regno && s.regno.toLowerCase().includes(search)) ||
-                (s.email && s.email.toLowerCase().includes(search));
-            const matchesDept = !dept || dept === 'All' || s.department === dept || (dept === 'Information Technology' && (s.department === 'IT' || s.department === 'Information Technology'));
-            const matchesYear = year === 'All' || s.year === year;
-            let matchesStatus = true;
-            if (status === 'At Risk') matchesStatus = s.at_risk;
-            if (status === 'Normal') matchesStatus = !s.at_risk;
-            return matchesSearch && matchesDept && matchesYear && matchesStatus;
-        });
-
+        const filtered = getFilteredStudents();
         renderPaginatedStudents(filtered);
     }
 

@@ -151,8 +151,9 @@
 
     <div class="col-lg-6">
         <div class="custom-table-card p-4">
-            <div class="card-title-bar">
+            <div class="card-title-bar d-flex justify-content-between align-items-center">
                 <h3><i class="fa-solid fa-triangle-exclamation me-2 text-coral"></i> At-Risk Students requiring Action</h3>
+                <a href="{{ url_for('hod.students_page') }}" class="btn btn-sm btn-outline-danger fs-7">Manage &amp; Filter All</a>
             </div>
             <div class="table-responsive">
                 <table class="table table-custom align-middle">

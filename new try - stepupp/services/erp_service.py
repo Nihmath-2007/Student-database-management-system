@@ -37,11 +37,13 @@ def log_erp_audit(table_name, record_id, action, field_name=None, old_val=None, 
 # 1. STUDENT MANAGEMENT MODULE (Full CRUD)
 # =========================================================================
 
-def erp_get_students(search=None, department=None, year=None, status=None, page=1, per_page=20):
+def erp_get_students(search=None, department=None, year=None, status=None, attendance_filter=None, marks_filter=None, page=1, per_page=20):
     """
     Fetches students with KPI aggregations, filtering, search, and pagination.
+    Supports low attendance (<75%), low marks (<50%), critical risk (both low),
+    failed subject backlogs, and ranking.
     """
-    cache_key = f"erp_stud_{search}_{department}_{year}_{status}_{page}_{per_page}"
+    cache_key = f"erp_stud_{search}_{department}_{year}_{status}_{attendance_filter}_{marks_filter}_{page}_{per_page}"
     cached = api_cache.get(cache_key)
     if cached is not None:
         return cached
@@ -96,22 +98,82 @@ def erp_get_students(search=None, department=None, year=None, status=None, page=
 
     all_rows = fetch_all(query, tuple(params)) or []
 
-    # Tag status
+    # Tag status & evaluate risk indicators
     processed = []
     for s in all_rows:
         att = float(s['attendance_percentage'] or 0.0)
         avg = float(s['avg_marks'] or 0.0)
-        if att < 75.0 or avg < 50.0:
+        failed = int(s.get('failed_subjects') or 0)
+        
+        is_low_att = att < 75.0
+        is_low_marks = avg < 50.0
+        is_both_low = is_low_att and is_low_marks
+
+        s['is_low_attendance'] = is_low_att
+        s['is_low_marks'] = is_low_marks
+        s['is_both_low'] = is_both_low
+        s['has_failed_subjects'] = failed > 0
+
+        if is_both_low or is_low_att or is_low_marks or failed > 0:
             s['status'] = 'At Risk'
             s['at_risk'] = True
         else:
             s['status'] = 'Normal'
             s['at_risk'] = False
 
-        if status == 'At Risk' and not s['at_risk']:
-            continue
-        if status == 'Normal' and s['at_risk']:
-            continue
+        if is_both_low:
+            s['risk_category'] = 'Critical'
+        elif is_low_att:
+            s['risk_category'] = 'Low Attendance'
+        elif is_low_marks:
+            s['risk_category'] = 'Low Marks'
+        elif failed > 0:
+            s['risk_category'] = 'Backlogs'
+        else:
+            s['risk_category'] = 'Normal'
+
+        # Status / Performance filter check
+        if status and status != 'All':
+            if status in ('Both Low', 'Critical', 'Low Attendance & Low Marks') and not is_both_low:
+                continue
+            elif status in ('Low Attendance', 'Low Attendance Only') and not is_low_att:
+                continue
+            elif status in ('Low Marks', 'Low Marks Only') and not is_low_marks:
+                continue
+            elif status in ('Failed Subjects', 'Backlogs') and failed == 0:
+                continue
+            elif status == 'At Risk' and not s['at_risk']:
+                continue
+            elif status == 'Normal' and s['at_risk']:
+                continue
+            elif status == 'Top Performers' and not (att >= 85.0 and avg >= 75.0 and failed == 0):
+                continue
+            elif status in ('Top Rank', 'Bottom Rank'):
+                pass  # Handled below in sorting
+
+        # Granular Attendance Level filter check
+        if attendance_filter and attendance_filter != 'All':
+            if attendance_filter in ('<75', 'below75') and att >= 75.0:
+                continue
+            elif attendance_filter in ('<60', 'below60') and att >= 60.0:
+                continue
+            elif attendance_filter in ('75-85', 'standard') and (att < 75.0 or att > 85.0):
+                continue
+            elif attendance_filter in ('≥85', 'above85', 'high') and att < 85.0:
+                continue
+
+        # Granular Marks Level filter check
+        if marks_filter and marks_filter != 'All':
+            if marks_filter in ('<50', 'below50') and avg >= 50.0:
+                continue
+            elif marks_filter in ('<40', 'below40') and avg >= 40.0:
+                continue
+            elif marks_filter in ('50-75', 'average') and (avg < 50.0 or avg > 75.0):
+                continue
+            elif marks_filter in ('≥75', 'above75', 'high') and avg < 75.0:
+                continue
+            elif marks_filter in ('hasFailed', 'backlogs') and failed == 0:
+                continue
 
         processed.append(s)
 
