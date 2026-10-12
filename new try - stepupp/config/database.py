@@ -13,7 +13,7 @@ DB_USER = os.getenv('DB_USER', 'avnadmin')
 DB_PASSWORD = os.getenv('DB_PASSWORD', '')
 DB_NAME = os.getenv('DB_NAME', 'defaultdb')
 DB_PORT = int(os.getenv('DB_PORT', 27403))
-DB_SSL_CA = os.getenv('DB_SSL_CA', 'C:/Users/khaal/Downloads/ca.pem')
+DB_SSL_CA = os.getenv('DB_SSL_CA', '')
 SECRET_KEY = os.getenv('SECRET_KEY', 'msec_it_student_analytics_secret_key_2026')
 DB_POOL_SIZE = int(os.getenv('DB_POOL_SIZE', 6))
 
@@ -100,7 +100,13 @@ class HighPerformanceMySQLPool:
             'buffered': True,
         }
         if DB_SSL_CA:
-            connect_kwargs['ssl_ca'] = DB_SSL_CA
+            import tempfile
+
+            ca_file = tempfile.NamedTemporaryFile(mode='w', suffix='.pem', delete=False)
+            ca_file.write(DB_SSL_CA)
+            ca_file.close()
+
+            connect_kwargs['ssl_ca'] = ca_file.name
             connect_kwargs['ssl_verify_cert'] = True
 
         return mysql.connector.connect(**connect_kwargs)
